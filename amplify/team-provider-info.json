@@ -1,0 +1,14 @@
+{
+    "react": {
+        "awscloudformation": {
+            "AuthRoleName": "video-bank-react-20190905101857-authRole",
+            "UnauthRoleArn": "arn:aws:iam::686023884246:role/video-bank-react-20190905101857-unauthRole",
+            "AuthRoleArn": "arn:aws:iam::686023884246:role/video-bank-react-20190905101857-authRole",
+            "Region": "eu-west-1",
+            "DeploymentBucketName": "video-bank-react-20190905101857-deployment",
+            "UnauthRoleName": "video-bank-react-20190905101857-unauthRole",
+            "StackName": "video-bank-react-20190905101857",
+            "StackId": "arn:aws:cloudformation:eu-west-1:686023884246:stack/video-bank-react-20190905101857/d0264530-cfb5-11e9-bdec-0abc187d3320"
+        }
+    }
+}
