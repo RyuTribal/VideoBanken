@@ -180,6 +180,10 @@ body {
   height: 50px;
 }
 
+.field-wrapper:focus-within{
+  border: 1px solid #f58714;
+}
+
 .password-wrap {
   width: calc(100% - 50px) !important;
 }
@@ -407,6 +411,11 @@ body {
   color: #f58714;
 }
 
+.password-desc{
+  color: black;
+  list-style: none;
+}
+
 .error {
   color: #d8000c;
   background-color: #ffbaba;
@@ -430,6 +439,26 @@ body {
 #date::-webkit-calendar-picker-indicator {
   display: none;
   -webkit-appearance: none;
+}
+
+
+
+#code-comf{
+  width: 0;
+  display: none;
+}
+
+#code-comf p{
+  text-align: left;
+  margin-bottom: 30px;
+}
+
+#code-comf a{
+  color: #f58714;
+}
+
+#code-comf a:hover{
+  color: #f58714;
 }
 
 @media screen and (max-width: 1024px) {

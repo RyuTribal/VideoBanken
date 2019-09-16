@@ -20,81 +20,96 @@ Amplify.configure({
 });
 
 const currentConfig = Auth.configure();
-
+var that;
 class Registration extends Component {
-  componentDidMount() {
-    var upperCase = new RegExp("[A-Z]");
-    var lowerCase = new RegExp("[a-z]");
-    var numbers = new RegExp("[0-9]");
-    $("#password").keyup(function() {
-      if ($(this).val().length >= 7) {
-        console.log("works");
-        $(".password-length").addClass("validPassword");
-      } else {
-        $(".password-length").removeClass("validPassword");
-      }
-      if (
-        $(this)
-          .val()
-          .match(upperCase) &&
-        $(this)
-          .val()
-          .match(lowerCase)
-      ) {
-        $(".password-upper").addClass("validPassword");
-      } else {
-        $(".password-upper").removeClass("validPassword");
-      }
-      if (
-        $(this)
-          .val()
-          .match(numbers)
-      ) {
-        $(".password-number").addClass("validPassword");
-      } else {
-        $(".password-number").removeClass("validPassword");
-      }
-      if ($("#password").val() == $("#password-repeat").val()) {
-        $(".password-match").addClass("validPassword");
-      } else {
-        $(".password-match").removeClass("validPassword");
-      }
-    });
-    $("#password-repeat").keyup(function() {
-      if ($("#password").val() == $("#password-repeat").val()) {
-        $(".password-match").addClass("validPassword");
-      } else {
-        $(".password-match").removeClass("validPassword");
-      }
-    });
-    var input = document.querySelector("#phone");
-    intlTelInput(input, {
-      dropdownContainer: document.body,
-      initialCountry: "se",
-      nationalMode: false,
-      formatOnDisplay: false,
-      separateDialCode: true,
-      preferredCountries: ["se", "gb"],
-      utilsScript: utils
-    });
-    $(".icon-wrapper").click(function() {
-      $(this)
-        .find("i")
-        .toggleClass("fa-eye");
-      $(this)
-        .find("i")
-        .toggleClass("fa-eye-slash");
-      var input = $(
-        $(this)
-          .find("i")
-          .attr("toggle")
-      );
-      if (input.attr("type") == "password") {
-        input.attr("type", "text");
-      } else {
-        input.attr("type", "password");
-      }
-    });
+  componentWillMount() {
+    that = this;
+    Auth.currentAuthenticatedUser({
+      bypassCache: false // Optional, By default is false. If set to true, this call will send a request to Cognito to get the latest user data
+    })
+      .then(function(user) {
+        that.props.history.push("/home")
+      })
+      .catch(function(err){
+        $("input").keyup(function(event) {
+          if (event.keyCode === 13) {
+            $(".login-btn-confirm").click();
+          }
+        });
+        var upperCase = new RegExp("[A-Z]");
+        var lowerCase = new RegExp("[a-z]");
+        var numbers = new RegExp("[0-9]");
+        $("#password").keyup(function() {
+          if ($(this).val().length >= 7) {
+            console.log("works");
+            $(".password-length").addClass("validPassword");
+          } else {
+            $(".password-length").removeClass("validPassword");
+          }
+          if (
+            $(this)
+              .val()
+              .match(upperCase) &&
+            $(this)
+              .val()
+              .match(lowerCase)
+          ) {
+            $(".password-upper").addClass("validPassword");
+          } else {
+            $(".password-upper").removeClass("validPassword");
+          }
+          if (
+            $(this)
+              .val()
+              .match(numbers)
+          ) {
+            $(".password-number").addClass("validPassword");
+          } else {
+            $(".password-number").removeClass("validPassword");
+          }
+          if ($("#password").val() == $("#password-repeat").val()) {
+            $(".password-match").addClass("validPassword");
+          } else {
+            $(".password-match").removeClass("validPassword");
+          }
+        });
+        $("#password-repeat").keyup(function() {
+          if ($("#password").val() == $("#password-repeat").val()) {
+            $(".password-match").addClass("validPassword");
+          } else {
+            $(".password-match").removeClass("validPassword");
+          }
+        });
+        var input = document.querySelector("#phone");
+        intlTelInput(input, {
+          dropdownContainer: document.body,
+          initialCountry: "se",
+          nationalMode: false,
+          formatOnDisplay: false,
+          separateDialCode: true,
+          preferredCountries: ["se", "gb"],
+          utilsScript: utils
+        });
+        $(".icon-wrapper").click(function() {
+          $(this)
+            .find("i")
+            .toggleClass("fa-eye");
+          $(this)
+            .find("i")
+            .toggleClass("fa-eye-slash");
+          var input = $(
+            $(this)
+              .find("i")
+              .attr("toggle")
+          );
+          if (input.attr("type") == "password") {
+            input.attr("type", "text");
+          } else {
+            input.attr("type", "password");
+          }
+        });
+      });
+    
   }
 
   manageReg() {
@@ -135,7 +150,14 @@ class Registration extends Component {
           phone_number: phone_number
         }
       })
-        .then(user => console.log(user))
+        .then(function(user) {
+          Auth.signIn({
+            username, // Required, the username
+            password // Optional, the password
+          }).then(function() {
+            that.props.history.push("/home");
+          });
+        })
         .catch(function(err) {
           console.log(err);
           if (
@@ -210,7 +232,7 @@ class Registration extends Component {
     return (
       <div className="login-container">
         <div className="form-container reg">
-        <h2 className="form-title">Sign up</h2>
+          <h2 className="form-title">Sign up</h2>
           <div className="form">
             <div class="col-md-6">
               <div className="label-error-wrapper">
@@ -394,15 +416,14 @@ class Registration extends Component {
             </div>
             <div class="col-md-6">
               <ul className="password-req">
+                <li className="password-desc">Password requirements:</li>
                 <li className="password-length">
-                  Password must be atleast 8 characters long
+                  Must be atleast 8 characters long
                 </li>
                 <li className="password-upper">
-                  Password must contain an uppercase and lowercase character
+                  Must contain an uppercase and lowercase character
                 </li>
-                <li className="password-number">
-                  Password must contain a number
-                </li>
+                <li className="password-number">Must contain a number</li>
                 <li className="password-match">Password must match</li>
               </ul>
             </div>

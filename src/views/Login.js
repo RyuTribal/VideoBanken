@@ -45,23 +45,37 @@ const federated = {
 
 // You can get the current config object
 const currentConfig = Auth.configure();
-
+var that;
 class Login extends Component {
-  componentDidMount() {
-    $(".icon-wrapper").click(function() {
-      $(this)
-        .find("i")
-        .toggleClass("fa-eye");
-      $(this)
-        .find("i")
-        .toggleClass("fa-eye-slash");
-      var input = $($(".toggle-password").attr("toggle"));
-      if (input.attr("type") == "password") {
-        input.attr("type", "text");
-      } else {
-        input.attr("type", "password");
-      }
-    });
+  componentWillMount() {
+    that = this;
+    Auth.currentAuthenticatedUser({
+      bypassCache: false // Optional, By default is false. If set to true, this call will send a request to Cognito to get the latest user data
+    })
+      .then(function(user) {
+        that.props.history.push("/home");
+      })
+      .catch(function() {
+        $("input").keyup(function(event) {
+          if (event.keyCode === 13) {
+            $(".login-btn-confirm").click();
+          }
+        });
+        $(".icon-wrapper").click(function() {
+          $(this)
+            .find("i")
+            .toggleClass("fa-eye");
+          $(this)
+            .find("i")
+            .toggleClass("fa-eye-slash");
+          var input = $($(".toggle-password").attr("toggle"));
+          if (input.attr("type") == "password") {
+            input.attr("type", "text");
+          } else {
+            input.attr("type", "password");
+          }
+        });
+      });
   }
   manageLogin() {
     $(".error").css("opacity", "0");
@@ -74,7 +88,7 @@ class Login extends Component {
       username, // Required, the username
       password // Optional, the password
     })
-      .then(user => console.log(user))
+      .then(user => that.props.history.push("/home"))
       .catch(function(err) {
         console.log(err);
         if (
@@ -111,7 +125,7 @@ class Login extends Component {
     return (
       <div className="login-container">
         <div className="form-container">
-        <h2 className="form-title">Sign in</h2>
+          <h2 className="form-title">Sign in</h2>
           <div className="form">
             <div className="error error-msg-wrong">
               <p>Username and password didn't match</p>
@@ -119,7 +133,11 @@ class Login extends Component {
             <div class="col-md-12">
               <div className="label-error-wrapper">
                 <label className="input-label" for="username">
-                  Username*:<Link className="forgot-info" to="username-reset"> Forgot username?</Link>
+                  Username*:
+                  <Link className="forgot-info" to="username-reset">
+                    {" "}
+                    Forgot username?
+                  </Link>
                 </label>
               </div>
               <div class="field-wrapper">
@@ -138,7 +156,11 @@ class Login extends Component {
             <div class="col-md-12">
               <div className="label-error-wrapper">
                 <label className="input-label" for="password">
-                  Password*: <Link className="forgot-info" to="password-reset"> Forgot password?</Link>
+                  Password*:{" "}
+                  <Link className="forgot-info" to="password-reset">
+                    {" "}
+                    Forgot password?
+                  </Link>
                 </label>
               </div>
               <div class="field-wrapper">
