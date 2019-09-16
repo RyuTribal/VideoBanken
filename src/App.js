@@ -7,6 +7,7 @@ import Start from "./views/Start";
 import Registration from "./views/Registration";
 import Login from "./views/Login";
 import Home from "./views/Home";
+import PasswordReset from "./views/PasswordReset";
 
 class App extends Component {
   render() {
@@ -23,6 +24,7 @@ class App extends Component {
                   <Route path="/login" component={Login} />
                   <Route path="/registration" component={Registration} />
                   <Route path="/home" component={Home} />
+                  <Route path="/password-reset" component={PasswordReset} />
                 </Switch>
               );
             }}

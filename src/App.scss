@@ -225,6 +225,7 @@ body {
 .label-error-wrapper {
   display: flex;
   justify-content: flex-start;
+  margin-bottom: 15px;
 }
 
 .input-label {
@@ -232,6 +233,7 @@ body {
   font-weight: bold;
   display: flex;
   align-items: center;
+  font-size: 12px;
 }
 
 .login-btn-confirm {
@@ -331,6 +333,20 @@ body {
   color: #4285f4;
 }
 
+.password-req{
+  color: #d8000c;
+  font-weight: bold;
+  font-size: 13px;
+}
+
+.password-req li{
+  margin-bottom: 15px;
+}
+
+.validPassword{
+  color: #23DC3D !important;
+}
+
 .hr-text {
   margin-top: 15%;
   line-height: 1em;
@@ -382,6 +398,15 @@ body {
   color: #f58714;
 }
 
+.forgot-info{
+  color: #f58714;
+  margin-left: 15px;
+}
+
+.forgot-info:hover{
+  color: #f58714;
+}
+
 .error {
   color: #d8000c;
   background-color: #ffbaba;
@@ -394,6 +419,8 @@ body {
   align-items: center;
   opacity: 0;
   transition: opacity 0.6s;
+  margin-left: 5px;
+  position: relative;
 }
 
 #date::-webkit-inner-spin-button {

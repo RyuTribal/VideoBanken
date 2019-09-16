@@ -65,7 +65,9 @@ class Login extends Component {
   }
   manageLogin() {
     $(".error").css("opacity", "0");
-    $('.error').find("p").text()
+    $(".error")
+      .find("p")
+      .text();
     var username = $("#username").val();
     var password = $("#password").val();
     Auth.signIn({
@@ -83,7 +85,12 @@ class Login extends Component {
           $("input").each(function() {
             if ($(this).val() == "") {
               var nameInput = $(this).attr("name");
-              $(this).parent().parent().find('.error').find("p").text("Please enter a " + nameInput);
+              $(this)
+                .parent()
+                .parent()
+                .find(".error")
+                .find("p")
+                .text("Please enter a " + nameInput);
               $(this)
                 .parent()
                 .parent()
@@ -104,6 +111,7 @@ class Login extends Component {
     return (
       <div className="login-container">
         <div className="form-container">
+        <h2 className="form-title">Sign in</h2>
           <div className="form">
             <div className="error error-msg-wrong">
               <p>Username and password didn't match</p>
@@ -111,11 +119,8 @@ class Login extends Component {
             <div class="col-md-12">
               <div className="label-error-wrapper">
                 <label className="input-label" for="username">
-                  Username*:
+                  Username*:<Link className="forgot-info" to="username-reset"> Forgot username?</Link>
                 </label>
-                <div className="error error-msg-pass">
-                  <p></p>
-                </div>
               </div>
               <div class="field-wrapper">
                 <input
@@ -126,15 +131,15 @@ class Login extends Component {
                   placeholder="eg. TheTerminator2008"
                 />
               </div>
+              <div className="error error-msg-pass">
+                <p></p>
+              </div>
             </div>
             <div class="col-md-12">
               <div className="label-error-wrapper">
                 <label className="input-label" for="password">
-                  Password*:
+                  Password*: <Link className="forgot-info" to="password-reset"> Forgot password?</Link>
                 </label>
-                <div className="error error-msg-pass">
-                  <p></p>
-                </div>
               </div>
               <div class="field-wrapper">
                 <input
@@ -149,6 +154,9 @@ class Login extends Component {
                     className="fas fa-eye toggle-password"
                   ></i>
                 </div>
+              </div>
+              <div className="error error-msg-pass">
+                <p></p>
               </div>
             </div>
             <button className="login-btn-confirm" onClick={this.manageLogin}>
