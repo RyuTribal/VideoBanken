@@ -134,10 +134,6 @@ class Login extends Component {
               <div className="label-error-wrapper">
                 <label className="input-label" for="username">
                   Username*:
-                  <Link className="forgot-info" to="username-reset">
-                    {" "}
-                    Forgot username?
-                  </Link>
                 </label>
               </div>
               <div class="field-wrapper">

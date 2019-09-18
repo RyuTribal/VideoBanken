@@ -180,7 +180,7 @@ body {
   height: 50px;
 }
 
-.field-wrapper:focus-within{
+.field-wrapper:focus-within {
   border: 1px solid #f58714;
 }
 
@@ -337,18 +337,18 @@ body {
   color: #4285f4;
 }
 
-.password-req{
+.password-req {
   color: #d8000c;
   font-weight: bold;
   font-size: 13px;
 }
 
-.password-req li{
+.password-req li {
   margin-bottom: 15px;
 }
 
-.validPassword{
-  color: #23DC3D !important;
+.validPassword {
+  color: #23dc3d !important;
 }
 
 .hr-text {
@@ -402,16 +402,16 @@ body {
   color: #f58714;
 }
 
-.forgot-info{
+.forgot-info {
   color: #f58714;
   margin-left: 15px;
 }
 
-.forgot-info:hover{
+.forgot-info:hover {
   color: #f58714;
 }
 
-.password-desc{
+.password-desc {
   color: black;
   list-style: none;
 }
@@ -432,6 +432,24 @@ body {
   position: relative;
 }
 
+.title-container h2{
+  display: inline-block;
+  margin-left: auto;
+  margin-right: auto;
+  
+}
+
+.title-container a{
+  float: left;
+  font-size: 40px;
+  color: #f58714;
+  margin-left: 30px;
+}
+
+.title-container a:hover{
+  color: orange;
+}
+
 #date::-webkit-inner-spin-button {
   display: none;
 }
@@ -441,24 +459,51 @@ body {
   -webkit-appearance: none;
 }
 
-
-
-#code-comf{
-  width: 0;
+#code-comf {
   display: none;
 }
 
-#code-comf p{
+#code-comf p {
   text-align: left;
   margin-bottom: 30px;
 }
 
-#code-comf a{
+#code-comf a {
   color: #f58714;
 }
 
-#code-comf a:hover{
+#code-comf a:hover {
   color: #f58714;
+}
+
+.confirm-password-btn {
+  display: none;
+}
+
+#confirm-password {
+  display: none;
+  padding: 0;
+}
+
+#new-password {
+  display: none;
+  padding: 0;
+}
+
+#redirect-new-pass{
+  display: none;
+}
+
+#redirect-new-pass a{
+  color: #f58714;
+}
+
+#redirect-new-pass a:hover{
+  color: #f58714;
+}
+
+#new-pass-req {
+  display: none;
 }
 
 @media screen and (max-width: 1024px) {
