@@ -19,20 +19,22 @@ Amplify.configure({
 var that;
 const currentConfig = Auth.configure();
 class Home extends Component {
-  componentWillMount() {
+
+  componentDidMount(prevProps) {
     that = this;
     Auth.currentAuthenticatedUser({
       bypassCache: false // Optional, By default is false. If set to true, this call will send a request to Cognito to get the latest user data
     })
       .then(function(user) {
+        console.log(user)
         $('h1').text("Welcome "+user.username)
       })
       .catch(err => that.props.history.push("/login"));
   }
-  manageLogOut(){
+  manageLogOut() {
     Auth.signOut()
-    .then(data => that.props.history.push("/login"))
-    .catch(err => console.log(err));
+      .then(data => that.props.history.push("/login"))
+      .catch(err => console.log(err));
   }
   render() {
     return (

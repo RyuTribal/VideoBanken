@@ -156,7 +156,7 @@ class Registration extends Component {
             password // Optional, the password
           }).then(function() {
             that.props.history.push("/home");
-          });
+          }).catch(err => console.log(err));
         })
         .catch(function(err) {
           console.log(err);
