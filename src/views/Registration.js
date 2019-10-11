@@ -1,25 +1,9 @@
 import React, { Component } from "react";
 import { Link } from "react-router-dom";
-import Amplify from "aws-amplify";
 import { Auth, Hub } from "aws-amplify";
-import awsconfig from "../aws-exports";
 import $ from "jquery";
 import intlTelInput from "intl-tel-input/build/js/intlTelInput";
 import utils from "intl-tel-input/build/js/utils";
-
-Amplify.configure(awsconfig);
-
-Amplify.configure({
-  Auth: {
-    // REQUIRED - Amazon Cognito Region
-    region: "eu-west-1",
-    // OPTIONAL - Amazon Cognito User Pool ID
-    userPoolId: "eu-west-1_2Kqz9413g",
-    userPoolWebClientId: "7lgiaa2fnd810mh5orp5evuf93"
-  }
-});
-
-const currentConfig = Auth.configure();
 var that;
 class Registration extends Component {
   componentWillMount() {
@@ -234,13 +218,13 @@ class Registration extends Component {
         <div className="form-container reg">
           <h2 className="form-title">Sign up</h2>
           <div className="form">
-            <div class="col-md-6">
+            <div className="col-md-6">
               <div className="label-error-wrapper">
                 <label className="input-label" for="username">
                   Username*:
                 </label>
               </div>
-              <div class="field-wrapper">
+              <div className="field-wrapper">
                 <input
                   type="text"
                   id="username"
@@ -253,13 +237,13 @@ class Registration extends Component {
                 <p></p>
               </div>
             </div>
-            <div class="col-md-6">
+            <div className="col-md-6">
               <div className="label-error-wrapper">
                 <label className="input-label" for="first-name">
                   Given name*:
                 </label>
               </div>
-              <div class="field-wrapper">
+              <div className="field-wrapper">
                 <input
                   type="text"
                   id="first-name"
@@ -272,13 +256,13 @@ class Registration extends Component {
                 <p></p>
               </div>
             </div>
-            <div class="col-md-6">
+            <div className="col-md-6">
               <div className="label-error-wrapper">
                 <label className="input-label" for="last-name">
                   Family name*:
                 </label>
               </div>
-              <div class="field-wrapper">
+              <div className="field-wrapper">
                 <input
                   type="text"
                   id="last-name"
@@ -291,13 +275,13 @@ class Registration extends Component {
                 <p></p>
               </div>
             </div>
-            <div class="col-md-6">
+            <div className="col-md-6">
               <div className="label-error-wrapper">
                 <label className="input-label" for="email">
                   Email*:
                 </label>
               </div>
-              <div class="field-wrapper">
+              <div className="field-wrapper">
                 <input
                   type="email"
                   id="email"
@@ -310,13 +294,13 @@ class Registration extends Component {
                 <p></p>
               </div>
             </div>
-            <div class="col-md-6">
+            <div className="col-md-6">
               <div className="label-error-wrapper">
                 <label className="input-label" for="adress">
                   Adress*:
                 </label>
               </div>
-              <div class="field-wrapper">
+              <div className="field-wrapper">
                 <input
                   type="text"
                   id="adress"
@@ -329,13 +313,13 @@ class Registration extends Component {
                 <p></p>
               </div>
             </div>
-            <div class="col-md-6">
+            <div className="col-md-6">
               <div className="label-error-wrapper">
                 <label className="input-label" for="date">
                   Date of birth*:
                 </label>
               </div>
-              <div class="field-wrapper">
+              <div className="field-wrapper">
                 <input
                   type="date"
                   id="date"
@@ -348,13 +332,13 @@ class Registration extends Component {
               </div>
             </div>
 
-            <div id="tel-container" class="col-md-6">
+            <div id="tel-container" className="col-md-6">
               <div className="label-error-wrapper">
                 <label className="input-label" for="telephone">
                   Telephone*:
                 </label>
               </div>
-              <div class="field-wrapper">
+              <div className="field-wrapper">
                 <input
                   type="tel"
                   id="phone"
@@ -366,13 +350,13 @@ class Registration extends Component {
                 <p></p>
               </div>
             </div>
-            <div class="col-md-6">
+            <div className="col-md-6">
               <div className="label-error-wrapper">
                 <label className="input-label" for="password">
                   Password*:
                 </label>
               </div>
-              <div class="field-wrapper">
+              <div className="field-wrapper">
                 <input
                   id="password"
                   type="password"
@@ -390,13 +374,13 @@ class Registration extends Component {
                 <p></p>
               </div>
             </div>
-            <div class="col-md-6">
+            <div className="col-md-6">
               <div className="label-error-wrapper">
                 <label className="input-label" for="password-repeat">
                   Confirm*:
                 </label>
               </div>
-              <div class="field-wrapper">
+              <div className="field-wrapper">
                 <input
                   id="password-repeat"
                   type="password"
@@ -414,7 +398,7 @@ class Registration extends Component {
                 <p></p>
               </div>
             </div>
-            <div class="col-md-6">
+            <div className="col-md-6">
               <ul className="password-req">
                 <li className="password-desc">Password requirements:</li>
                 <li className="password-length">

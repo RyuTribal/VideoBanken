@@ -18,6 +18,33 @@ body {
   height: 100%;
 }
 
+button {
+  padding: 10px 20px;
+  font-size: 15px;
+  border: none;
+  border-radius: 32px;
+  transition: opacity 0.5s;
+}
+
+button:hover {
+  transition: opacity 0.5s;
+  opacity: 0.85;
+}
+
+select {
+  padding: 10px 25px;
+  border-radius: 32px;
+}
+
+select:focus {
+  outline: none;
+}
+
+textarea {
+  resize: vertical;
+  height: 200px !important;
+}
+
 .iti__flag {
   background-image: url("./commercial/phone/img/flags.png");
 }
@@ -432,21 +459,20 @@ body {
   position: relative;
 }
 
-.title-container h2{
+.title-container h2 {
   display: inline-block;
   margin-left: auto;
   margin-right: auto;
-  
 }
 
-.title-container a{
+.title-container a {
   float: left;
   font-size: 40px;
   color: #f58714;
   margin-left: 30px;
 }
 
-.title-container a:hover{
+.title-container a:hover {
   color: orange;
 }
 
@@ -490,15 +516,15 @@ body {
   padding: 0;
 }
 
-#redirect-new-pass{
+#redirect-new-pass {
   display: none;
 }
 
-#redirect-new-pass a{
+#redirect-new-pass a {
   color: #f58714;
 }
 
-#redirect-new-pass a:hover{
+#redirect-new-pass a:hover {
   color: #f58714;
 }
 
@@ -506,6 +532,173 @@ body {
   display: none;
 }
 
+.home-navigation {
+  height: 100%;
+  width: 0;
+  position: fixed;
+  z-index: 1;
+  top: 0;
+  left: 0;
+  background-color: beige;
+  overflow-x: hidden;
+  transition: 0.2s;
+  padding-top: 60px;
+}
+
+.home-navigation a {
+  padding: 8px 8px 8px 32px;
+  text-decoration: none;
+  font-size: 25px;
+  color: #818181;
+  display: block;
+  transition: 0.3s;
+}
+
+.home-navigation a:hover {
+  color: #f1f1f1;
+}
+
+.home-navigation .closebtn {
+  position: absolute;
+  top: 0;
+  right: 25px;
+  font-size: 36px;
+  margin-left: 50px;
+}
+
+.home-navigation .closebtn:focus {
+  color: transparent;
+}
+
+.navigation-container {
+  background-color: white;
+  border-bottom: 1px solid #ededed;
+  width: 100%;
+  position: fixed;
+  right: 0;
+  transition: width 0.2s;
+  padding: 10px 15px 10px 15px;
+  display: inline-block;
+  min-width: 130px;
+  z-index: 10;
+}
+
+.navigation-container button:focus {
+  outline: none;
+}
+
+.openNav {
+  font-size: 20px;
+  cursor: pointer;
+  background-color: transparent;
+  color: black;
+  border: none;
+  padding: 0;
+}
+
+.openNav:hover {
+  color: #444;
+  opacity: unset;
+}
+
+#main-content {
+  transition: width 0.2s;
+  float: right;
+  width: 100%;
+}
+
+.inner-content {
+  padding-left: 15px;
+  padding-right: 15px;
+  padding-top: 80px;
+  padding-bottom: 50px;
+  max-width: 1284px !important;
+  margin: 0 auto;
+  display: flex;
+  justify-content: center;
+}
+
+.navigation-container button {
+  color: #c7c6c6;
+  transition: color 0.5s;
+}
+
+.navigation-container button:hover {
+  color: grey;
+  transition: color 0.5s;
+}
+
+.navigation-container a {
+  color: #c7c6c6;
+  transition: color 0.5s;
+}
+
+.navigation-container a:hover {
+  color: grey;
+  transition: color 0.5s;
+}
+
+.add-video {
+  font-size: 20px;
+  cursor: pointer;
+  background-color: transparent;
+  color: black;
+  border: none;
+  float: right;
+}
+
+.video-upload-container {
+  min-width: 400px;
+}
+
+.file-name {
+  font-style: italic;
+  color: #c7c6c6;
+  display: inline-block;
+}
+
+.row {
+  padding-left: 100px;
+  padding-right: 100px;
+}
+
+.col-md-6 {
+  padding-left: 0;
+}
+
+.thumbnail-preview {
+  height: auto;
+  width: 100%;
+  max-height: 400px;
+  max-width: 600px;
+}
+
+.upload {
+  display: none;
+}
+
+.category {
+  margin-left: 40%;
+}
+
+.thumbnail-upload-button {
+  // background-color: #77dd77;
+  background-color: #24a0ed;
+  color: white;
+  width: 100%;
+}
+
+#save-video {
+  background-color: rgba(0, 197, 79, 0.9);
+  width: 30%;
+  color: white;
+  float: right;
+}
+
+#abort-video {
+  background-color: #e5e5e5;
+  width: 30%;
+}
 @media screen and (max-width: 1024px) {
   #allWrapper {
     align-items: flex-end;
@@ -515,9 +708,36 @@ body {
   }
 }
 
+@media screen and (max-width: 667px) {
+  .category {
+    margin-left: 30%;
+  }
+}
+
+@media screen and (max-width: 476px) {
+  #save-video {
+    width: 40%;
+    
+  }
+
+  #abort-video {
+    width: 40%;
+  }
+}
+
+@media screen and (max-width: 568px) and (orientation: landscape) {
+  .category {
+    margin-left: 10%;
+  }
+}
+
 @media screen and(max-width: 500px) {
   .form {
     min-width: 315px;
+  }
+
+  .category {
+    margin-left: 0;
   }
 }
 

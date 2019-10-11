@@ -1,25 +1,9 @@
 import React, { Component } from "react";
 import $ from "jquery";
 import { Link } from "react-router-dom";
-import Amplify from "aws-amplify";
 import { Auth, Hub } from "aws-amplify";
-import awsconfig from "../aws-exports";
 import slick from "../commercial/slick/slick";
 import { blockStatement } from "@babel/types";
-
-Amplify.configure(awsconfig);
-
-Amplify.configure({
-  Auth: {
-    // REQUIRED - Amazon Cognito Region
-    region: "eu-west-1",
-    // OPTIONAL - Amazon Cognito User Pool ID
-    userPoolId: "eu-west-1_2Kqz9413g",
-    userPoolWebClientId: "7lgiaa2fnd810mh5orp5evuf93"
-  }
-});
-
-const currentConfig = Auth.configure();
 
 class PasswordReset extends Component {
   componentDidMount() {
@@ -210,7 +194,7 @@ class PasswordReset extends Component {
                   Username*:
                 </label>
               </div>
-              <div class="field-wrapper">
+              <div className="field-wrapper">
                 <input
                   type="text"
                   id="username"
@@ -236,7 +220,7 @@ class PasswordReset extends Component {
                   Code*:
                 </label>
               </div>
-              <div class="field-wrapper">
+              <div className="field-wrapper">
                 <input
                   type="text"
                   id="code"
@@ -255,7 +239,7 @@ class PasswordReset extends Component {
                   New password*:
                 </label>
               </div>
-              <div class="field-wrapper">
+              <div className="field-wrapper">
                 <input
                   type="password"
                   id="new_password"
@@ -279,7 +263,7 @@ class PasswordReset extends Component {
                   Confirm Password*:
                 </label>
               </div>
-              <div class="field-wrapper">
+              <div className="field-wrapper">
                 <input
                   type="password"
                   id="confirm"
@@ -298,7 +282,7 @@ class PasswordReset extends Component {
                 <p></p>
               </div>
             </div>
-            <div id="new-pass-req" class="col-md-12">
+            <div id="new-pass-req" className="col-md-12">
               <ul className="password-req">
                 <li className="password-desc">Password requirements:</li>
                 <li className="password-length">

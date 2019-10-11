@@ -6,18 +6,6 @@ import awsconfig from "../aws-exports";
 import $ from "jquery";
 import { withFederated } from "aws-amplify-react";
 
-Amplify.configure(awsconfig);
-
-Amplify.configure({
-  Auth: {
-    // REQUIRED - Amazon Cognito Region
-    region: "eu-west-1",
-    // OPTIONAL - Amazon Cognito User Pool ID
-    userPoolId: "eu-west-1_2Kqz9413g",
-    userPoolWebClientId: "7lgiaa2fnd810mh5orp5evuf93"
-  }
-});
-
 const Buttons = props => (
   <div>
     <button className="social-btn">
@@ -44,7 +32,6 @@ const federated = {
 };
 
 // You can get the current config object
-const currentConfig = Auth.configure();
 var that;
 class Login extends Component {
   componentWillMount() {
@@ -130,13 +117,13 @@ class Login extends Component {
             <div className="error error-msg-wrong">
               <p>Username and password didn't match</p>
             </div>
-            <div class="col-md-12">
+            <div className="col-md-12">
               <div className="label-error-wrapper">
                 <label className="input-label" for="username">
                   Username*:
                 </label>
               </div>
-              <div class="field-wrapper">
+              <div className="field-wrapper">
                 <input
                   type="text"
                   id="username"
@@ -149,7 +136,7 @@ class Login extends Component {
                 <p></p>
               </div>
             </div>
-            <div class="col-md-12">
+            <div className="col-md-12">
               <div className="label-error-wrapper">
                 <label className="input-label" for="password">
                   Password*:{" "}
@@ -159,7 +146,7 @@ class Login extends Component {
                   </Link>
                 </label>
               </div>
-              <div class="field-wrapper">
+              <div className="field-wrapper">
                 <input
                   id="password"
                   type="password"
@@ -181,10 +168,10 @@ class Login extends Component {
               Login
             </button>
             <hr className="hr-text" data-content="or sign in with" />
-            <div class="col-md-12">
+            <div className="col-md-12">
               <Federated federated={federated} />
             </div>
-            <div class="col-md-12">
+            <div className="col-md-12">
               <div className="reg-links">
                 Don't an account? <Link to="/registration">Register here</Link>
               </div>

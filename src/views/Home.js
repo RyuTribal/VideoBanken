@@ -1,49 +1,101 @@
 import React, { Component } from "react";
-import { Link } from "react-router-dom";
-import Amplify from "aws-amplify";
+import { BrowserRouter, Switch, Route, Link } from "react-router-dom";
 import { Auth, Hub } from "aws-amplify";
-import awsconfig from "../aws-exports";
 import $ from "jquery";
-
-Amplify.configure(awsconfig);
-
-Amplify.configure({
-  Auth: {
-    // REQUIRED - Amazon Cognito Region
-    region: "eu-west-1",
-    // OPTIONAL - Amazon Cognito User Pool ID
-    userPoolId: "eu-west-1_2Kqz9413g",
-    userPoolWebClientId: "7lgiaa2fnd810mh5orp5evuf93"
-  }
-});
+import VideoUpload from "./VideoUpload";
+import HomeFeed from "./HomeFeed";
 var that;
-const currentConfig = Auth.configure();
 class Home extends Component {
-
   componentDidMount(prevProps) {
-    that = this;
-    Auth.currentAuthenticatedUser({
-      bypassCache: false // Optional, By default is false. If set to true, this call will send a request to Cognito to get the latest user data
-    })
-      .then(function(user) {
-        console.log(user)
-        $('h1').text("Welcome "+user.username)
-      })
-      .catch(err => that.props.history.push("/login"));
+    $("html").click(function() {
+      closeNav();
+    });
+
+    $("#app-nav").click(function(event) {
+      event.stopPropagation();
+    });
+
+    $(".closebtn").click(function() {
+      closeNav();
+    });
   }
-  manageLogOut() {
-    Auth.signOut()
-      .then(data => that.props.history.push("/login"))
-      .catch(err => console.log(err));
+
+  redirectToVideo() {
+    that.props.history.push(`${that.props.match.path}/video-upload`);
+  }
+
+  componentWillUnmount(){
+    
   }
   render() {
     return (
-      <div>
-        <h1></h1>
-        <button onClick={this.manageLogOut}>Logout</button>
-      </div>
+      <BrowserRouter>
+        <div>
+          <div id="app-nav" className="home-navigation">
+            <a
+              href="javascript:void(0)"
+              className="closebtn"
+              onClick={closeNav}
+            >
+              ×
+            </a>
+            <a href="#">About</a>
+            <a href="#">Services</a>
+            <a href="#">Clients</a>
+            <a href="#">Contact</a>
+          </div>
+          <main id="main-content" className="content-container">
+            <nav className="navigation-container">
+              <button className="openNav" onClick={openNav}>
+                ☰
+              </button>
+              <Link
+                className="add-video"
+                to={`${this.props.match.path}/video-upload`}
+              >
+                <i className="fas fa-video"></i>
+              </Link>
+            </nav>
+            <div id="inner-content" className="inner-content">
+              <Route
+                render={props=>{
+
+                  return (
+                    <Switch>
+                      <Route
+                        exact
+                        path={this.props.match.path}
+                        component={HomeFeed}
+                      />
+                      <Route
+                        path={`${this.props.match.path}/video-upload`}
+                        component={VideoUpload}
+                      />
+                    </Switch>
+                  );
+                }}
+              />
+            </div>
+          </main>
+        </div>
+      </BrowserRouter>
     );
   }
+}
+
+function openNav() {
+  if (!$("#app-nav").css("width", "0")) {
+    closeNav();
+  } else {
+    document.getElementById("app-nav").style.width = "280px";
+    $("#main-content").css("width", "calc(100% - 280px)");
+    $(".navigation-container").css("width", "calc(100% - 280px)");
+  }
+}
+function closeNav() {
+  document.getElementById("app-nav").style.width = "0";
+  $("#main-content").css("width", "100%");
+  $(".navigation-container").css("width", "100%");
 }
 
 export default Home;
