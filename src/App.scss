@@ -678,7 +678,7 @@ textarea {
 }
 
 .category {
-  margin-left: 40%;
+  margin-left: 63%;
 }
 
 .thumbnail-upload-button {
@@ -690,14 +690,14 @@ textarea {
 
 #save-video {
   background-color: rgba(0, 197, 79, 0.9);
-  width: 30%;
+  width: 40%;
   color: white;
   float: right;
 }
 
 #abort-video {
   background-color: #e5e5e5;
-  width: 30%;
+  width: 40%;
 }
 @media screen and (max-width: 1024px) {
   #allWrapper {
@@ -716,7 +716,7 @@ textarea {
 
 @media screen and (max-width: 476px) {
   #save-video {
-    width: 40%;
+    width: 50%;
     
   }
 

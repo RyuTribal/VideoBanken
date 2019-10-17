@@ -43,17 +43,16 @@ class VideoUpload extends Component {
                 className="thumbnail-upload-button"
                 onClick={this.handleVideoUpload}
               >
-                <i className="fas fa-file-video"></i> Upload Video
+                <i className="fas fa-file-video"></i> Ladda upp video
               </button>
             </div>
           </div>
           <div className="row">
             <div className="video-category col-md-12">
-              <p className="file-name">(No file has been selected)</p>
+              <p className="file-name">(Ingen fil vald)</p>
               <select className="category">
-                <option name="choice">Category</option>
-                <option name="casual">Casual</option>
-                <option name="drill">Drill</option>
+                <option name="choice">Kategori</option>
+                <option name="drill">Övning</option>
               </select>
             </div>
           </div>
@@ -76,7 +75,7 @@ class VideoUpload extends Component {
                 className="thumbnail-upload-button"
                 onClick={this.handleThumbnailUpload}
               >
-                <i className="fas fa-upload"></i> Upload thumbnail
+                <i className="fas fa-upload"></i> Ladda upp thumbnail
               </button>
             </div>
             <div className="row">
@@ -93,7 +92,7 @@ class VideoUpload extends Component {
             <div className="col-md-12">
               <div className="label-error-wrapper">
                 <label className="input-label" for="video-title">
-                  Video Title*:
+                  Video Titel*:
                 </label>
               </div>
               <div className="field-wrapper">
@@ -113,7 +112,7 @@ class VideoUpload extends Component {
             <div className="col-md-12">
               <div className="label-error-wrapper">
                 <label className="input-label" for="video-desc">
-                  Description*:
+                  Beskrivning*:
                 </label>
               </div>
               <div className="field-wrapper">
@@ -132,7 +131,7 @@ class VideoUpload extends Component {
             <div className="col-md-12">
               <div className="label-error-wrapper">
                 <label className="input-label" for="video-hashtags">
-                  Hashtags*:
+                  Hashtags:
                 </label>
               </div>
               <div className="field-wrapper">
@@ -152,10 +151,10 @@ class VideoUpload extends Component {
           <div className="row">
             <div className="col-md-12">
               <button className="save" id="save-video" onClick={this.handleUppload}>
-                Upload
+                Ladda upp
               </button>
               <button className="abort" id="abort-video">
-                Cancel
+                Avbryt
               </button>
             </div>
           </div>
