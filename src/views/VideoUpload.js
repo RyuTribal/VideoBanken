@@ -3,10 +3,26 @@ import { BrowserRouter, Switch, Route } from "react-router-dom";
 import noThumbnail from "../img/no-thumbnail.jpg";
 import $ from "jquery";
 import Amplify from "aws-amplify";
-import { Auth, Hub, Storage } from "aws-amplify";
+import { Auth, Hub, Storage, API, graphqlOperation } from "aws-amplify";
 import awsconfig from "../aws-exports";
+import * as queries from "../graphql/queries";
+import * as mutations from "../graphql/mutations";
 
+Storage.configure({ track: true });
+var that;
 class VideoUpload extends Component {
+  user = "";
+  componentDidMount() {
+    that = this;
+    console.log(this.props);
+    Auth.currentAuthenticatedUser({
+      bypassCache: false // Optional, By default is false. If set to true, this call will send a request to Cognito to get the latest user data
+    })
+      .then(function(user) {
+        that.user = user;
+      })
+      .catch(err => that.props.history.push("/login"));
+  }
   handleThumbnailUpload(event) {
     document
       .getElementById("thumbnail-uploader")
@@ -21,11 +37,70 @@ class VideoUpload extends Component {
     $("#video-uploader").trigger("click");
   }
 
-  handleUppload(){
-    var nameOfFile = $('')
-    Storage.put('test.txt', 'Hello')
-    .then (result => console.log(result)) // {key: "test.txt"}
-    .catch(err => console.log(err));
+  handleUpload() {
+    var thumbnail = document.getElementById("thumbnail-uploader").files[0];
+    var video = document.getElementById("video-uploader").files[0];
+    var thumbtype = thumbnail.type.split("/")[1];
+    var videotype = video.type.split("/")[1];
+    var exists = false;
+    Storage.list("uploads/").then(function(result) {
+      var randomString = rndStr();
+      console.log(randomString);
+      for (var i = 0; i < result.length; i++) {
+        if (
+          result[i].key ==
+          `uploads/${randomString}-${that.user.username}.${videotype}`
+        ) {
+          randomString = rndStr();
+          i = 0;
+          exists = true;
+        } else {
+          exists = false;
+        }
+      }
+      if (exists == false) {
+        Storage.put(
+          `uploads/${randomString}-${that.user.username}.${videotype}`,
+          video,
+          {
+            progressCallback(progress) {
+              console.log(`Uploaded: ${progress.loaded}/${progress.total}`);
+            }
+          }
+        )
+          .then(function(result) {
+            Storage.put(
+              `uploads/${randomString}-${that.user.username}.${thumbtype}`,
+              thumbnail,
+              {
+                progressCallback(progress) {
+                  console.log(`Uploaded: ${progress.loaded}/${progress.total}`);
+                }
+              }
+            )
+              .then(function(result) {
+                const videoDetails = {
+                  username: that.user.username,
+                  videoKey: `uploads/${randomString}-${that.user.username}.${videotype}`,
+                  videoDesc: $("#video-desc").val(),
+                  videoTitle: $("#video-title").val(),
+                  thumbKey: `uploads/${randomString}-${that.user.username}.${thumbtype}`,
+                  tags: JSON.stringify({"tag1":"default"}),
+                  category: "default",
+                  createdAt: new Date().toISOString()
+                };
+                console.log(videoDetails)
+                const newVideo = API.graphql(
+                  graphqlOperation(mutations.createVideoStorage, { input: videoDetails })
+                )
+                  .then(result => console.log(result))
+                  .catch(err => console.log(err));
+              })
+              .catch(err => console.log(err));
+          })
+          .catch(err => console.log(err));
+      }
+    });
   }
   render() {
     return (
@@ -150,7 +225,11 @@ class VideoUpload extends Component {
           </div>
           <div className="row">
             <div className="col-md-12">
-              <button className="save" id="save-video" onClick={this.handleUppload}>
+              <button
+                className="save"
+                id="save-video"
+                onClick={this.handleUpload}
+              >
                 Ladda upp
               </button>
               <button className="abort" id="abort-video">
@@ -199,6 +278,20 @@ function previewThumbnail(e) {
       img.css("display", "block");
     };
   }
+}
+
+function rndStr() {
+  var x = Math.random()
+    .toString(36)
+    .substring(7)
+    .substr(0, 5);
+  while (x.length != 5) {
+    x = Math.random()
+      .toString(36)
+      .substring(7)
+      .substr(0, 5);
+  }
+  return x;
 }
 
 export default VideoUpload;

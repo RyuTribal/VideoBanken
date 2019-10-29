@@ -1,0 +1,14 @@
+projects:
+  VideoDetailsStorage:
+    schemaPath: src\graphql\schema.json
+    includes:
+      - video-details
+    excludes:
+      - ./amplify/**
+    extensions:
+      amplify:
+        codeGenTarget: typescript
+        generatedFileName: src\API.ts
+        docsFilePath: src\graphql
+        region: eu-west-1
+        maxDepth: 2

@@ -4,7 +4,10 @@ const awsmobile = {
     "aws_project_region": "eu-west-1",
     "aws_content_delivery_bucket": "video-bank-20190905101957-hostingbucket-react",
     "aws_content_delivery_bucket_region": "eu-west-1",
-    "aws_content_delivery_url": "https://dvb68pp3nx54e.cloudfront.net"
+    "aws_content_delivery_url": "https://dvb68pp3nx54e.cloudfront.net",
+    "aws_appsync_graphqlEndpoint": "https://wjrqzgyhgnhfxo4virvqnrlsli.appsync-api.eu-west-1.amazonaws.com/graphql",
+    "aws_appsync_region": "eu-west-1",
+    "aws_appsync_authenticationType": "AMAZON_COGNITO_USER_POOLS"
 };
 
 
