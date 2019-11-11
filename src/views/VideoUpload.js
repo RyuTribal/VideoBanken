@@ -22,6 +22,18 @@ class VideoUpload extends Component {
         that.user = user;
       })
       .catch(err => that.props.history.push("/login"));
+    $("#video-hashtags").on("keyup",function(event) {
+      // Number 13 is the "Enter" key on the keyboard
+      if (event.keyCode === 13) {
+        // Cancel the default action, if needed
+        event.preventDefault();
+        // Trigger the button element with a click
+        document.getElementById("add-tag").click();
+      }
+      else if(event.keyCode == 35){
+        
+      }
+    });
   }
   handleThumbnailUpload(event) {
     document
@@ -59,12 +71,33 @@ class VideoUpload extends Component {
         }
       }
       if (exists == false) {
+        var tagString = [];
+        const videoDetails = {
+          username: that.user.username,
+          videoKey: `uploads/${randomString}-${that.user.username}.${videotype}`,
+          videoDesc: $("#video-desc").val(),
+          videoTitle: $("#video-title").val(),
+          thumbKey: `uploads/${randomString}-${that.user.username}.${thumbtype}`,
+          tags: JSON.stringify(["basketball"]),
+          category: $(".category :selected").val(),
+          createdAt: new Date().toISOString()
+        };
+        that.props.history.push("/home");
+        $(".progress-bar").css("display", "block");
+        $(".progress-bar").css("height", "20px");
         Storage.put(
           `uploads/${randomString}-${that.user.username}.${videotype}`,
           video,
           {
             progressCallback(progress) {
               console.log(`Uploaded: ${progress.loaded}/${progress.total}`);
+              var percentageVideo = Math.round(
+                (progress.loaded / progress.total) * 100
+              );
+              $(".loader").css("width", `${percentageVideo}%`);
+              $(".loader")
+                .find("p")
+                .text(`Video: ${percentageVideo}%`);
             }
           }
         )
@@ -75,23 +108,28 @@ class VideoUpload extends Component {
               {
                 progressCallback(progress) {
                   console.log(`Uploaded: ${progress.loaded}/${progress.total}`);
+                  var percentageImage = Math.round(
+                    (progress.loaded / progress.total) * 100
+                  );
+                  $(".loader").css("width", `${percentageImage}%`);
+                  $(".loader")
+                    .find("p")
+                    .text(`Thumbnail: ${percentageImage}%`);
                 }
               }
             )
               .then(function(result) {
-                const videoDetails = {
-                  username: that.user.username,
-                  videoKey: `uploads/${randomString}-${that.user.username}.${videotype}`,
-                  videoDesc: $("#video-desc").val(),
-                  videoTitle: $("#video-title").val(),
-                  thumbKey: `uploads/${randomString}-${that.user.username}.${thumbtype}`,
-                  tags: JSON.stringify({"tag1":"default"}),
-                  category: "default",
-                  createdAt: new Date().toISOString()
-                };
-                console.log(videoDetails)
+                console.log(videoDetails);
+                $(".progress-bar").css("display", "none");
+                $(".progress-bar").css("height", "0");
+                $(".loader").css("width", "0");
+                $(".loader")
+                  .find("p")
+                  .text("");
                 const newVideo = API.graphql(
-                  graphqlOperation(mutations.createVideoStorage, { input: videoDetails })
+                  graphqlOperation(mutations.createVideoStorage, {
+                    input: videoDetails
+                  })
                 )
                   .then(result => console.log(result))
                   .catch(err => console.log(err));
@@ -209,7 +247,7 @@ class VideoUpload extends Component {
                   Hashtags:
                 </label>
               </div>
-              <div className="field-wrapper">
+              <div id="video-hashtags-wrap" className="field-wrapper">
                 <input
                   type="text"
                   id="video-hashtags"
@@ -217,9 +255,6 @@ class VideoUpload extends Component {
                   name="video-hashtags"
                   placeholder="e.g. #dribbling, #shamgod, #ankles"
                 />
-              </div>
-              <div className="error error-msg-pass">
-                <p></p>
               </div>
             </div>
           </div>

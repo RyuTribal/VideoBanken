@@ -7,6 +7,7 @@ import HomeFeed from "./HomeFeed";
 var that;
 class Home extends Component {
   componentDidMount(prevProps) {
+    that = this;
     $("html").click(function() {
       closeNav();
     });
@@ -18,14 +19,19 @@ class Home extends Component {
     $(".closebtn").click(function() {
       closeNav();
     });
+
+    $('#logout-btn').click(function(){
+      Auth.signOut()
+      .then(data => that.props.history.push("/login"))
+      .catch(err => console.log(err));
+    })
   }
 
   redirectToVideo() {
     that.props.history.push(`${that.props.match.path}/video-upload`);
   }
-
   componentWillUnmount(){
-    
+    $("html").unbind();
   }
   render() {
     return (
@@ -35,14 +41,14 @@ class Home extends Component {
             <a
               href="javascript:void(0)"
               className="closebtn"
-              onClick={closeNav}
             >
               ×
             </a>
-            <a href="#">About</a>
-            <a href="#">Services</a>
-            <a href="#">Clients</a>
-            <a href="#">Contact</a>
+            <Link href="#">About</Link>
+            <Link href="#">Services</Link>
+            <Link href="#">Clients</Link>
+            <Link href="#">Contact</Link>
+            <a href="javascript:void(0)" id="logout-btn">Logout</a>
           </div>
           <main id="main-content" className="content-container">
             <nav className="navigation-container">
@@ -56,6 +62,7 @@ class Home extends Component {
                 <i className="fas fa-video"></i>
               </Link>
             </nav>
+            <div className="progress-bar"><div className="loader"><p></p></div></div>
             <div id="inner-content" className="inner-content">
               <Route
                 render={props=>{

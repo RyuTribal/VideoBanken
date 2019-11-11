@@ -612,7 +612,7 @@ textarea {
   padding-right: 15px;
   padding-top: 80px;
   padding-bottom: 50px;
-  max-width: 1284px !important;
+  max-width: 1290px;
   margin: 0 auto;
   display: flex;
   justify-content: center;
@@ -695,10 +695,88 @@ textarea {
   float: right;
 }
 
+#logout-btn {
+  position: absolute;
+  bottom: 60px;
+}
+
 #abort-video {
   background-color: #e5e5e5;
   width: 40%;
 }
+
+.feed-container{
+  width: 100%;
+  height: auto;
+  padding-left: 25px;
+  padding-right: 25px;
+}
+
+.progress-bar{
+  margin-top: 49px;
+  border-bottom: 1px solid #e5e5e5;
+  display: none;
+  height: 0;
+  -webkit-transition: height 1s; 
+  -moz-transition: height 1s; 
+  -ms-transition: height 1s; 
+  -o-transition: height 1s; 
+  transition: height 1s; 
+}
+.loader{
+  height: 100%;
+  background-color: #24a0ed;
+  width: 0;
+}
+
+.loader p{
+  min-width: 100px;
+  margin-left: 20px;
+}
+
+#add-tag{
+  background-color: #24a0ed;
+  color: white;
+}
+
+.video-preview{
+  height: 250px;
+  width: 100%;
+  padding: 0;
+  padding-left: 4px;
+  padding-right: 4px;
+}
+
+.video-preview:hover{
+  background-color: #ededed;
+  cursor: pointer;
+}
+
+.video-preview:hover h3{
+  text-decoration: underline;
+}
+
+.video-preview img{
+  width: 100%;
+  height: 150px;
+}
+
+.feed-container{
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(214px, 1fr));
+  grid-gap: 20px 0px;
+}
+
+.video-username{
+  color: #c7c6c6;
+}
+
+.video-username:hover{
+  text-decoration: none;
+  color: #c7c6c6;
+  cursor: pointer;
+}
+
 @media screen and (max-width: 1024px) {
   #allWrapper {
     align-items: flex-end;
@@ -717,7 +795,6 @@ textarea {
 @media screen and (max-width: 476px) {
   #save-video {
     width: 50%;
-    
   }
 
   #abort-video {
