@@ -5,7 +5,6 @@ import { Auth, Hub } from "aws-amplify";
 import awsconfig from "../aws-exports";
 import $ from "jquery";
 import { withFederated } from "aws-amplify-react";
-
 const Buttons = props => (
   <div>
     <button className="social-btn">
@@ -75,7 +74,10 @@ class Login extends Component {
       username, // Required, the username
       password // Optional, the password
     })
-      .then(user => that.props.history.push("/home"))
+      .then(function(user) {
+        
+        that.props.history.push("/home");
+      })
       .catch(function(err) {
         console.log(err);
         if (

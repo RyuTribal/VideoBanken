@@ -9,29 +9,59 @@ import * as queries from "../graphql/queries";
 import * as mutations from "../graphql/mutations";
 
 Storage.configure({ track: true });
-var that;
+let that;
 class VideoUpload extends Component {
+  constructor() {
+    super();
+    this.state = {
+      user: ""
+    };
+  }
   user = "";
-  componentDidMount() {
-    that = this;
-    console.log(this.props);
-    Auth.currentAuthenticatedUser({
-      bypassCache: false // Optional, By default is false. If set to true, this call will send a request to Cognito to get the latest user data
+  async componentDidMount() {
+    that = this
+    console.log(this.state);
+    await Auth.currentAuthenticatedUser({
+      bypassCache: true // Optional, By default is false. If set to true, this call will send a request to Cognito to get the latest user data
     })
-      .then(function(user) {
-        that.user = user;
+      .then(user => {
+        console.log(user);
+        this.user = user;
+        if (
+          user.attributes["custom:firstTime"] == "0" ||
+          user.attributes["custom:firstTime"] == undefined
+        ) {
+          console.log("yeah here");
+
+          API.graphql(
+            graphqlOperation(mutations.createUserStorage, {
+              input: {
+                username: user.username,
+                likedVideos: "[]",
+                dislikedVideos: "[]"
+              }
+            })
+          )
+            .then(result => {
+              Auth.updateUserAttributes(user, {
+                "custom:firstTime": "1"
+              }).catch(err => console.log(err));
+            })
+            .catch(err => console.log(err));
+        }
       })
-      .catch(err => that.props.history.push("/login"));
-    $("#video-hashtags").on("keyup",function(event) {
+      .catch(err => {
+        console.log(err);
+        this.props.history.push("/login");
+      });
+    $("#video-hashtags").on("keyup", function(event) {
       // Number 13 is the "Enter" key on the keyboard
       if (event.keyCode === 13) {
         // Cancel the default action, if needed
         event.preventDefault();
         // Trigger the button element with a click
         document.getElementById("add-tag").click();
-      }
-      else if(event.keyCode == 35){
-        
+      } else if (event.keyCode == 35) {
       }
     });
   }
@@ -55,7 +85,7 @@ class VideoUpload extends Component {
     var thumbtype = thumbnail.type.split("/")[1];
     var videotype = video.type.split("/")[1];
     var exists = false;
-    Storage.list("uploads/").then(function(result) {
+    Storage.list("uploads/").then(result => {
       var randomString = rndStr();
       console.log(randomString);
       for (var i = 0; i < result.length; i++) {
@@ -101,7 +131,7 @@ class VideoUpload extends Component {
             }
           }
         )
-          .then(function(result) {
+          .then(result => {
             Storage.put(
               `uploads/${randomString}-${that.user.username}.${thumbtype}`,
               thumbnail,

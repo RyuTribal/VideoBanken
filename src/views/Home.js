@@ -1,13 +1,14 @@
 import React, { Component } from "react";
 import { BrowserRouter, Switch, Route, Link } from "react-router-dom";
-import { Auth, Hub } from "aws-amplify";
+import { Auth } from "aws-amplify";
 import $ from "jquery";
 import VideoUpload from "./VideoUpload";
 import HomeFeed from "./HomeFeed";
-var that;
+import Watch from "./Watch";
+let that;
 class Home extends Component {
-  componentDidMount(prevProps) {
-    that = this;
+  async componentDidMount(prevProps) { 
+    that = this
     $("html").click(function() {
       closeNav();
     });
@@ -20,17 +21,17 @@ class Home extends Component {
       closeNav();
     });
 
-    $('#logout-btn').click(function(){
+    $("#logout-btn").click(function() {
       Auth.signOut()
-      .then(data => that.props.history.push("/login"))
-      .catch(err => console.log(err));
-    })
+        .then(data => that.props.history.push("/login"))
+        .catch(err => console.log(err));
+    });
   }
 
   redirectToVideo() {
-    that.props.history.push(`${that.props.match.path}/video-upload`);
+    this.props.history.push(`${this.props.match.path}/video-upload`);
   }
-  componentWillUnmount(){
+  componentWillUnmount() {
     $("html").unbind();
   }
   render() {
@@ -38,17 +39,16 @@ class Home extends Component {
       <BrowserRouter>
         <div>
           <div id="app-nav" className="home-navigation">
-            <a
-              href="javascript:void(0)"
-              className="closebtn"
-            >
+            <a href="javascript:void(0)" className="closebtn">
               ×
             </a>
-            <Link href="#">About</Link>
+            <Link to={`${this.props.match.path}/`}>About</Link>
             <Link href="#">Services</Link>
             <Link href="#">Clients</Link>
             <Link href="#">Contact</Link>
-            <a href="javascript:void(0)" id="logout-btn">Logout</a>
+            <a href="javascript:void(0)" id="logout-btn">
+              Logout
+            </a>
           </div>
           <main id="main-content" className="content-container">
             <nav className="navigation-container">
@@ -62,11 +62,14 @@ class Home extends Component {
                 <i className="fas fa-video"></i>
               </Link>
             </nav>
-            <div className="progress-bar"><div className="loader"><p></p></div></div>
+            <div className="progress-bar">
+              <div className="loader">
+                <p></p>
+              </div>
+            </div>
             <div id="inner-content" className="inner-content">
               <Route
-                render={props=>{
-
+                render={props => {
                   return (
                     <Switch>
                       <Route
@@ -77,6 +80,10 @@ class Home extends Component {
                       <Route
                         path={`${this.props.match.path}/video-upload`}
                         component={VideoUpload}
+                      />
+                      <Route
+                        path={`${this.props.match.path}/watch`}
+                        component={Watch}
                       />
                     </Switch>
                   );

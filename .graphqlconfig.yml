@@ -1,8 +1,8 @@
 projects:
-  VideoDetailsStorage:
+  VideoStorageAPI:
     schemaPath: src\graphql\schema.json
     includes:
-      - video-details
+      - src\graphql\**\*.ts
     excludes:
       - ./amplify/**
     extensions:
@@ -11,4 +11,4 @@ projects:
         generatedFileName: src\API.ts
         docsFilePath: src\graphql
         region: eu-west-1
-        maxDepth: 2
+        maxDepth: 20

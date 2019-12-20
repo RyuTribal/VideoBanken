@@ -24,6 +24,7 @@ button {
   border: none;
   border-radius: 32px;
   transition: opacity 0.5s;
+  outline: none;
 }
 
 button:hover {
@@ -448,15 +449,16 @@ textarea {
   background-color: #ffbaba;
   border-radius: 5px;
   text-align: left;
-  padding-left: 10px;
-  padding-right: 10px;
   height: 35px;
   display: flex;
   align-items: center;
   opacity: 0;
   transition: opacity 0.6s;
-  margin-left: 5px;
   position: relative;
+}
+
+.error-visible {
+  opacity: 1 !important;
 }
 
 .title-container h2 {
@@ -608,11 +610,9 @@ textarea {
 }
 
 .inner-content {
-  padding-left: 15px;
-  padding-right: 15px;
   padding-top: 80px;
   padding-bottom: 50px;
-  max-width: 1290px;
+  max-width: 1500px;
   margin: 0 auto;
   display: flex;
   justify-content: center;
@@ -705,76 +705,339 @@ textarea {
   width: 40%;
 }
 
-.feed-container{
-  width: 100%;
-  height: auto;
-  padding-left: 25px;
-  padding-right: 25px;
-}
-
-.progress-bar{
+.progress-bar {
   margin-top: 49px;
   border-bottom: 1px solid #e5e5e5;
   display: none;
   height: 0;
-  -webkit-transition: height 1s; 
-  -moz-transition: height 1s; 
-  -ms-transition: height 1s; 
-  -o-transition: height 1s; 
-  transition: height 1s; 
+  -webkit-transition: height 1s;
+  -moz-transition: height 1s;
+  -ms-transition: height 1s;
+  -o-transition: height 1s;
+  transition: height 1s;
 }
-.loader{
+.loader {
   height: 100%;
   background-color: #24a0ed;
   width: 0;
 }
 
-.loader p{
+.loader p {
   min-width: 100px;
   margin-left: 20px;
 }
 
-#add-tag{
+#add-tag {
   background-color: #24a0ed;
   color: white;
 }
 
-.video-preview{
-  height: 250px;
+.video-preview {
+  height: 300px;
   width: 100%;
   padding: 0;
   padding-left: 4px;
   padding-right: 4px;
 }
 
-.video-preview:hover{
+.video-preview:hover {
   background-color: #ededed;
   cursor: pointer;
 }
 
-.video-preview:hover h3{
+.video-preview h3 {
+  height: 47px;
+  margin-top: 10px;
+  margin-bottom: 5px;
+}
+
+.video-preview:hover h3 {
   text-decoration: underline;
 }
 
-.video-preview img{
+.video-preview img {
   width: 100%;
-  height: 150px;
+  height: 180px;
 }
 
-.feed-container{
+.feed-container {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(214px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
   grid-gap: 20px 0px;
+  width: 100%;
+  height: auto;
 }
 
-.video-username{
-  color: #c7c6c6;
+.date-username-wrap {
+  color: #606060;
 }
 
-.video-username:hover{
+.likes-dates {
+  margin: 0;
+  color: #606060;
+}
+
+.date-username-wrap a {
+  color: #606060;
+}
+
+.video-username:hover {
   text-decoration: none;
-  color: #c7c6c6;
+  color: #606060;
   cursor: pointer;
+}
+
+.video-container {
+  width: 100%;
+}
+
+#player {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.video-container {
+  width: 100%;
+  position: relative;
+}
+
+.plyr__video-wrapper {
+  width: 100%;
+  padding-top: 56.25%;
+  position: relative;
+}
+
+.likes-date-wrapper {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(750px, 1fr));
+  padding-bottom: 5px;
+  border-bottom: 1px solid #ededed;
+  overflow: hidden;
+}
+
+.likes-dislikes {
+  font-size: 20px;
+  color: #909090;
+  display: flex;
+  width: 100%;
+}
+
+.likes-dislikes button {
+  margin-left: 34px !important;
+}
+
+.likes-dislikes-button-wrap button:first-of-type {
+  margin-left: 0 !important;
+}
+
+.likes-dislikes p {
+  margin: 0 !important;
+  font-size: 14px !important;
+  margin-left: 15px !important;
+  color: #606060;
+}
+
+.likes-dislikes-buttons {
+  background: transparent;
+  padding: 0;
+  display: flex;
+  height: auto;
+}
+
+.likes-dislikes-buttons:hover {
+  opacity: unset;
+}
+
+.likes-dislikes-button-wrap {
+  display: grid;
+  grid-template-columns: repeat(2, 70px);
+}
+
+.like-progress-wrap {
+  height: 3px;
+  background-color: #d8000c;
+  grid-column-start: 1;
+  grid-column-end: 2;
+  width: 200%;
+}
+
+.likes-progress {
+  background-color: #24a0ed;
+  height: 100%;
+}
+
+.username-description-wrap {
+  padding-top: 30px;
+  border-bottom: 1px solid #ededed;
+  padding-bottom: 20px;
+}
+
+.username-wrapper a {
+  color: black;
+  font-weight: bold;
+}
+
+.username-wrapper a:hover {
+  text-decoration: none;
+}
+
+.description-wrapper {
+  margin-top: 20px;
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+  max-width: 625px;
+}
+
+.desc-tags {
+  font-weight: bold;
+}
+
+.desc-tags h4 {
+  display: inline-block;
+}
+
+.desc-tag {
+  margin-left: 10px;
+  display: inline-blocK;
+}
+
+.desc-tag:hover {
+  cursor: pointer;
+}
+
+.desc-category h4 {
+  display: inline-block;
+}
+
+.desc-category h4:last-child {
+  margin-left: 50px;
+}
+
+.post-comment-wrapper {
+  width: 100%;
+  overflow: auto;
+}
+
+#new-comment {
+  width: 100%;
+  border: none;
+  border-bottom: 2px solid #e5e5e5;
+  padding-bottom: 5px;
+  margin-top: 10px;
+}
+
+#new-comment:focus {
+  outline: none;
+  border-color: #24a0ed;
+}
+
+#post-comment {
+  margin-top: 20px;
+  background-color: #24a0ed;
+  color: white;
+  float: right;
+}
+
+#new-comment:empty:not(:focus):before {
+  content: attr(aria-label);
+  color: grey;
+}
+
+.posted-comments time {
+  color: #606060;
+}
+
+.comment-wrapper {
+  margin-top: 30px;
+  overflow: auto;
+}
+
+.comment-likes {
+  display: flex;
+  color: #606060;
+}
+
+.comment-likes p {
+  margin: 0;
+  margin-left: 10px;
+}
+
+.comment-likes button {
+  margin-left: 25px;
+}
+
+.comment-likes button:first-of-type {
+  margin: 0;
+}
+
+.view-replies {
+  color: #24a0ed;
+  font-weight: bold;
+  margin-top: 15px;
+  display: inline-block;
+}
+
+.view-replies:hover {
+  cursor: pointer;
+}
+
+.reply-field-container{
+  padding-left: 25px;
+  display: none;
+  overflow: auto;
+}
+
+.replies-container{
+  padding-left: 25px;
+  display: none;
+}
+
+.reply-wrapper{
+  margin-top: 20px;
+}
+
+.show-container{
+  display: block;
+}
+
+#new-reply {
+  width: 100%;
+  border: none;
+  border-bottom: 2px solid #e5e5e5;
+  padding-bottom: 5px;
+  margin-top: 10px;
+}
+
+#post-reply {
+  margin-top: 20px;
+  background-color: #24a0ed;
+  color: white;
+  float: right;
+}
+
+#new-reply:focus {
+  outline: none;
+  border-color: #24a0ed;
+}
+
+#new-reply:empty:not(:focus):before {
+  content: attr(aria-label);
+  color: grey;
+}
+
+@media screen and (max-width: 1500px) {
+  .details-comments-wrapper {
+    padding-left: 15px;
+    padding-right: 15px;
+  }
+
+  .likes-dislikes {
+    margin-top: 30px;
+  }
 }
 
 @media screen and (max-width: 1024px) {

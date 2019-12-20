@@ -3,7 +3,6 @@ import { BrowserRouter, Switch, Route } from "react-router-dom";
 import "intl-tel-input/build/css/intlTelInput.css";
 import "./commercial/bootstrap/css/bootstrap.min.css";
 import "./App.scss";
-
 import Start from "./views/Start";
 import Registration from "./views/Registration";
 import Login from "./views/Login";
@@ -31,7 +30,7 @@ Amplify.configure({
     }
   },
   aws_appsync_graphqlEndpoint:
-    "https://wjrqzgyhgnhfxo4virvqnrlsli.appsync-api.eu-west-1.amazonaws.com/graphql",
+    "https://yslhkiubqnfuhbrtjlan6m3xgi.appsync-api.eu-west-1.amazonaws.com/graphql",
   aws_appsync_region: "eu-west-1",
   aws_appsync_authenticationType: "AMAZON_COGNITO_USER_POOLS" // You have configured Auth with Amazon Cognito User Pool ID and Web Client Id
   // ...

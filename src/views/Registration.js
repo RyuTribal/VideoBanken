@@ -131,7 +131,8 @@ class Registration extends Component {
           address: address,
           family_name: family_name,
           email: email,
-          phone_number: phone_number
+          phone_number: phone_number,
+          "custom:firstTime" : "0"
         }
       })
         .then(function(user) {
