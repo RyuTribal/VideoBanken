@@ -707,7 +707,8 @@ class CommentBox extends Component {
       likes: [],
       dislikes: [],
       nextToken: "",
-      openBox: false
+      openBox: false,
+      moreReplies: false
     };
   }
 
@@ -717,6 +718,11 @@ class CommentBox extends Component {
       dislikes: JSON.parse(this.props.comment.dislikes),
       ammountReplies: JSON.parse(this.props.comment.ammountReplies)
     });
+    if (JSON.parse(this.props.comment.ammountReplies) > 5) {
+      this.setState({
+        moreReplies: true
+      });
+    }
     for (let i = 0; i < JSON.parse(this.props.comment.likes).length; i++) {
       if (JSON.parse(this.props.comment.likes)[i] == this.props.username) {
         this.setState({
@@ -908,6 +914,35 @@ class CommentBox extends Component {
     }
     console.log(this.props.comment.comment);
   };
+
+  loadMoreReplies = async () => {
+    let commentReplies = await API.graphql(
+      graphqlOperation(queries.listReplyStorages, {
+        limit: 5,
+        nextToken: this.state.nextToken,
+        filter: {
+          commentKey: {
+            eq: this.props.comment.commentKey
+          }
+        }
+      })
+    ).then(res => {
+      return res.data.listReplyStorages;
+    });
+    let currentReplies = this.state.replies;
+    for (let i = 0; i < commentReplies.items.length; i++) {
+      currentReplies.push(commentReplies.items[i]);
+    }
+    this.setState({
+      replies: currentReplies,
+      nextToken: commentReplies.nextToken
+    });
+    if (commentReplies.nextToken == null) {
+      this.setState({
+        moreReplies: false
+      });
+    }
+  };
   render() {
     return (
       <div className="comment-wrapper">
@@ -1006,6 +1041,11 @@ class CommentBox extends Component {
           {this.state.replies.map((reply, i) => (
             <ReplyBox key={i} reply={reply} username={this.props.username} />
           ))}
+          {this.state.moreReplies == true && (
+            <div onClick={this.loadMoreReplies} className="view-replies">
+              {`Visa fler svar`}
+            </div>
+          )}
         </div>
       </div>
     );
