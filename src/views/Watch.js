@@ -245,13 +245,28 @@ class Watch extends Component {
     });
   }
 
-  async handleLikes(username, key, mime, userInformation) {
+  handleLikes = async (username, key, mime, userInformation) => {
     let likesArray, dislikesArray;
+    console.log(userInformation)
+    let video = await API.graphql(
+      graphqlOperation(queries.getVideoStorage, {
+        videoKey: `uploads/${key}.${mime}`
+      })
+    ).then(res => {
+      return res.data.getVideoStorage;
+    });
+    let videoLikes = JSON.parse(video.likes);
+    let videoDislikes = JSON.parse(video.dislikes);
     try {
       likesArray = JSON.parse(userInformation.likedVideos);
+    } catch {
+      console.log("we are here");
+      likesArray = userInformation.likedVideos;
+    }
+    try {
       dislikesArray = JSON.parse(userInformation.dislikedVideos);
     } catch {
-      likesArray = userInformation.likedVideos;
+      console.log("we are here");
       dislikesArray = userInformation.dislikedVideos;
     }
     console.log(userInformation.likedVideos);
@@ -261,6 +276,7 @@ class Watch extends Component {
         disliked: false,
         dislikes: JSON.parse(this.state.dislikes) - 1
       });
+      videoDislikes = videoDislikes - 1;
     }
     if (this.state.liked == false) {
       if (userInformation == null) {
@@ -280,6 +296,7 @@ class Watch extends Component {
         liked: true,
         likes: JSON.parse(this.state.likes) + 1
       });
+      videoLikes = videoLikes + 1;
       this.setState({ likeColor: "#24a0ed", dislikeColor: "#909090" });
     } else if (this.state.liked == true) {
       likesArray = likesArray.filter(e => e !== `uploads/${key}.${mime}`);
@@ -288,27 +305,30 @@ class Watch extends Component {
         liked: false,
         likes: JSON.parse(this.state.likes) - 1
       });
+      videoLikes = videoLikes - 1;
       this.setState({ likeColor: "#909090", dislikeColor: "#909090" });
     }
+    let userLikes = JSON.stringify(userInformation.likedVideos);
+    let userDislikes = JSON.stringify(userInformation.dislikedVideos);
     await API.graphql(
       graphqlOperation(mutations.updateUserStorage, {
         input: {
           username: userInformation.username,
-          likedVideos: JSON.stringify(userInformation.likedVideos),
-          dislikedVideos: JSON.stringify(userInformation.dislikedVideos)
+          likedVideos: userLikes,
+          dislikedVideos: userDislikes
         }
       })
-    );
+    ).catch(err => console.log(err));
     await API.graphql(
       graphqlOperation(mutations.updateVideoStorage, {
         input: {
           videoKey: `uploads/${key}.${mime}`,
-          likes: this.state.likes,
-          dislikes: this.state.dislikes
+          likes: videoLikes,
+          dislikes: videoDislikes
         }
       })
-    );
-  }
+    ).catch(err => console.log(err));
+  };
 
   trackScrolling = () => {
     const wrappedElement = document.getElementById("comments-wrapper");
@@ -355,10 +375,14 @@ class Watch extends Component {
     let likesArray, dislikesArray;
     try {
       likesArray = JSON.parse(userInformation.likedVideos);
-      dislikesArray = JSON.parse(userInformation.dislikedVideos);
     } catch {
       console.log("we are here");
       likesArray = userInformation.likedVideos;
+    }
+    try {
+      dislikesArray = JSON.parse(userInformation.dislikedVideos);
+    } catch {
+      console.log("we are here");
       dislikesArray = userInformation.dislikedVideos;
     }
     console.log(dislikesArray);
@@ -397,15 +421,17 @@ class Watch extends Component {
       });
       this.setState({ likeColor: "#909090", dislikeColor: "#909090" });
     }
+    let userLikes = JSON.stringify(userInformation.likedVideos);
+    let userDislikes = JSON.stringify(userInformation.dislikedVideos);
     await API.graphql(
       graphqlOperation(mutations.updateUserStorage, {
         input: {
           username: userInformation.username,
-          likedVideos: JSON.stringify(userInformation.likedVideos),
-          dislikedVideos: JSON.stringify(userInformation.dislikedVideos)
+          likedVideos: userLikes,
+          dislikedVideos: userDislikes
         }
       })
-    );
+    ).catch(err => console.log(err));
     await API.graphql(
       graphqlOperation(mutations.updateVideoStorage, {
         input: {
