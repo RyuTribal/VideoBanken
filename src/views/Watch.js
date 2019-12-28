@@ -188,12 +188,8 @@ class Watch extends Component {
     let nextToken;
     await API.graphql(
       graphqlOperation(queries.listCommentStorages, {
-        limit: 20,
-        filter: {
-          videoKey: {
-            eq: `uploads/${key}.${mime}`
-          }
-        }
+        videoKey: `uploads/${key}.${mime}`,
+        limit: 20
       })
     ).then(res => {
       console.log(res);
@@ -346,12 +342,8 @@ class Watch extends Component {
   getMoreComments = async () => {
     await API.graphql(
       graphqlOperation(queries.listCommentStorages, {
+        videoKey: `uploads/${this.state.key}.${this.state.mime.split("/")[1]}`,
         limit: 20,
-        filter: {
-          videoKey: {
-            eq: `uploads/${this.state.key}.${this.state.mime.split("/")[1]}`
-          }
-        },
         nextToken: this.state.nextToken
       })
     ).then(res => {
@@ -919,18 +911,17 @@ class CommentBox extends Component {
       });
     }
     console.log(replyWrapper);
+    console.log(this.props.comment.commentKey)
+    let commentKey = this.props.comment.commentKey;
     replyWrapper.classList.toggle("show-container");
     if (this.state.replies.length < 1) {
       let commentReplies = await API.graphql(
         graphqlOperation(queries.listReplyStorages, {
-          limit: 5,
-          filter: {
-            commentKey: {
-              eq: this.props.comment.commentKey
-            }
-          }
+          commentKey: commentKey,
+          limit: 5
         })
       ).then(res => {
+        console.log(res)
         return res.data.listReplyStorages;
       });
       this.setState({
@@ -938,7 +929,6 @@ class CommentBox extends Component {
         nextToken: commentReplies.nextToken
       });
     }
-    console.log(this.props.comment.comment);
   };
 
   loadMoreReplies = async () => {
@@ -946,11 +936,7 @@ class CommentBox extends Component {
       graphqlOperation(queries.listReplyStorages, {
         limit: 5,
         nextToken: this.state.nextToken,
-        filter: {
-          commentKey: {
-            eq: this.props.comment.commentKey
-          }
-        }
+        commentKey: this.props.comment.commentKey
       })
     ).then(res => {
       return res.data.listReplyStorages;

@@ -70,8 +70,8 @@ export type UpdateCommentStorageInput = {
   comment?: string | null,
   createdAt?: string | null,
   ammountReplies?: string | null,
-  likes: string,
-  dislikes: string,
+  likes?: string | null,
+  dislikes?: string | null,
 };
 
 export type DeleteCommentStorageInput = {
@@ -464,6 +464,7 @@ export type GetCommentStorageQuery = {
 };
 
 export type ListCommentStoragesQueryVariables = {
+  videoKey: string,
   filter?: TableCommentStorageFilterInput | null,
   limit?: number | null,
   nextToken?: string | null,
@@ -506,6 +507,7 @@ export type GetReplyStorageQuery = {
 };
 
 export type ListReplyStoragesQueryVariables = {
+  commentKey: string,
   filter?: TableReplyStorageFilterInput | null,
   limit?: number | null,
   nextToken?: string | null,

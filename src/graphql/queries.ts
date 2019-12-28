@@ -81,11 +81,17 @@ export const getCommentStorage = `query GetCommentStorage($commentKey: String!, 
 }
 `;
 export const listCommentStorages = `query ListCommentStorages(
+  $videoKey: String!
   $filter: TableCommentStorageFilterInput
   $limit: Int
   $nextToken: String
 ) {
-  listCommentStorages(filter: $filter, limit: $limit, nextToken: $nextToken) {
+  listCommentStorages(
+    videoKey: $videoKey
+    filter: $filter
+    limit: $limit
+    nextToken: $nextToken
+  ) {
     items {
       commentKey
       videoKey
@@ -113,11 +119,17 @@ export const getReplyStorage = `query GetReplyStorage($replyKey: String!, $comme
 }
 `;
 export const listReplyStorages = `query ListReplyStorages(
+  $commentKey: String!
   $filter: TableReplyStorageFilterInput
   $limit: Int
   $nextToken: String
 ) {
-  listReplyStorages(filter: $filter, limit: $limit, nextToken: $nextToken) {
+  listReplyStorages(
+    commentKey: $commentKey
+    filter: $filter
+    limit: $limit
+    nextToken: $nextToken
+  ) {
     items {
       commentKey
       replyKey
