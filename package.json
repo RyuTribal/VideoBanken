@@ -15,6 +15,7 @@
     "react": "^16.10.1",
     "react-burger-menu": "^2.6.11",
     "react-date-picker": "^7.8.1",
+    "react-device-detect": "^1.11.14",
     "react-dom": "^16.9.0",
     "react-ga": "^2.7.0",
     "react-moment": "^0.9.6",

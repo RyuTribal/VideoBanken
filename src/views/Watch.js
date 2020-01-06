@@ -14,6 +14,7 @@ import TimeAgo from "react-timeago";
 import swedishStrings from "react-timeago/lib/language-strings/sv";
 import buildFormatter from "react-timeago/lib/formatters/buildFormatter";
 import MDReactComponent from "markdown-react-js";
+import { isMobile } from "react-device-detect";
 const formatter = buildFormatter(swedishStrings);
 
 let that;
@@ -195,9 +196,6 @@ class Watch extends Component {
       console.log(res);
       nextToken = res.data.listCommentStorages.nextToken;
       comments = res.data.listCommentStorages.items;
-      if (comments.length > 20) {
-        document.addEventListener("scroll", this.trackScrolling);
-      }
     });
     console.log(comments);
     this.setState({
@@ -210,6 +208,11 @@ class Watch extends Component {
       ammountComments: videoDetails.ammountComments,
       nextToken: nextToken
     });
+    console.log(this.state.ammountComments);
+    if (this.state.ammountComments > 20) {
+      console.log("It's more than 20");
+      document.addEventListener("scroll", this.trackScrolling);
+    }
     const player = new Plyr("#player", {
       title: this.state.videoDetails.videoTitle
     });
@@ -243,7 +246,7 @@ class Watch extends Component {
 
   handleLikes = async (username, key, mime, userInformation) => {
     let likesArray, dislikesArray;
-    console.log(userInformation)
+    console.log(userInformation);
     let video = await API.graphql(
       graphqlOperation(queries.getVideoStorage, {
         videoKey: `uploads/${key}.${mime}`
@@ -326,8 +329,9 @@ class Watch extends Component {
     ).catch(err => console.log(err));
   };
 
-  trackScrolling = () => {
+  trackScrolling = e => {
     const wrappedElement = document.getElementById("comments-wrapper");
+    console.log("scrolling...");
     if (this.isBottom(wrappedElement)) {
       console.log("comment bottom reached");
       document.removeEventListener("scroll", this.trackScrolling);
@@ -356,7 +360,10 @@ class Watch extends Component {
         nextToken: res.data.listCommentStorages.nextToken,
         comments: comments
       });
-      if (this.state.comments.length != this.state.ammountComments) {
+      console.log(this.state.ammountComments);
+      console.log(this.state.comments.length);
+      if (this.state.nextToken != null) {
+        console.log("this aint true");
         document.addEventListener("scroll", this.trackScrolling);
       }
       console.log(this.state.comments);
@@ -475,18 +482,6 @@ class Watch extends Component {
       $("#new-comment").empty();
 
       commentArray = that.state.comments;
-      commentArray.push({
-        videoKey: `uploads/${that.state.key}.${that.state.mime.split("/")[1]}`,
-        username: that.username,
-        comment: comment,
-        createdAt: new Date().toISOString(),
-        ammountReplies: "0",
-        likes: "[]",
-        dislikes: "[]"
-      });
-      that.setState({
-        comments: commentArray
-      });
       console.log(`uploads/${that.state.key}.${that.state.mime}`);
 
       API.graphql(
@@ -505,6 +500,22 @@ class Watch extends Component {
         })
       )
         .then(result => {
+          console.log(result);
+          commentArray.push({
+            commentKey: result.data.createCommentStorage.commentKey,
+            videoKey: `uploads/${that.state.key}.${
+              that.state.mime.split("/")[1]
+            }`,
+            username: that.username,
+            comment: comment,
+            createdAt: new Date().toISOString(),
+            ammountReplies: "0",
+            likes: "[]",
+            dislikes: "[]"
+          });
+          that.setState({
+            comments: commentArray
+          });
           API.graphql(
             graphqlOperation(queries.getVideoStorage, {
               videoKey: `uploads/${that.state.key}.${
@@ -694,7 +705,11 @@ class Watch extends Component {
                   Kommentera
                 </button>
               </div>
-              <div id="posted-comments" className="posted-comments">
+              <div
+                id="posted-comments"
+                className="posted-comments"
+                onScroll={this.trackScrolling}
+              >
                 {comments.map((comment, i) => (
                   <CommentBox
                     key={i}
@@ -707,11 +722,22 @@ class Watch extends Component {
             </div>
           </div>
         </div>
+        <div className="mobile-more-options">
+          <div className="edit-text">
+            <i className="fas fa-edit"></i>
+            {` Edit comment`}
+          </div>
+          <hr></hr>
+          <div className="delete-comment">
+            <i className="fas fa-trash"></i>
+            {` Delete comment`}
+          </div>
+        </div>
       </div>
     );
   }
 }
-
+let commentClass;
 class CommentBox extends Component {
   constructor() {
     super();
@@ -729,8 +755,8 @@ class CommentBox extends Component {
       moreReplies: false
     };
   }
-
   async componentDidMount() {
+    commentClass = this;
     this.setState({
       likes: JSON.parse(this.props.comment.likes),
       dislikes: JSON.parse(this.props.comment.dislikes),
@@ -818,9 +844,11 @@ class CommentBox extends Component {
         commentKey: key,
         videoKey: videoKey
       })
-    ).then(res => {
-      return res.data.getCommentStorage;
-    });
+    )
+      .then(res => {
+        return res.data.getCommentStorage;
+      })
+      .catch(err => console.log(err));
     let likes = JSON.parse(comment.likes);
     let dislikes = JSON.parse(comment.dislikes);
     console.log(comment);
@@ -889,7 +917,7 @@ class CommentBox extends Component {
   handleReplyContainer = el => {
     console.log("hey");
     console.log(el.currentTarget);
-    let replyContainer = el.currentTarget.parentNode.parentNode.getElementsByClassName(
+    let replyContainer = el.currentTarget.parentNode.parentNode.parentNode.getElementsByClassName(
       "reply-field-container"
     )[0];
     replyContainer.classList.toggle("show-container");
@@ -911,7 +939,7 @@ class CommentBox extends Component {
       });
     }
     console.log(replyWrapper);
-    console.log(this.props.comment.commentKey)
+    console.log(this.props.comment.commentKey);
     let commentKey = this.props.comment.commentKey;
     replyWrapper.classList.toggle("show-container");
     if (this.state.replies.length < 1) {
@@ -921,7 +949,7 @@ class CommentBox extends Component {
           limit: 5
         })
       ).then(res => {
-        console.log(res)
+        console.log(res);
         return res.data.listReplyStorages;
       });
       this.setState({
@@ -955,63 +983,169 @@ class CommentBox extends Component {
       });
     }
   };
+
+  handleMoreOptions = (commentKey, e) => {
+    if (isMobile) {
+      $("body").css("overflow", "hidden");
+      document
+        .getElementsByClassName("mobile-more-options")[0]
+        .classList.add("mobile-options-show");
+      $(".overlay").css("display", "block");
+      document
+        .getElementsByClassName("mobile-more-options")[0]
+        .querySelector(".edit-text")
+        .addEventListener("click", function() {
+          commentClass.editComment(commentKey);
+        });
+
+      document
+        .getElementsByClassName("mobile-more-options")[0]
+        .querySelector(".delete-comment")
+        .addEventListener("click", function() {
+          commentClass.deleteComment(commentKey);
+        });
+
+      document
+        .getElementsByClassName("overlay")[0]
+        .addEventListener("click", this.closeMoreOptions);
+      console.log(commentKey);
+    } else {
+      if (e.currentTarget.querySelector(".tooltipshow") == null) {
+        $(".tooltiptext").removeClass("tooltipshow");
+      }
+      $(e.currentTarget)
+        .find(".tooltiptext")
+        .toggleClass("tooltipshow");
+      if (e.currentTarget.querySelector(".tooltipshow") == null) {
+        $(e.currentTarget).blur();
+      }
+    }
+  };
+
+  closeMoreOptions = () => {
+    $("body").css("overflow", "auto");
+    document
+      .getElementsByClassName("mobile-more-options")[0]
+      .classList.remove("mobile-options-show");
+    $(".overlay").css("display", "");
+    document
+      .getElementsByClassName("mobile-more-options")[0]
+      .querySelector(".edit-text")
+      .removeEventListener("click", function() {
+        commentClass.editComment()
+      });
+
+    document
+      .getElementsByClassName("mobile-more-options")[0]
+      .querySelector(".delete-comment")
+      .removeEventListener("click", function() {
+        commentClass.deleteComment()
+      });
+
+    document
+      .getElementsByClassName("overlay")[0]
+      .removeEventListener("click", this.closeMoreOptions);
+  };
+
+  deleteComment = async commentKey => {
+    console.log(commentKey);
+  };
+
+  editComment = async commentKey => {
+    console.log(commentKey);
+  };
   render() {
     return (
       <div className="comment-wrapper">
-        <div className="username-wrapper">
-          <Link to={`profile/${this.props.comment.username}`}>
-            {this.props.comment.username}
-          </Link>{" "}
-          <TimeAgo
-            className="time-ago"
-            date={this.props.comment.createdAt}
-            formatter={formatter}
-          />
-        </div>
-        <div className="comment">
-          <MDReactComponent text={this.props.comment.comment} />
-        </div>
-        <div className="comment-likes">
-          <button
-            className="likes-dislikes-buttons"
-            id="reply-like-button"
-            onClick={() =>
-              this.handleCommentLikes(
-                this.props.comment.commentKey,
-                this.props.comment.videoKey,
-                "reply-like-button"
-              )
-            }
-          >
-            <i
-              style={{ color: this.state.likeColor }}
-              className="fas fa-thumbs-up"
-            ></i>
-            <p>{this.state.likes.length}</p>
-          </button>
-          <button
-            className="likes-dislikes-buttons"
-            id="reply-dislike-button"
-            onClick={() =>
-              this.handleCommentLikes(
-                this.props.comment.commentKey,
-                this.props.comment.videoKey,
-                "reply-dislike-button"
-              )
-            }
-          >
-            <i
-              style={{ color: this.state.dislikeColor }}
-              className="fas fa-thumbs-down"
-            ></i>
-          </button>
-          <button
-            onClick={this.handleReplyContainer}
-            className="likes-dislikes-buttons"
-            id="reply-answer-button"
-          >
-            <b>Svara</b>
-          </button>
+        <div className="comment-details-wrapper">
+          <div className="username-wrapper">
+            <Link to={`profile/${this.props.comment.username}`}>
+              {this.props.comment.username}
+            </Link>{" "}
+            <TimeAgo
+              className="time-ago"
+              date={this.props.comment.createdAt}
+              formatter={formatter}
+            />
+          </div>
+          <div className="comment">
+            <MDReactComponent text={this.props.comment.comment} />
+          </div>
+          <div className="comment-likes">
+            <button
+              className="likes-dislikes-buttons"
+              id="reply-like-button"
+              onClick={() =>
+                this.handleCommentLikes(
+                  this.props.comment.commentKey,
+                  this.props.comment.videoKey,
+                  "reply-like-button"
+                )
+              }
+            >
+              <i
+                style={{ color: this.state.likeColor }}
+                className="fas fa-thumbs-up"
+              ></i>
+              <p>{this.state.likes.length}</p>
+            </button>
+            <button
+              className="likes-dislikes-buttons"
+              id="reply-dislike-button"
+              onClick={() =>
+                this.handleCommentLikes(
+                  this.props.comment.commentKey,
+                  this.props.comment.videoKey,
+                  "reply-dislike-button"
+                )
+              }
+            >
+              <i
+                style={{ color: this.state.dislikeColor }}
+                className="fas fa-thumbs-down"
+              ></i>
+            </button>
+            <button
+              onClick={this.handleReplyContainer}
+              className="likes-dislikes-buttons"
+              id="reply-answer-button"
+            >
+              <b>Svara</b>
+            </button>
+            {this.props.comment.username === this.props.username && (
+              <button
+                onClick={e =>
+                  this.handleMoreOptions(this.props.comment.commentKey, e)
+                }
+                className={
+                  "likes-dislikes-buttons tooltip more-options " +
+                  (isMobile ? "tooltipshow" : "")
+                }
+              >
+                <i className="fas fa-ellipsis-v"></i>
+                <span className="tooltiptext">
+                  <div
+                    onClick={() =>
+                      this.editComment(this.props.comment.commentKey)
+                    }
+                    className="edit-text"
+                  >
+                    <i className="fas fa-edit"></i>
+                    {` Edit comment`}
+                  </div>
+                  <div
+                    onClick={() =>
+                      this.deleteComment(this.props.comment.commentKey)
+                    }
+                    className="delete-comment"
+                  >
+                    <i className="fas fa-trash"></i>
+                    {` Delete comment`}
+                  </div>
+                </span>
+              </button>
+            )}
+          </div>
         </div>
         <div className="reply-field-container">
           <div className="error">Kommentaren kan inte vara tom</div>
@@ -1224,6 +1358,11 @@ class ReplyBox extends Component {
               className="fas fa-thumbs-down"
             ></i>
           </button>
+          {this.props.reply.username === this.props.username && (
+            <button className="likes-dislikes-buttons more-options">
+              <i className="fas fa-ellipsis-v"></i>
+            </button>
+          )}
         </div>
       </div>
     );

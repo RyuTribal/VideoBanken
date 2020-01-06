@@ -7,8 +7,8 @@ import HomeFeed from "./HomeFeed";
 import Watch from "./Watch";
 let that;
 class Home extends Component {
-  async componentDidMount(prevProps) { 
-    that = this
+  async componentDidMount(prevProps) {
+    that = this;
     $("html").click(function() {
       closeNav();
     });
@@ -38,6 +38,7 @@ class Home extends Component {
     return (
       <BrowserRouter>
         <div>
+          <div className="overlay"></div>
           <div id="app-nav" className="home-navigation">
             <a href="javascript:void(0)" className="closebtn">
               ×
