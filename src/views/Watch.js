@@ -1,4 +1,5 @@
 import React, { Component } from "react";
+import ReactDOM from "react-dom";
 import { BrowserRouter, Switch, Route, Link } from "react-router-dom";
 import { Auth, Hub, Storage, API, graphqlOperation } from "aws-amplify";
 import $ from "jquery";
@@ -697,11 +698,16 @@ class Watch extends Component {
                 <div className="error">Kommentaren kan inte vara tom</div>
                 <div
                   contenteditable="true"
+                  className="comment-field"
                   id="new-comment"
                   placeholder="Lägg till en ny kommentar..."
                   aria-label="Lägg till en kommentar..."
                 ></div>
-                <button onClick={this.handleComments} id="post-comment">
+                <button
+                  onClick={this.handleComments}
+                  className="comment-submit"
+                  id="post-comment"
+                >
                   Kommentera
                 </button>
               </div>
@@ -722,17 +728,6 @@ class Watch extends Component {
             </div>
           </div>
         </div>
-        <div className="mobile-more-options">
-          <div className="edit-text">
-            <i className="fas fa-edit"></i>
-            {` Edit comment`}
-          </div>
-          <hr></hr>
-          <div className="delete-comment">
-            <i className="fas fa-trash"></i>
-            {` Delete comment`}
-          </div>
-        </div>
       </div>
     );
   }
@@ -741,6 +736,7 @@ let commentClass;
 class CommentBox extends Component {
   constructor() {
     super();
+    this.elemRef = React.createRef();
     this.state = {
       replies: [],
       ammountReplies: "",
@@ -752,7 +748,9 @@ class CommentBox extends Component {
       dislikes: [],
       nextToken: "",
       openBox: false,
-      moreReplies: false
+      moreReplies: false,
+      editable: false,
+      showOptions: false
     };
   }
   async componentDidMount() {
@@ -783,7 +781,12 @@ class CommentBox extends Component {
         });
       }
     }
+    document.addEventListener("click", this.checkOutsideClick, false);
   }
+
+  componentWillUnmount = async => {
+    document.removeEventListener("click", this.checkOutsideClick, false);
+  };
   handleReplies = async (key, el) => {
     console.log(key);
     console.log(el.currentTarget);
@@ -984,63 +987,23 @@ class CommentBox extends Component {
     }
   };
 
-  handleMoreOptions = (commentKey, e) => {
-    if (isMobile) {
-      $("body").css("overflow", "hidden");
-      document
-        .getElementsByClassName("mobile-more-options")[0]
-        .classList.add("mobile-options-show");
-      $(".overlay").css("display", "block");
-      document
-        .getElementsByClassName("mobile-more-options")[0]
-        .querySelector(".edit-text")
-        .addEventListener("click", function() {
-          commentClass.editComment(commentKey);
-        });
-
-      document
-        .getElementsByClassName("mobile-more-options")[0]
-        .querySelector(".delete-comment")
-        .addEventListener("click", function() {
-          commentClass.deleteComment(commentKey);
-        });
-
-      document
-        .getElementsByClassName("overlay")[0]
-        .addEventListener("click", this.closeMoreOptions);
-      console.log(commentKey);
-    } else {
-      if (e.currentTarget.querySelector(".tooltipshow") == null) {
-        $(".tooltiptext").removeClass("tooltipshow");
-      }
-      $(e.currentTarget)
-        .find(".tooltiptext")
-        .toggleClass("tooltipshow");
-      if (e.currentTarget.querySelector(".tooltipshow") == null) {
-        $(e.currentTarget).blur();
-      }
-    }
-  };
-
   closeMoreOptions = () => {
     $("body").css("overflow", "auto");
     document
       .getElementsByClassName("mobile-more-options")[0]
       .classList.remove("mobile-options-show");
     $(".overlay").css("display", "");
-    document
-      .getElementsByClassName("mobile-more-options")[0]
-      .querySelector(".edit-text")
-      .removeEventListener("click", function() {
-        commentClass.editComment()
-      });
+    $(
+      document
+        .getElementsByClassName("mobile-more-options")[0]
+        .querySelector(".edit-text")
+    ).unbind();
 
-    document
-      .getElementsByClassName("mobile-more-options")[0]
-      .querySelector(".delete-comment")
-      .removeEventListener("click", function() {
-        commentClass.deleteComment()
-      });
+    $(
+      document
+        .getElementsByClassName("mobile-more-options")[0]
+        .querySelector(".delete-comment")
+    ).unbind();
 
     document
       .getElementsByClassName("overlay")[0]
@@ -1053,109 +1016,201 @@ class CommentBox extends Component {
 
   editComment = async commentKey => {
     console.log(commentKey);
+    if (isMobile) {
+      this.closeMoreOptions();
+    }
+    this.setState({
+      editable: true
+    });
+  };
+
+  closeMoreOptions = () => {
+    this.setState({
+      showOptions: false
+    });
+    $("body").removeClass("noscroll");
+  };
+
+  handleMoreOptions = () => {
+    if (this.state.showOptions === false) {
+      this.setState({
+        showOptions: true
+      });
+    } else if (this.state.showOptions === true) {
+      this.setState({
+        showOptions: false
+      });
+      $(".tooltip").blur();
+    }
+
+    if (isMobile) {
+      $("body").addClass("noscroll");
+    }
+  };
+  checkOutsideClick = e => {
+    if (!ReactDOM.findDOMNode(this).contains(e.target)) {
+      if (this.state.showOptions === true) {
+        this.setState({
+          showOptions: false
+        });
+      }
+    }
   };
   render() {
     return (
       <div className="comment-wrapper">
-        <div className="comment-details-wrapper">
-          <div className="username-wrapper">
-            <Link to={`profile/${this.props.comment.username}`}>
-              {this.props.comment.username}
-            </Link>{" "}
-            <TimeAgo
-              className="time-ago"
-              date={this.props.comment.createdAt}
-              formatter={formatter}
-            />
+        {this.state.showOptions === true && isMobile === true && (
+          <div onClick={this.closeMoreOptions} className="overlay"></div>
+        )}
+        {this.state.showOptions === true && isMobile === true && (
+          <div className="mobile-more-options">
+            <div
+              onClick={() => this.editComment(this.props.comment.commentKey)}
+              className="edit-text"
+            >
+              <i className="fas fa-edit"></i>
+              {` Edit comment`}
+            </div>
+            <hr></hr>
+            <div
+              onClick={() => this.deleteComment(this.props.comment.commentKey)}
+              className="delete-comment"
+            >
+              <i className="fas fa-trash"></i>
+              {` Delete comment`}
+            </div>
           </div>
-          <div className="comment">
-            <MDReactComponent text={this.props.comment.comment} />
-          </div>
-          <div className="comment-likes">
-            <button
-              className="likes-dislikes-buttons"
-              id="reply-like-button"
-              onClick={() =>
-                this.handleCommentLikes(
-                  this.props.comment.commentKey,
-                  this.props.comment.videoKey,
-                  "reply-like-button"
-                )
-              }
-            >
-              <i
-                style={{ color: this.state.likeColor }}
-                className="fas fa-thumbs-up"
-              ></i>
-              <p>{this.state.likes.length}</p>
-            </button>
-            <button
-              className="likes-dislikes-buttons"
-              id="reply-dislike-button"
-              onClick={() =>
-                this.handleCommentLikes(
-                  this.props.comment.commentKey,
-                  this.props.comment.videoKey,
-                  "reply-dislike-button"
-                )
-              }
-            >
-              <i
-                style={{ color: this.state.dislikeColor }}
-                className="fas fa-thumbs-down"
-              ></i>
-            </button>
-            <button
-              onClick={this.handleReplyContainer}
-              className="likes-dislikes-buttons"
-              id="reply-answer-button"
-            >
-              <b>Svara</b>
-            </button>
-            {this.props.comment.username === this.props.username && (
+        )}
+
+        {this.state.editable === false ? (
+          <div className="comment-details-wrapper">
+            <div className="username-wrapper">
+              <Link to={`profile/${this.props.comment.username}`}>
+                {this.props.comment.username}
+              </Link>{" "}
+              <TimeAgo
+                className="time-ago"
+                date={this.props.comment.createdAt}
+                formatter={formatter}
+              />
+            </div>
+            <div className="comment">
+              <MDReactComponent text={this.props.comment.comment} />
+            </div>
+            <div className="comment-likes">
               <button
-                onClick={e =>
-                  this.handleMoreOptions(this.props.comment.commentKey, e)
-                }
-                className={
-                  "likes-dislikes-buttons tooltip more-options " +
-                  (isMobile ? "tooltipshow" : "")
+                className="likes-dislikes-buttons"
+                id="reply-like-button"
+                onClick={() =>
+                  this.handleCommentLikes(
+                    this.props.comment.commentKey,
+                    this.props.comment.videoKey,
+                    "reply-like-button"
+                  )
                 }
               >
-                <i className="fas fa-ellipsis-v"></i>
-                <span className="tooltiptext">
-                  <div
-                    onClick={() =>
-                      this.editComment(this.props.comment.commentKey)
-                    }
-                    className="edit-text"
-                  >
-                    <i className="fas fa-edit"></i>
-                    {` Edit comment`}
-                  </div>
-                  <div
-                    onClick={() =>
-                      this.deleteComment(this.props.comment.commentKey)
-                    }
-                    className="delete-comment"
-                  >
-                    <i className="fas fa-trash"></i>
-                    {` Delete comment`}
-                  </div>
-                </span>
+                <i
+                  style={{ color: this.state.likeColor }}
+                  className="fas fa-thumbs-up"
+                ></i>
+                <p>{this.state.likes.length}</p>
               </button>
-            )}
+              <button
+                className="likes-dislikes-buttons"
+                id="reply-dislike-button"
+                onClick={() =>
+                  this.handleCommentLikes(
+                    this.props.comment.commentKey,
+                    this.props.comment.videoKey,
+                    "reply-dislike-button"
+                  )
+                }
+              >
+                <i
+                  style={{ color: this.state.dislikeColor }}
+                  className="fas fa-thumbs-down"
+                ></i>
+              </button>
+              <button
+                onClick={this.handleReplyContainer}
+                className="likes-dislikes-buttons"
+                id="reply-answer-button"
+              >
+                <b>Svara</b>
+              </button>
+              {this.props.comment.username === this.props.username && (
+                <button
+                  onClick={this.handleMoreOptions}
+                  className={
+                    "likes-dislikes-buttons tooltip more-options " +
+                    (isMobile ||
+                    (this.state.showOptions === true && isMobile === false)
+                      ? "tooltipshow"
+                      : "")
+                  }
+                >
+                  <i className="fas fa-ellipsis-v"></i>
+                  {this.state.showOptions === true && isMobile === false && (
+                    <span className="tooltiptext">
+                      <div
+                        onClick={() =>
+                          this.editComment(this.props.comment.commentKey)
+                        }
+                        className="edit-text"
+                      >
+                        <i className="fas fa-edit"></i>
+                        {` Edit comment`}
+                      </div>
+                      <div
+                        onClick={() =>
+                          this.deleteComment(this.props.comment.commentKey)
+                        }
+                        className="delete-comment"
+                      >
+                        <i className="fas fa-trash"></i>
+                        {` Delete comment`}
+                      </div>
+                    </span>
+                  )}
+                </button>
+              )}
+            </div>
           </div>
-        </div>
+        ) : (
+          <div className="edit-comment-field">
+            <div className="error">Kommentaren kan inte vara tom</div>
+            <div
+              contenteditable="true"
+              className="comment-field editable-comment"
+              id="edit-field"
+              placeholder="Lägg till en ny kommentar..."
+              aria-label="Lägg till en ny kommentar..."
+            >
+              {this.props.comment.comment}
+            </div>
+            <button
+              onClick={() => this.setState({ editable: false })}
+              className="comment-submit"
+              id="cancel-comment"
+            >
+              Avbryt
+            </button>
+            <button className="comment-submit" id="edit-comment">
+              Spara
+            </button>
+          </div>
+        )}
         <div className="reply-field-container">
           <div className="error">Kommentaren kan inte vara tom</div>
           <div
             contenteditable="true"
+            className="comment-field"
             id="new-reply"
             placeholder="Lägg till en ny kommentar..."
             aria-label="Lägg till ett svar..."
           ></div>
           <button
+            className="comment-submit"
             onClick={el =>
               this.handleReplies(this.props.comment.commentKey, el)
             }

@@ -38,7 +38,6 @@ class Home extends Component {
     return (
       <BrowserRouter>
         <div>
-          <div className="overlay"></div>
           <div id="app-nav" className="home-navigation">
             <a href="javascript:void(0)" className="closebtn">
               ×
