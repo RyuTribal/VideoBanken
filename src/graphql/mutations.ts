@@ -89,6 +89,7 @@ export const createCommentStorage = `mutation CreateCommentStorage($input: Creat
     ammountReplies
     likes
     dislikes
+    isEdited
   }
 }
 `;
@@ -102,6 +103,7 @@ export const updateCommentStorage = `mutation UpdateCommentStorage($input: Updat
     ammountReplies
     likes
     dislikes
+    isEdited
   }
 }
 `;
@@ -115,6 +117,7 @@ export const deleteCommentStorage = `mutation DeleteCommentStorage($input: Delet
     ammountReplies
     likes
     dislikes
+    isEdited
   }
 }
 `;

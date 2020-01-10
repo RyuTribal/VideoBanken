@@ -77,6 +77,7 @@ export const getCommentStorage = `query GetCommentStorage($commentKey: String!, 
     ammountReplies
     likes
     dislikes
+    isEdited
   }
 }
 `;
@@ -101,6 +102,7 @@ export const listCommentStorages = `query ListCommentStorages(
       ammountReplies
       likes
       dislikes
+      isEdited
     }
     nextToken
   }

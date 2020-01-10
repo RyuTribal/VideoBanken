@@ -61,6 +61,7 @@ export type CreateCommentStorageInput = {
   ammountReplies: string,
   likes: string,
   dislikes: string,
+  isEdited: boolean,
 };
 
 export type UpdateCommentStorageInput = {
@@ -72,6 +73,7 @@ export type UpdateCommentStorageInput = {
   ammountReplies?: string | null,
   likes?: string | null,
   dislikes?: string | null,
+  isEdited?: boolean | null,
 };
 
 export type DeleteCommentStorageInput = {
@@ -270,6 +272,7 @@ export type CreateCommentStorageMutation = {
     ammountReplies: string,
     likes: string,
     dislikes: string,
+    isEdited: boolean | null,
   } | null,
 };
 
@@ -288,6 +291,7 @@ export type UpdateCommentStorageMutation = {
     ammountReplies: string,
     likes: string,
     dislikes: string,
+    isEdited: boolean | null,
   } | null,
 };
 
@@ -306,6 +310,7 @@ export type DeleteCommentStorageMutation = {
     ammountReplies: string,
     likes: string,
     dislikes: string,
+    isEdited: boolean | null,
   } | null,
 };
 
@@ -460,6 +465,7 @@ export type GetCommentStorageQuery = {
     ammountReplies: string,
     likes: string,
     dislikes: string,
+    isEdited: boolean | null,
   } | null,
 };
 
@@ -483,6 +489,7 @@ export type ListCommentStoragesQuery = {
       ammountReplies: string,
       likes: string,
       dislikes: string,
+      isEdited: boolean | null,
     } | null > | null,
     nextToken: string | null,
   } | null,
@@ -669,6 +676,7 @@ export type OnCreateCommentStorageSubscription = {
     ammountReplies: string,
     likes: string,
     dislikes: string,
+    isEdited: boolean | null,
   } | null,
 };
 
@@ -691,6 +699,7 @@ export type OnUpdateCommentStorageSubscription = {
     ammountReplies: string,
     likes: string,
     dislikes: string,
+    isEdited: boolean | null,
   } | null,
 };
 
@@ -713,6 +722,7 @@ export type OnDeleteCommentStorageSubscription = {
     ammountReplies: string,
     likes: string,
     dislikes: string,
+    isEdited: boolean | null,
   } | null,
 };
 

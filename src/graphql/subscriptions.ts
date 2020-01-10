@@ -137,6 +137,7 @@ export const onCreateCommentStorage = `subscription OnCreateCommentStorage(
     ammountReplies
     likes
     dislikes
+    isEdited
   }
 }
 `;
@@ -162,6 +163,7 @@ export const onUpdateCommentStorage = `subscription OnUpdateCommentStorage(
     ammountReplies
     likes
     dislikes
+    isEdited
   }
 }
 `;
@@ -187,6 +189,7 @@ export const onDeleteCommentStorage = `subscription OnDeleteCommentStorage(
     ammountReplies
     likes
     dislikes
+    isEdited
   }
 }
 `;

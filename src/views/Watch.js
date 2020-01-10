@@ -496,7 +496,8 @@ class Watch extends Component {
             createdAt: new Date().toISOString(),
             ammountReplies: "0",
             likes: "[]",
-            dislikes: "[]"
+            dislikes: "[]",
+            isEdited: false
           }
         })
       )
@@ -546,6 +547,18 @@ class Watch extends Component {
         .catch(err => console.log(err));
     }
   }
+
+  updateComments = editedComment => {
+    let previousComments = this.state.comments;
+    for (let i = 0; i < previousComments.length; i++) {
+      if (previousComments[i].commentKey === editedComment.commentKey) {
+        previousComments[i] = editedComment;
+      }
+      this.setState({
+        comments: previousComments
+      });
+    }
+  };
 
   componentWillUnmount() {
     document.removeEventListener("scroll", this.trackScrolling);
@@ -722,6 +735,7 @@ class Watch extends Component {
                     comment={comment}
                     videoDetails={this.state.videoDetails}
                     username={this.username}
+                    updateComments={this.updateComments}
                   />
                 ))}
               </div>
@@ -740,6 +754,7 @@ class CommentBox extends Component {
     this.state = {
       replies: [],
       ammountReplies: "",
+      isEdited: false,
       likeColor: "#909090",
       dislikeColor: "#909090",
       liked: false,
@@ -756,6 +771,7 @@ class CommentBox extends Component {
   async componentDidMount() {
     commentClass = this;
     this.setState({
+      isEdited: this.props.comment.isEdited,
       likes: JSON.parse(this.props.comment.likes),
       dislikes: JSON.parse(this.props.comment.dislikes),
       ammountReplies: JSON.parse(this.props.comment.ammountReplies)
@@ -1024,6 +1040,34 @@ class CommentBox extends Component {
     });
   };
 
+  saveEdit = async e => {
+    const errorNode = e.currentTarget.parentNode.children[0];
+    const editedText = e.currentTarget.parentNode.children[1].innerHTML;
+    if (editedText == "" || !/\S/.test(editedText)) {
+      console.log(editedText);
+      errorNode.classList.add("error-visible");
+    } else {
+      console.log(this.props);
+      let editedComment = await API.graphql(
+        graphqlOperation(mutations.updateCommentStorage, {
+          input: {
+            commentKey: this.props.comment.commentKey,
+            videoKey: this.props.comment.videoKey,
+            comment: editedText,
+            isEdited: true
+          }
+        })
+      ).then(res => {
+        return res.data.updateCommentStorage;
+      });
+      this.props.updateComments(editedComment);
+      this.setState({
+        editable: false,
+        isEdited: true
+      });
+    }
+  };
+
   closeMoreOptions = () => {
     this.setState({
       showOptions: false
@@ -1093,6 +1137,7 @@ class CommentBox extends Component {
                 date={this.props.comment.createdAt}
                 formatter={formatter}
               />
+              {" " + (this.state.isEdited === true ? "(edited)" : "")}
             </div>
             <div className="comment">
               <MDReactComponent text={this.props.comment.comment} />
@@ -1195,7 +1240,11 @@ class CommentBox extends Component {
             >
               Avbryt
             </button>
-            <button className="comment-submit" id="edit-comment">
+            <button
+              onClick={this.saveEdit}
+              className="comment-submit"
+              id="edit-comment"
+            >
               Spara
             </button>
           </div>
