@@ -1,5 +1,5 @@
 projects:
-  VideoStorageAPI:
+  HermesSchema:
     schemaPath: src\graphql\schema.json
     includes:
       - src\graphql\**\*.ts
@@ -11,4 +11,4 @@ projects:
         generatedFileName: src\API.ts
         docsFilePath: src\graphql
         region: eu-west-1
-        maxDepth: 20
+        maxDepth: 30

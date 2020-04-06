@@ -30,7 +30,7 @@ Amplify.configure({
     }
   },
   aws_appsync_graphqlEndpoint:
-    "https://yslhkiubqnfuhbrtjlan6m3xgi.appsync-api.eu-west-1.amazonaws.com/graphql",
+    "https://p5cbrelhdzdy7kxk2b77xaxaai.appsync-api.eu-west-1.amazonaws.com/graphql",
   aws_appsync_region: "eu-west-1",
   aws_appsync_authenticationType: "AMAZON_COGNITO_USER_POOLS" // You have configured Auth with Amazon Cognito User Pool ID and Web Client Id
   // ...

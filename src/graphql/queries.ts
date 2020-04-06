@@ -1,76 +1,44 @@
 // tslint:disable
 // this is an auto generated file. This will be overwritten
 
-export const getVideoStorage = `query GetVideoStorage($videoKey: String!) {
-  getVideoStorage(videoKey: $videoKey) {
+export const getVideos = `query GetVideos($offset: Int) {
+  getVideos(offset: $offset) {
+    id
+    title
+    description
     username
-    videoKey
-    videoDesc
-    videoTitle
-    thumbKey
+    thumbnail
     category
     tags
+    createdAt
     likes
     dislikes
     views
-    createdAt
-    editedAt
     ammountComments
   }
 }
 `;
-export const listVideoStorages = `query ListVideoStorages(
-  $filter: TableVideoStorageFilterInput
-  $limit: Int
-  $nextToken: String
-) {
-  listVideoStorages(filter: $filter, limit: $limit, nextToken: $nextToken) {
-    items {
-      username
-      videoKey
-      videoDesc
-      videoTitle
-      thumbKey
-      category
-      tags
-      likes
-      dislikes
-      views
-      createdAt
-      editedAt
-      ammountComments
-    }
-    nextToken
-  }
-}
-`;
-export const getUserStorage = `query GetUserStorage($username: String!) {
-  getUserStorage(username: $username) {
+export const getVideo = `query GetVideo($input: VideoInput!) {
+  getVideo(input: $input) {
+    id
+    title
+    description
     username
-    likedVideos
-    dislikedVideos
+    thumbnail
+    category
+    tags
+    createdAt
+    likes
+    dislikes
+    views
+    ammountComments
   }
 }
 `;
-export const listUserStorages = `query ListUserStorages(
-  $filter: TableUserStorageFilterInput
-  $limit: Int
-  $nextToken: String
-) {
-  listUserStorages(filter: $filter, limit: $limit, nextToken: $nextToken) {
-    items {
-      username
-      likedVideos
-      dislikedVideos
-    }
-    nextToken
-  }
-}
-`;
-export const getCommentStorage = `query GetCommentStorage($commentKey: String!, $videoKey: String!) {
-  getCommentStorage(commentKey: $commentKey, videoKey: $videoKey) {
-    commentKey
-    videoKey
+export const getComments = `query GetComments($offset: Int, $input: CommentInput!) {
+  getComments(offset: $offset, input: $input) {
+    id
+    videoID
     username
     comment
     createdAt
@@ -81,67 +49,54 @@ export const getCommentStorage = `query GetCommentStorage($commentKey: String!, 
   }
 }
 `;
-export const listCommentStorages = `query ListCommentStorages(
-  $videoKey: String!
-  $filter: TableCommentStorageFilterInput
-  $limit: Int
-  $nextToken: String
-) {
-  listCommentStorages(
-    videoKey: $videoKey
-    filter: $filter
-    limit: $limit
-    nextToken: $nextToken
-  ) {
-    items {
-      commentKey
-      videoKey
-      username
-      comment
-      createdAt
-      ammountReplies
-      likes
-      dislikes
-      isEdited
-    }
-    nextToken
+export const getComment = `query GetComment($input: CommentInput!) {
+  getComment(input: $input) {
+    id
+    videoID
+    username
+    comment
+    createdAt
+    ammountReplies
+    likes
+    dislikes
+    isEdited
   }
 }
 `;
-export const getReplyStorage = `query GetReplyStorage($replyKey: String!, $commentKey: String!) {
-  getReplyStorage(replyKey: $replyKey, commentKey: $commentKey) {
-    commentKey
-    replyKey
+export const getReplies = `query GetReplies($offset: Int, $input: ReplyInput!) {
+  getReplies(offset: $offset, input: $input) {
+    id
+    commentID
     username
+    videoID
     comment
     createdAt
     likes
     dislikes
+    isEdited
   }
 }
 `;
-export const listReplyStorages = `query ListReplyStorages(
-  $commentKey: String!
-  $filter: TableReplyStorageFilterInput
-  $limit: Int
-  $nextToken: String
-) {
-  listReplyStorages(
-    commentKey: $commentKey
-    filter: $filter
-    limit: $limit
-    nextToken: $nextToken
-  ) {
-    items {
-      commentKey
-      replyKey
-      username
-      comment
-      createdAt
-      likes
-      dislikes
-    }
-    nextToken
+export const getReply = `query GetReply($input: ReplyInput!) {
+  getReply(input: $input) {
+    id
+    commentID
+    username
+    videoID
+    comment
+    createdAt
+    likes
+    dislikes
+    isEdited
+  }
+}
+`;
+export const getUser = `query GetUser($input: UserInput!) {
+  getUser(input: $input) {
+    username
+    likes
+    dislikes
+    videos
   }
 }
 `;

@@ -11,7 +11,7 @@ const formatter = buildFormatter(swedishStrings);
 class HomeFeed extends Component {
   constructor() {
     super();
-    this.state = { details: [], rows: [] };
+    this.state = { details: [], rows: [], offset: 0};
   }
   async componentDidMount(prevProps) {
     let videos = "";
@@ -24,11 +24,9 @@ class HomeFeed extends Component {
         if (user.attributes["custom:firstTime"] == "0" || user.attributes["custom:firstTime"] == undefined) {
           console.log("yeah here");
           API.graphql(
-            graphqlOperation(mutations.createUserStorage, {
+            graphqlOperation(mutations.addUser, {
               input: {
-                username: user.username,
-                likedVideos: "[]",
-                dislikedVideos: "[]"
+                username: user.username
               }
             })
           )
@@ -44,10 +42,10 @@ class HomeFeed extends Component {
         console.log(err);
         this.props.history.push("/login");
       });
-    await API.graphql(graphqlOperation(queries.listVideoStorages)).then(
+    await API.graphql(graphqlOperation(queries.getVideos, {offset: this.state.offset})).then(
       function(result) {
         console.log(result);
-        videos = result.data.listVideoStorages.items;
+        videos = result.data.getVideos;
         let ammountRows = 1;
         for (let i = 0; i < videos.length; i++) {
           if (i == 0) {
@@ -60,16 +58,16 @@ class HomeFeed extends Component {
       }
     );
     for (let i = 0; i < videos.length; i++) {
-      await Storage.get(videos[i].thumbKey)
+    await Storage.get(`uploads/${videos[i].thumbnail}.png`)
         .then(function(result) {
-          videos[i].thumbKey = result;
+          videos[i].thumbnail = result;
           if (videos[i].views == null) {
             videos[i].views = "0";
           }
 
-          if (videos[i].videoTitle.length > 50) {
-            videos[i].videoTitle =
-              videos[i].videoTitle.substring(0, 47) + "...";
+          if (videos[i].title.length > 50) {
+            videos[i].title =
+              videos[i].title.substring(0, 47) + "...";
           }
           const ammountViews = JSON.parse(videos[i].views);
           console.log(ammountViews);
@@ -89,14 +87,11 @@ class HomeFeed extends Component {
     }
     this.setState({ details: videos, rows: rows });
   }
-  redirectToVideo(videoKey) {
-    const urlString = videoKey.split("/")[1].split(".")[0];
-    const mimeType = videoKey.split("/")[1].split(".")[1];
+  redirectToVideo(videoID) {
     this.props.history.push({
       pathname: `${this.props.match.path}/watch`,
-      search: `?key=${urlString}&mime=${mimeType}`
+      search: `?key=${videoID}`
     });
-    console.log(urlString);
   }
   render() {
     console.log(this.state.details);
@@ -104,14 +99,14 @@ class HomeFeed extends Component {
       <section className="feed-container">
         {this.state.details.map((details, i) => (
           <div
-            onClick={() => this.redirectToVideo(details.videoKey)}
+            onClick={() => this.redirectToVideo(details.id)}
             key={i}
             className="video-preview"
           >
-            <img src={details.thumbKey}></img>
+            <img src={details.thumbnail}></img>
             <div className="video-details">
               <div className="video-title-wrap">
-                <h3 className="video-title">{details.videoTitle}</h3>
+                <h3 className="video-title">{details.title}</h3>
               </div>
               <div className="date-username-wrap">
                 <a className="video-username">{details.username}</a>

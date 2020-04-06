@@ -19,7 +19,7 @@ class VideoUpload extends Component {
   }
   user = "";
   async componentDidMount() {
-    that = this
+    that = this;
     console.log(this.state);
     await Auth.currentAuthenticatedUser({
       bypassCache: true // Optional, By default is false. If set to true, this call will send a request to Cognito to get the latest user data
@@ -34,11 +34,9 @@ class VideoUpload extends Component {
           console.log("yeah here");
 
           API.graphql(
-            graphqlOperation(mutations.createUserStorage, {
+            graphqlOperation(mutations.addUser, {
               input: {
-                username: user.username,
-                likedVideos: "[]",
-                dislikedVideos: "[]"
+                username: user.username
               }
             })
           )
@@ -84,91 +82,69 @@ class VideoUpload extends Component {
     var video = document.getElementById("video-uploader").files[0];
     var thumbtype = thumbnail.type.split("/")[1];
     var videotype = video.type.split("/")[1];
-    var exists = false;
-    Storage.list("uploads/").then(result => {
-      var randomString = rndStr();
-      console.log(randomString);
-      for (var i = 0; i < result.length; i++) {
-        if (
-          result[i].key ==
-          `uploads/${randomString}-${that.user.username}.${videotype}`
-        ) {
-          randomString = rndStr();
-          i = 0;
-          exists = true;
-        } else {
-          exists = false;
+    let videoID = "";
+    const videoDetails = {
+      username: that.user.username,
+      videoDesc: $("#video-desc").val(),
+      videoTitle: $("#video-title").val(),
+      tags: ["basketball"],
+      category: $(".category :selected").val()
+    };
+    console.log(videoDetails)
+    API.graphql(
+      graphqlOperation(mutations.addVideo, {
+        input: {
+          title: videoDetails.videoTitle,
+          description: videoDetails.videoDesc,
+          username: videoDetails.username,
+          category: videoDetails.category,
+          tags: videoDetails.tags
         }
-      }
-      if (exists == false) {
-        var tagString = [];
-        const videoDetails = {
-          username: that.user.username,
-          videoKey: `uploads/${randomString}-${that.user.username}.${videotype}`,
-          videoDesc: $("#video-desc").val(),
-          videoTitle: $("#video-title").val(),
-          thumbKey: `uploads/${randomString}-${that.user.username}.${thumbtype}`,
-          tags: JSON.stringify(["basketball"]),
-          category: $(".category :selected").val(),
-          createdAt: new Date().toISOString()
-        };
+      })
+    )
+      .then(result => {
+        videoID = result.data.addVideo.id;
         that.props.history.push("/home");
         $(".progress-bar").css("display", "block");
         $(".progress-bar").css("height", "20px");
-        Storage.put(
-          `uploads/${randomString}-${that.user.username}.${videotype}`,
-          video,
-          {
-            progressCallback(progress) {
-              console.log(`Uploaded: ${progress.loaded}/${progress.total}`);
-              var percentageVideo = Math.round(
-                (progress.loaded / progress.total) * 100
-              );
-              $(".loader").css("width", `${percentageVideo}%`);
-              $(".loader")
-                .find("p")
-                .text(`Video: ${percentageVideo}%`);
-            }
+        Storage.put(`uploads/${videoID}.mp4`, video, {
+          progressCallback(progress) {
+            console.log(`Uploaded: ${progress.loaded}/${progress.total}`);
+            var percentageVideo = Math.round(
+              (progress.loaded / progress.total) * 100
+            );
+            $(".loader").css("width", `${percentageVideo}%`);
+            $(".loader")
+              .find("p")
+              .text(`Video: ${percentageVideo}%`);
           }
-        )
+        })
           .then(result => {
-            Storage.put(
-              `uploads/${randomString}-${that.user.username}.${thumbtype}`,
-              thumbnail,
-              {
-                progressCallback(progress) {
-                  console.log(`Uploaded: ${progress.loaded}/${progress.total}`);
-                  var percentageImage = Math.round(
-                    (progress.loaded / progress.total) * 100
-                  );
-                  $(".loader").css("width", `${percentageImage}%`);
-                  $(".loader")
-                    .find("p")
-                    .text(`Thumbnail: ${percentageImage}%`);
-                }
+            Storage.put(`uploads/${videoID}.png`, thumbnail, {
+              progressCallback(progress) {
+                console.log(`Uploaded: ${progress.loaded}/${progress.total}`);
+                var percentageImage = Math.round(
+                  (progress.loaded / progress.total) * 100
+                );
+                $(".loader").css("width", `${percentageImage}%`);
+                $(".loader")
+                  .find("p")
+                  .text(`Thumbnail: ${percentageImage}%`);
               }
-            )
+            })
               .then(function(result) {
-                console.log(videoDetails);
                 $(".progress-bar").css("display", "none");
                 $(".progress-bar").css("height", "0");
                 $(".loader").css("width", "0");
                 $(".loader")
                   .find("p")
                   .text("");
-                const newVideo = API.graphql(
-                  graphqlOperation(mutations.createVideoStorage, {
-                    input: videoDetails
-                  })
-                )
-                  .then(result => console.log(result))
-                  .catch(err => console.log(err));
               })
               .catch(err => console.log(err));
           })
           .catch(err => console.log(err));
-      }
-    });
+      })
+      .catch(err => console.log(err));
   }
   render() {
     return (

@@ -25,8 +25,7 @@ class Watch extends Component {
     this.state = {
       video: "",
       videoDetails: {},
-      key: "",
-      mime: "",
+      videoID: "",
       ammountComments: "",
       comments: [],
       liked: false,
@@ -34,15 +33,15 @@ class Watch extends Component {
       likeColor: "#",
       likes: "",
       dislikes: "",
-      nextToken: ""
+      offset: 0
     };
   }
   async componentDidMount() {
     that = this;
-    let key;
-    let mime;
+    let videoID;
     const username = "";
     let userInformation;
+    console.log(this.props.history.location.search);
     await Auth.currentAuthenticatedUser({
       bypassCache: true // Optional, By default is false. If set to true, this call will send a request to Cognito to get the latest user data
     })
@@ -55,11 +54,9 @@ class Watch extends Component {
         ) {
           console.log("yeah here");
           API.graphql(
-            graphqlOperation(mutations.createUserStorage, {
+            graphqlOperation(mutations.addUser, {
               input: {
-                username: user.username,
-                likedVideos: "[]",
-                dislikedVideos: "[]"
+                username: user.username
               }
             })
           )
@@ -80,85 +77,64 @@ class Watch extends Component {
     if (this.props.history.location.search == "") {
       this.props.history.push(`/home`);
     } else if (
-      this.props.history.location.search.split("?")[1].split("&")[1] ==
-        undefined ||
-      this.props.history.location.search
-        .split("?")[1]
-        .split("&")[0]
-        .split("=")[0] != "key" ||
-      this.props.history.location.search
-        .split("?")[1]
-        .split("&")[1]
-        .split("=")[0] != "mime"
+      this.props.history.location.search.split("?")[1] == undefined ||
+      this.props.history.location.search.split("?")[1].split("=")[0] != "key"
     ) {
       this.props.history.push(`/home`);
     } else {
-      key = this.props.history.location.search
-        .split("?")[1]
-        .split("&")[0]
-        .split("=")[1];
-      mime = this.props.history.location.search
-        .split("?")[1]
-        .split("&")[1]
-        .split("=")[1];
+      videoID = this.props.history.location.search.split("?")[1].split("=")[1];
     }
     let videoDetails = {};
     let videoUrl = "";
     this.setState({
-      key: key,
-      mime: mime
+      key: videoID
     });
-    console.log(`uploads/${key}.${mime}`);
     await API.graphql(
-      graphqlOperation(queries.getVideoStorage, {
-        videoKey: `uploads/${key}.${mime}`
+      graphqlOperation(queries.getVideo, {
+        input: {
+          id: videoID
+        }
       })
     )
       .then(function(result) {
         console.log(result);
-        videoDetails = result.data.getVideoStorage;
+        videoDetails = result.data.getVideo;
       })
       .catch(err => console.log(err));
-    await Storage.get(`uploads/${key}.${mime}`).then(function(result) {
+    await Storage.get(`uploads/${videoID}.mp4`).then(function(result) {
       videoUrl = result;
     });
     if (videoDetails.views == null) {
       videoDetails.views = "0";
-    }
-    if (videoDetails.likes == null) {
-      videoDetails.likes = "0";
-    }
-    if (videoDetails.dislikes == null) {
-      videoDetails.dislikes = "0";
     }
     if (videoDetails.comments == null) {
       videoDetails.comments = "[]";
     }
     console.log(this.username);
     await API.graphql(
-      graphqlOperation(queries.getUserStorage, {
-        username: this.username
+      graphqlOperation(queries.getUser, {
+        input: {
+          username: this.username
+        }
       })
     )
       .then(function(result) {
-        if (result.data.getUserStorage == null) {
+        if (result.data.getUser == null) {
         } else {
-          if (result.data.getUserStorage.likedVideos == null) {
-            result.data.getUserStorage.likedVideos = "[]";
+          if (result.data.getUser.likes == null) {
+            result.data.getUser.likes = "[]";
           }
-          if (result.data.getUserStorage.dislikedVideos == null) {
-            result.data.getUserStorage.dislikedVideos = "[]";
+          if (result.data.getUser.dislikes == null) {
+            result.data.getUser.dislikes = "[]";
           }
-          userInformation = result.data.getUserStorage;
+          userInformation = result.data.getUser;
+          console.log(result.data.getUser.likes)
           for (
             let i = 0;
-            i < JSON.parse(result.data.getUserStorage.likedVideos).length;
+            i < JSON.parse(result.data.getUser.likes).length;
             i++
           ) {
-            if (
-              `uploads/${key}.${mime}` ==
-              JSON.parse(result.data.getUserStorage.likedVideos)[i]
-            ) {
+            if (videoID == result.data.getUser.likes[i]) {
               that.setState({
                 liked: true,
                 likeColor: "#24a0ed",
@@ -169,13 +145,10 @@ class Watch extends Component {
 
           for (
             let i = 0;
-            i < JSON.parse(result.data.getUserStorage.dislikedVideos).length;
+            i < JSON.parse(result.data.getUser.dislikes).length;
             i++
           ) {
-            if (
-              `uploads/${key}.${mime}` ==
-              JSON.parse(result.data.getUserStorage.dislikedVideos)[i]
-            ) {
+            if (videoID == JSON.parse(result.data.getUser.dislikes)[i]) {
               that.setState({
                 disliked: true,
                 likeColor: "#909090",
@@ -189,25 +162,25 @@ class Watch extends Component {
     let comments;
     let nextToken;
     await API.graphql(
-      graphqlOperation(queries.listCommentStorages, {
-        videoKey: `uploads/${key}.${mime}`,
-        limit: 20
+      graphqlOperation(queries.getComments, {
+        offset: this.state.offset,
+        input: {
+          videoID: videoID
+        }
       })
     ).then(res => {
       console.log(res);
-      nextToken = res.data.listCommentStorages.nextToken;
-      comments = res.data.listCommentStorages.items;
+      comments = res.data.getComments;
     });
-    console.log(comments);
+    console.log(videoDetails);
     this.setState({
       video: videoUrl,
       videoDetails: videoDetails,
-      mime: `video/${mime}`,
       likes: JSON.parse(videoDetails.likes),
       dislikes: JSON.parse(videoDetails.dislikes),
       comments: comments,
       ammountComments: videoDetails.ammountComments,
-      nextToken: nextToken
+      offset: this.state.offset + 20
     });
     console.log(this.state.ammountComments);
     if (this.state.ammountComments > 20) {
@@ -215,7 +188,7 @@ class Watch extends Component {
       document.addEventListener("scroll", this.trackScrolling);
     }
     const player = new Plyr("#player", {
-      title: this.state.videoDetails.videoTitle
+      title: this.state.videoDetails.title
     });
     let secondsVideoPlayed = 0;
     window.setInterval(function() {
@@ -223,13 +196,7 @@ class Watch extends Component {
         if (Math.round(player.currentTime) < secondsVideoPlayed) {
         } else if (Math.round(player.currentTime) > secondsVideoPlayed) {
           secondsVideoPlayed++;
-          that.sendView(
-            secondsVideoPlayed,
-            player,
-            videoDetails.views,
-            key,
-            mime
-          );
+          that.sendView(secondsVideoPlayed, player, videoDetails.views);
         }
       } else {
       }
@@ -238,40 +205,43 @@ class Watch extends Component {
     const dislikeButton = document.getElementById("dislike-button");
     console.log(userInformation);
     likeButton.addEventListener("click", function() {
-      that.handleLikes(this.username, key, mime, userInformation);
+      that.handleLikes(this.username, videoID, userInformation);
     });
     dislikeButton.addEventListener("click", function() {
-      that.handleDisLikes(this.username, key, mime, userInformation);
+      that.handleDisLikes(this.username, videoID, userInformation);
     });
   }
 
-  handleLikes = async (username, key, mime, userInformation) => {
+  handleLikes = async (username, videoID, userInformation) => {
     let likesArray, dislikesArray;
+    console.log(videoID);
     console.log(userInformation);
     let video = await API.graphql(
-      graphqlOperation(queries.getVideoStorage, {
-        videoKey: `uploads/${key}.${mime}`
+      graphqlOperation(queries.getVideo, {
+        input: {
+          id: videoID
+        }
       })
     ).then(res => {
-      return res.data.getVideoStorage;
+      return res.data.getVideo;
     });
     let videoLikes = JSON.parse(video.likes);
     let videoDislikes = JSON.parse(video.dislikes);
     try {
-      likesArray = JSON.parse(userInformation.likedVideos);
+      likesArray = JSON.parse(userInformation.likes);
     } catch {
       console.log("we are here");
-      likesArray = userInformation.likedVideos;
+      likesArray = userInformation.likes;
     }
     try {
-      dislikesArray = JSON.parse(userInformation.dislikedVideos);
+      dislikesArray = JSON.parse(userInformation.dislikes);
     } catch {
       console.log("we are here");
-      dislikesArray = userInformation.dislikedVideos;
+      dislikesArray = userInformation.dislikes;
     }
-    console.log(userInformation.likedVideos);
+    console.log(userInformation.likes);
     if (this.state.disliked == true) {
-      dislikesArray = dislikesArray.filter(e => e !== `uploads/${key}.${mime}`);
+      dislikesArray = dislikesArray.filter(e => e !== videoID);
       this.setState({
         disliked: false,
         dislikes: JSON.parse(this.state.dislikes) - 1
@@ -282,15 +252,15 @@ class Watch extends Component {
       if (userInformation == null) {
         userInformation = {
           username: username,
-          likedVideos: [`uploads/${key}.${mime}`],
-          dislikedVideos: []
+          likes: [videoID],
+          dislikes: []
         };
       } else {
         console.log("here we are");
-        likesArray.push(`uploads/${key}.${mime}`);
+        likesArray.push(JSON.stringify(videoID));
         console.log(likesArray);
-        userInformation.likedVideos = likesArray;
-        userInformation.dislikedVideos = dislikesArray;
+        userInformation.likes = likesArray;
+        userInformation.dislikes = dislikesArray;
       }
       this.setState({
         liked: true,
@@ -299,8 +269,8 @@ class Watch extends Component {
       videoLikes = videoLikes + 1;
       this.setState({ likeColor: "#24a0ed", dislikeColor: "#909090" });
     } else if (this.state.liked == true) {
-      likesArray = likesArray.filter(e => e !== `uploads/${key}.${mime}`);
-      userInformation.likedVideos = likesArray;
+      likesArray = likesArray.filter(e => e !== videoID);
+      userInformation.likes = likesArray;
       this.setState({
         liked: false,
         likes: JSON.parse(this.state.likes) - 1
@@ -308,24 +278,21 @@ class Watch extends Component {
       videoLikes = videoLikes - 1;
       this.setState({ likeColor: "#909090", dislikeColor: "#909090" });
     }
-    let userLikes = JSON.stringify(userInformation.likedVideos);
-    let userDislikes = JSON.stringify(userInformation.dislikedVideos);
+    let userLikes = userInformation.likes;
+    let userDislikes = userInformation.dislikes;
     await API.graphql(
-      graphqlOperation(mutations.updateUserStorage, {
+      graphqlOperation(mutations.editUser, {
         input: {
           username: userInformation.username,
-          likedVideos: userLikes,
-          dislikedVideos: userDislikes
+          likes: userLikes,
+          dislikes: userDislikes
         }
       })
     ).catch(err => console.log(err));
+    console.log(videoID);
     await API.graphql(
-      graphqlOperation(mutations.updateVideoStorage, {
-        input: {
-          videoKey: `uploads/${key}.${mime}`,
-          likes: videoLikes,
-          dislikes: videoDislikes
-        }
+      graphqlOperation(mutations.sendLike, {
+        id: videoID
       })
     ).catch(err => console.log(err));
   };
@@ -346,32 +313,25 @@ class Watch extends Component {
 
   getMoreComments = async () => {
     await API.graphql(
-      graphqlOperation(queries.listCommentStorages, {
-        videoKey: `uploads/${this.state.key}.${this.state.mime.split("/")[1]}`,
-        limit: 20,
-        nextToken: this.state.nextToken
+      graphqlOperation(queries.getComments, {
+        input: {},
+        offset: this.state.offset
       })
     ).then(res => {
       let comments = this.state.comments;
-      for (let i = 0; i < res.data.listCommentStorages.items.length; i++) {
-        comments.push(res.data.listCommentStorages.items[i]);
+      for (let i = 0; i < res.data.getComments.length; i++) {
+        comments.push(res.data.getComments[i]);
       }
       console.log(comments);
       this.setState({
-        nextToken: res.data.listCommentStorages.nextToken,
+        offset: this.state.offset + 20,
         comments: comments
       });
-      console.log(this.state.ammountComments);
-      console.log(this.state.comments.length);
-      if (this.state.nextToken != null) {
-        console.log("this aint true");
-        document.addEventListener("scroll", this.trackScrolling);
-      }
-      console.log(this.state.comments);
+      document.addEventListener("scroll", this.trackScrolling);
     });
   };
 
-  async handleDisLikes(username, key, mime, userInformation) {
+  async handleDisLikes(username, videoID, userInformation) {
     let likesArray, dislikesArray;
     try {
       likesArray = JSON.parse(userInformation.likedVideos);
@@ -387,7 +347,7 @@ class Watch extends Component {
     }
     console.log(dislikesArray);
     if (this.state.liked == true) {
-      likesArray = likesArray.filter(e => e !== `uploads/${key}.${mime}`);
+      likesArray = likesArray.filter(e => e !== videoID);
       this.setState({
         liked: false,
         likes: JSON.parse(this.state.likes) - 1
@@ -398,11 +358,11 @@ class Watch extends Component {
         userInformation = {
           username: username,
           likedVideos: [],
-          dislikedVideos: [`uploads/${key}.${mime}`]
+          dislikedVideos: ""
         };
       } else {
         console.log("here we are");
-        dislikesArray.push(`uploads/${key}.${mime}`);
+        dislikesArray.push();
         console.log(likesArray);
         userInformation.likedVideos = likesArray;
         userInformation.dislikedVideos = dislikesArray;
@@ -413,7 +373,7 @@ class Watch extends Component {
       });
       this.setState({ likeColor: "#909090", dislikeColor: "#d8000c" });
     } else if (this.state.disliked == true) {
-      dislikesArray = dislikesArray.filter(e => e !== `uploads/${key}.${mime}`);
+      dislikesArray = dislikesArray.filter(e => e !== "");
       userInformation.dislikedVideos = dislikesArray;
       this.setState({
         disliked: false,
@@ -424,7 +384,7 @@ class Watch extends Component {
     let userLikes = JSON.stringify(userInformation.likedVideos);
     let userDislikes = JSON.stringify(userInformation.dislikedVideos);
     await API.graphql(
-      graphqlOperation(mutations.updateUserStorage, {
+      graphqlOperation(mutations.editUser, {
         input: {
           username: userInformation.username,
           likedVideos: userLikes,
@@ -433,9 +393,9 @@ class Watch extends Component {
       })
     ).catch(err => console.log(err));
     await API.graphql(
-      graphqlOperation(mutations.updateVideoStorage, {
+      graphqlOperation(mutations.editVideo, {
         input: {
-          videoKey: `uploads/${key}.${mime}`,
+          videoKey: "",
           likes: this.state.likes,
           dislikes: this.state.dislikes
         }
@@ -453,7 +413,7 @@ class Watch extends Component {
     if (seconds == watchTimeLimit) {
       clearInterval();
       const updatedVideo = await API.graphql(
-        graphqlOperation(mutations.updateVideoStorage, {
+        graphqlOperation(mutations.editVideo, {
           input: {
             videoKey: `uploads/${key}.${mime}`,
             views: JSON.stringify(parseInt(views) + 1)
@@ -486,18 +446,11 @@ class Watch extends Component {
       console.log(`uploads/${that.state.key}.${that.state.mime}`);
 
       API.graphql(
-        graphqlOperation(mutations.createCommentStorage, {
+        graphqlOperation(mutations.addComment, {
           input: {
-            videoKey: `uploads/${that.state.key}.${
-              that.state.mime.split("/")[1]
-            }`,
+            videoID: that.state.videoID,
             username: that.username,
-            comment: comment,
-            createdAt: new Date().toISOString(),
-            ammountReplies: "0",
-            likes: "[]",
-            dislikes: "[]",
-            isEdited: false
+            comment: comment
           }
         })
       )
@@ -519,7 +472,7 @@ class Watch extends Component {
             comments: commentArray
           });
           API.graphql(
-            graphqlOperation(queries.getVideoStorage, {
+            graphqlOperation(queries.getVideo, {
               videoKey: `uploads/${that.state.key}.${
                 that.state.mime.split("/")[1]
               }`
@@ -528,11 +481,9 @@ class Watch extends Component {
             .then(result => {
               let currentComments = result.data.getVideoStorage.ammountComments;
               API.graphql(
-                graphqlOperation(mutations.updateVideoStorage, {
+                graphqlOperation(mutations.editVideo, {
                   input: {
-                    videoKey: `uploads/${that.state.key}.${
-                      that.state.mime.split("/")[1]
-                    }`,
+                    videoKey: "",
                     ammountComments: JSON.stringify(
                       parseInt(currentComments) + 1
                     )
@@ -609,7 +560,7 @@ class Watch extends Component {
       tags = [];
     }
     let comments = this.state.comments;
-    console.log(comments);
+    console.log(this.state.videoDetails);
     return (
       <div className="video-container">
         <video id="player" playsInline controls preload autoPlay>
@@ -618,7 +569,7 @@ class Watch extends Component {
         <div className="details-comments-wrapper">
           <div className="details-wrapper">
             <div className="title-wrapper">
-              <h2>{this.state.videoDetails.videoTitle}</h2>
+              <h2>{this.state.videoDetails.title}</h2>
             </div>
             <div className="likes-date-wrapper">
               <p className="likes-dates">
@@ -684,22 +635,22 @@ class Watch extends Component {
                     less="Visa mindre"
                     anchorClass="read-more"
                   >
-                    {this.state.videoDetails.videoDesc}
-                    <div className="desc-tags">
-                      <h4>Tags:</h4>
-                      {tags.map((tag, i) => (
-                        <div key={i} className="desc-tag">
-                          <Link to="">{tag}</Link>,
-                        </div>
-                      ))}
-                    </div>
-                    <div className="desc-category">
-                      <h4>Kategori:</h4>
-                      <Link to="">
-                        <h4>{this.state.videoDetails.category}</h4>
-                      </Link>
-                    </div>
+                    {this.state.videoDetails.description + " "}
                   </ShowMore>
+                  <div className="desc-tags">
+                    <h4>Tags:</h4>
+                    {tags.map((tag, i) => (
+                      <div key={i} className="desc-tag">
+                        <Link to="">{tag}</Link>,
+                      </div>
+                    ))}
+                  </div>
+                  <div className="desc-category">
+                    <h4>Kategori:</h4>
+                    <Link to="">
+                      <h4>{this.state.videoDetails.category}</h4>
+                    </Link>
+                  </div>
                 </div>
               </div>
             </div>
@@ -816,7 +767,7 @@ class CommentBox extends Component {
       let reply = $(replyField).text();
       replyField.innerHTML = "";
       reply = await API.graphql(
-        graphqlOperation(mutations.createReplyStorage, {
+        graphqlOperation(mutations.addReply, {
           input: {
             commentKey: key,
             username: this.props.username,
@@ -830,7 +781,7 @@ class CommentBox extends Component {
         return res.data.createReplyStorage;
       });
       let comment = await API.graphql(
-        graphqlOperation(queries.getCommentStorage, {
+        graphqlOperation(queries.getComment, {
           commentKey: key,
           videoKey: this.props.comment.videoKey
         })
@@ -847,7 +798,7 @@ class CommentBox extends Component {
       });
       console.log(this.props.comment.videoKey);
       await API.graphql(
-        graphqlOperation(mutations.updateCommentStorage, {
+        graphqlOperation(mutations.editComment, {
           input: {
             commentKey: key,
             videoKey: this.props.comment.videoKey,
@@ -859,7 +810,7 @@ class CommentBox extends Component {
   };
   handleCommentLikes = async (key, videoKey, id) => {
     let comment = await API.graphql(
-      graphqlOperation(queries.getCommentStorage, {
+      graphqlOperation(queries.getComment, {
         commentKey: key,
         videoKey: videoKey
       })
@@ -922,7 +873,7 @@ class CommentBox extends Component {
       dislikes: JSON.parse(comment.dislikes)
     });
     await API.graphql(
-      graphqlOperation(mutations.updateCommentStorage, {
+      graphqlOperation(mutations.editComment, {
         input: {
           commentKey: key,
           videoKey: videoKey,
@@ -963,9 +914,8 @@ class CommentBox extends Component {
     replyWrapper.classList.toggle("show-container");
     if (this.state.replies.length < 1) {
       let commentReplies = await API.graphql(
-        graphqlOperation(queries.listReplyStorages, {
-          commentKey: commentKey,
-          limit: 5
+        graphqlOperation(queries.getReplies, {
+          commentKey: commentKey
         })
       ).then(res => {
         console.log(res);
@@ -980,7 +930,7 @@ class CommentBox extends Component {
 
   loadMoreReplies = async () => {
     let commentReplies = await API.graphql(
-      graphqlOperation(queries.listReplyStorages, {
+      graphqlOperation(queries.getReplies, {
         limit: 5,
         nextToken: this.state.nextToken,
         commentKey: this.props.comment.commentKey
@@ -1027,8 +977,51 @@ class CommentBox extends Component {
   };
 
   deleteComment = async commentKey => {
-    console.log(commentKey);
+    await API.graphql(
+      graphqlOperation(mutations.deleteComment, {
+        input: {
+          commentKey: this.props.comment.commentKey,
+          videoKey: this.props.comment.videoKey
+        }
+      })
+    );
+    console.log(this.state.replies);
+    let token = "";
+    let commentReplies = "";
+    while (token != null) {
+      await API.graphql(
+        graphqlOperation(queries.getReplies, {
+          nextToken: token,
+          commentKey: this.props.comment.commentKey
+        })
+      ).then(res => {
+        if (res.data.listReplyStorages.nextToken != null) {
+          token = res.data.listReplyStorages.nextToken;
+        } else {
+          token = null;
+        }
+        commentReplies = res.data.listReplyStorages.items.concat(
+          commentReplies
+        );
+      });
+    }
+    console.log(commentReplies);
+    if (commentReplies.length > 0) {
+      for (let i = 0; i < commentReplies.length; i++) {
+        await API.graphql(
+          graphqlOperation(mutations.deleteReply, {
+            input: {
+              replyKey: commentReplies[i].replyKey,
+              commentKey: commentReplies[i].commentKey
+            }
+          })
+        )
+          .then(res => {})
+          .catch(err => console.log(err));
+      }
+    }
   };
+  getReplies = async () => {};
 
   editComment = async commentKey => {
     console.log(commentKey);
@@ -1049,7 +1042,7 @@ class CommentBox extends Component {
     } else {
       console.log(this.props);
       let editedComment = await API.graphql(
-        graphqlOperation(mutations.updateCommentStorage, {
+        graphqlOperation(mutations.editComment, {
           input: {
             commentKey: this.props.comment.commentKey,
             videoKey: this.props.comment.videoKey,
@@ -1340,7 +1333,7 @@ class ReplyBox extends Component {
 
   handleReplyLikes = async (key, commentKey, id) => {
     let comment = await API.graphql(
-      graphqlOperation(queries.getReplyStorage, {
+      graphqlOperation(queries.getReply, {
         replyKey: key,
         commentKey: commentKey
       })
@@ -1401,7 +1394,7 @@ class ReplyBox extends Component {
       dislikes: JSON.parse(comment.dislikes)
     });
     await API.graphql(
-      graphqlOperation(mutations.updateReplyStorage, {
+      graphqlOperation(mutations.editReply, {
         input: {
           replyKey: key,
           commentKey: commentKey,
