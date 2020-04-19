@@ -5,26 +5,31 @@ import $ from "jquery";
 import VideoUpload from "./VideoUpload";
 import HomeFeed from "./HomeFeed";
 import Watch from "./Watch";
+import { isMobile } from "react-device-detect";
 let that;
 class Home extends Component {
+  constructor() {
+    super();
+    this.state = {};
+  }
   async componentDidMount(prevProps) {
     that = this;
-    $("html").click(function() {
+    $("html").click(function () {
       closeNav();
     });
 
-    $("#app-nav").click(function(event) {
+    $("#app-nav").click(function (event) {
       event.stopPropagation();
     });
 
-    $(".closebtn").click(function() {
+    $(".closebtn").click(function () {
       closeNav();
     });
 
-    $("#logout-btn").click(function() {
+    $("#logout-btn").click(function () {
       Auth.signOut()
-        .then(data => that.props.history.push("/login"))
-        .catch(err => console.log(err));
+        .then((data) => that.props.history.push("/login"))
+        .catch((err) => console.log(err));
     });
   }
 
@@ -46,49 +51,35 @@ class Home extends Component {
             <Link href="#">Services</Link>
             <Link href="#">Clients</Link>
             <Link href="#">Contact</Link>
-            <a href="javascript:void(0)" id="logout-btn">
-              Logout
-            </a>
           </div>
           <main id="main-content" className="content-container">
             <nav className="navigation-container">
-              <button className="openNav" onClick={openNav}>
-                ☰
-              </button>
-              <Link
-                className="add-video"
-                to={`${this.props.match.path}/video-upload`}
-              >
-                <i className="fas fa-video"></i>
-              </Link>
+              {isMobile === false && (
+                <div className="search-wrapper">
+                  <input className="search-bar" placeholder="Sök..."></input>
+                  <button id="logout-btn" className="confirm-search">
+                    <i className="fas fa-search"></i>
+                  </button>
+                </div>
+              )}
+              <div className="lingering-links">
+                <Link
+                  className="add-video"
+                  to={`${this.props.match.path}/video-upload`}
+                >
+                  <i className="fas fa-video"></i>
+                </Link>
+                {isMobile === true && (
+                  <Link className="search-video" to={``}>
+                    <i className="fas fa-search"></i>
+                  </Link>
+                )}
+              </div>
             </nav>
             <div className="progress-bar">
               <div className="loader">
                 <p></p>
               </div>
-            </div>
-            <div id="inner-content" className="inner-content">
-              <Route
-                render={props => {
-                  return (
-                    <Switch>
-                      <Route
-                        exact
-                        path={this.props.match.path}
-                        component={HomeFeed}
-                      />
-                      <Route
-                        path={`${this.props.match.path}/video-upload`}
-                        component={VideoUpload}
-                      />
-                      <Route
-                        path={`${this.props.match.path}/watch`}
-                        component={Watch}
-                      />
-                    </Switch>
-                  );
-                }}
-              />
             </div>
           </main>
         </div>

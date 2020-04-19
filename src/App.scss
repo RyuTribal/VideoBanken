@@ -580,30 +580,17 @@ textarea {
   width: 100%;
   position: fixed;
   right: 0;
-  transition: width 0.2s;
   padding: 10px 15px 10px 15px;
   display: inline-block;
   min-width: 130px;
   z-index: 10;
+  text-align: center;
 }
 
 .navigation-container button:focus {
   outline: none;
 }
 
-.openNav {
-  font-size: 20px;
-  cursor: pointer;
-  background-color: transparent;
-  color: black;
-  border: none;
-  padding: 0;
-}
-
-.openNav:hover {
-  color: #444;
-  opacity: unset;
-}
 
 #main-content {
   transition: width 0.2s;
@@ -640,13 +627,62 @@ textarea {
   transition: color 0.5s;
 }
 
-.add-video {
+.lingering-links{
+  display: inline-block;
+  float: right;
   font-size: 20px;
+}
+
+.lingering-links a{
   cursor: pointer;
   background-color: transparent;
-  color: black;
   border: none;
-  float: right;
+  padding: 20px;
+}
+
+.lingering-links a:last-child{
+  margin-right: 0;
+}
+
+.search-wrapper{
+  margin: 0 auto;
+  display: inline-flex;
+  position: relative;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 24px;
+  width: 30%;
+  max-width: 550px;
+}
+
+.search-bar{
+  border-top-left-radius: 20px;
+  border-bottom-left-radius: 20px;
+  box-shadow: none;
+  border: 1px solid #c7c6c6;
+  padding-left: 15px;
+  height: auto;
+  width: 100%;
+}
+
+.search-bar:focus{
+  outline: none;
+}
+
+.confirm-search{
+  background: #c7c6c6;
+  color: black !important;
+  border-radius:0;
+  height: auto;
+  padding: 0;
+  padding-left: 10px;
+  padding-right: 15px;
+  border-top-right-radius: 20px;
+  border-bottom-right-radius: 20px;
+}
+
+.confirm-button:hover{
+  opacity: 1;
 }
 
 .video-upload-container {
@@ -695,11 +731,6 @@ textarea {
   width: 40%;
   color: white;
   float: right;
-}
-
-#logout-btn {
-  position: absolute;
-  bottom: 60px;
 }
 
 #abort-video {
