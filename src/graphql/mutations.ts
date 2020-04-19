@@ -52,7 +52,7 @@ export const editVideo = `mutation EditVideo($input: VideoInput!) {
   }
 }
 `;
-export const sendView = `mutation SendView($id: ID) {
+export const sendView = `mutation SendView($id: ID!) {
   sendView(id: $id) {
     id
     title
@@ -73,15 +73,20 @@ export const sendLike = `mutation SendLike($input: VideoLikesInput!) {
   sendLike(input: $input) {
     username
     videoID
-    conditional
   }
 }
 `;
-export const sendDislike = `mutation SendDislike($input: VideoLikesInput!) {
+export const sendDislike = `mutation SendDislike($input: VideoDislikesInput!) {
   sendDislike(input: $input) {
     username
     videoID
-    conditional
+  }
+}
+`;
+export const sendTag = `mutation SendTag($input: TagInput!) {
+  sendTag(input: $input) {
+    tag
+    videoID
   }
 }
 `;
@@ -92,10 +97,8 @@ export const addComment = `mutation AddComment($input: CommentInput!) {
     username
     comment
     createdAt
-    ammountReplies
-    likes
-    dislikes
     isEdited
+    ammountReplies
   }
 }
 `;
@@ -106,10 +109,8 @@ export const deleteComment = `mutation DeleteComment($input: CommentInput!) {
     username
     comment
     createdAt
-    ammountReplies
-    likes
-    dislikes
     isEdited
+    ammountReplies
   }
 }
 `;
@@ -120,38 +121,24 @@ export const editComment = `mutation EditComment($input: CommentInput!) {
     username
     comment
     createdAt
-    ammountReplies
-    likes
-    dislikes
     isEdited
+    ammountReplies
   }
 }
 `;
-export const likeComment = `mutation LikeComment($input: CommentInput!) {
+export const likeComment = `mutation LikeComment($input: CommentLikeInput!) {
   likeComment(input: $input) {
-    id
-    videoID
     username
-    comment
-    createdAt
-    ammountReplies
-    likes
-    dislikes
-    isEdited
+    commentID
+    videoID
   }
 }
 `;
-export const dislikeComment = `mutation DislikeComment($input: CommentInput!) {
+export const dislikeComment = `mutation DislikeComment($input: CommentDislikeInput!) {
   dislikeComment(input: $input) {
-    id
-    videoID
     username
-    comment
-    createdAt
-    ammountReplies
-    likes
-    dislikes
-    isEdited
+    commentID
+    videoID
   }
 }
 `;
@@ -163,8 +150,6 @@ export const addReply = `mutation AddReply($input: ReplyInput!) {
     videoID
     comment
     createdAt
-    likes
-    dislikes
     isEdited
   }
 }
@@ -177,8 +162,6 @@ export const deleteReply = `mutation DeleteReply($input: ReplyInput!) {
     videoID
     comment
     createdAt
-    likes
-    dislikes
     isEdited
   }
 }
@@ -191,37 +174,25 @@ export const editReply = `mutation EditReply($input: ReplyInput!) {
     videoID
     comment
     createdAt
-    likes
-    dislikes
     isEdited
   }
 }
 `;
-export const likeReply = `mutation LikeReply($input: ReplyInput!) {
+export const likeReply = `mutation LikeReply($input: ReplyLikeInput!) {
   likeReply(input: $input) {
-    id
-    commentID
     username
+    replyID
+    commentID
     videoID
-    comment
-    createdAt
-    likes
-    dislikes
-    isEdited
   }
 }
 `;
-export const dislikeReply = `mutation DislikeReply($input: ReplyInput!) {
+export const dislikeReply = `mutation DislikeReply($input: ReplyDislikeInput!) {
   dislikeReply(input: $input) {
-    id
-    commentID
     username
+    replyID
+    commentID
     videoID
-    comment
-    createdAt
-    likes
-    dislikes
-    isEdited
   }
 }
 `;

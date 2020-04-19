@@ -35,6 +35,27 @@ export const getVideo = `query GetVideo($input: VideoInput!) {
   }
 }
 `;
+export const getLikes = `query GetLikes($videoID: ID!) {
+  getLikes(videoID: $videoID) {
+    username
+    videoID
+  }
+}
+`;
+export const getDislikes = `query GetDislikes($videoID: ID!) {
+  getDislikes(videoID: $videoID) {
+    username
+    videoID
+  }
+}
+`;
+export const getTags = `query GetTags($input: TagInput!) {
+  getTags(input: $input) {
+    tag
+    videoID
+  }
+}
+`;
 export const getComments = `query GetComments($offset: Int, $input: CommentInput!) {
   getComments(offset: $offset, input: $input) {
     id
@@ -42,10 +63,24 @@ export const getComments = `query GetComments($offset: Int, $input: CommentInput
     username
     comment
     createdAt
-    ammountReplies
-    likes
-    dislikes
     isEdited
+    ammountReplies
+  }
+}
+`;
+export const getCommentLikes = `query GetCommentLikes($commentID: ID!) {
+  getCommentLikes(commentID: $commentID) {
+    username
+    commentID
+    videoID
+  }
+}
+`;
+export const getCommentDislikes = `query GetCommentDislikes($commentID: ID!) {
+  getCommentDislikes(commentID: $commentID) {
+    username
+    commentID
+    videoID
   }
 }
 `;
@@ -56,10 +91,8 @@ export const getComment = `query GetComment($input: CommentInput!) {
     username
     comment
     createdAt
-    ammountReplies
-    likes
-    dislikes
     isEdited
+    ammountReplies
   }
 }
 `;
@@ -71,8 +104,6 @@ export const getReplies = `query GetReplies($offset: Int, $input: ReplyInput!) {
     videoID
     comment
     createdAt
-    likes
-    dislikes
     isEdited
   }
 }
@@ -85,9 +116,25 @@ export const getReply = `query GetReply($input: ReplyInput!) {
     videoID
     comment
     createdAt
-    likes
-    dislikes
     isEdited
+  }
+}
+`;
+export const getReplyLikes = `query GetReplyLikes($replyID: ID!) {
+  getReplyLikes(replyID: $replyID) {
+    username
+    replyID
+    commentID
+    videoID
+  }
+}
+`;
+export const getReplyDislikes = `query GetReplyDislikes($replyID: ID!) {
+  getReplyDislikes(replyID: $replyID) {
+    username
+    replyID
+    commentID
+    videoID
   }
 }
 `;

@@ -984,21 +984,17 @@ textarea {
 
 .reply-field-container {
   padding-left: 25px;
-  display: none;
+  display: block;
   overflow: auto;
 }
 
 .replies-container {
   padding-left: 25px;
-  display: none;
+  display: block;
 }
 
 .reply-wrapper {
   margin-top: 20px;
-}
-
-.show-container {
-  display: block;
 }
 
 .comment-field {

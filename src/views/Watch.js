@@ -25,15 +25,15 @@ class Watch extends Component {
     this.state = {
       video: "",
       videoDetails: {},
+      tags: {},
       videoID: "",
-      ammountComments: "",
       comments: [],
       liked: false,
       disliked: false,
       likeColor: "#",
       likes: "",
       dislikes: "",
-      offset: 0
+      offset: 0,
     };
   }
   async componentDidMount() {
@@ -43,10 +43,13 @@ class Watch extends Component {
     let userInformation;
     console.log(this.props.history.location.search);
     await Auth.currentAuthenticatedUser({
-      bypassCache: true // Optional, By default is false. If set to true, this call will send a request to Cognito to get the latest user data
+      bypassCache: true, // Optional, By default is false. If set to true, this call will send a request to Cognito to get the latest user data
     })
-      .then(user => {
+      .then((user) => {
         this.username = user.username;
+        this.setState({
+          username: user.username,
+        });
         console.log(user);
         if (
           user.attributes["custom:firstTime"] == "0" ||
@@ -56,21 +59,21 @@ class Watch extends Component {
           API.graphql(
             graphqlOperation(mutations.addUser, {
               input: {
-                username: user.username
-              }
+                username: user.username,
+              },
             })
           )
-            .then(result => {
+            .then((result) => {
               Auth.updateUserAttributes(user, {
-                "custom:firstTime": "1"
+                "custom:firstTime": "1",
               })
-                .then(res => {})
-                .catch(err => console.log(err));
+                .then((res) => {})
+                .catch((err) => console.log(err));
             })
-            .catch(err => console.log(err));
+            .catch((err) => console.log(err));
         }
       })
-      .catch(err => {
+      .catch((err) => {
         console.log(err);
         this.props.history.push("/login");
       });
@@ -86,22 +89,32 @@ class Watch extends Component {
     }
     let videoDetails = {};
     let videoUrl = "";
+    let videoTags = {};
     this.setState({
-      key: videoID
+      key: videoID,
     });
     await API.graphql(
       graphqlOperation(queries.getVideo, {
         input: {
-          id: videoID
-        }
+          id: videoID,
+        },
       })
     )
-      .then(function(result) {
+      .then(function (result) {
         console.log(result);
         videoDetails = result.data.getVideo;
       })
-      .catch(err => console.log(err));
-    await Storage.get(`uploads/${videoID}.mp4`).then(function(result) {
+      .catch((err) => console.log(err));
+    await API.graphql(
+      graphqlOperation(queries.getTags, {
+        input: {
+          videoID: videoID,
+        },
+      })
+    ).then((result) => {
+      videoTags = result.data.getTags;
+    });
+    await Storage.get(`uploads/${videoID}.mp4`).then(function (result) {
       videoUrl = result;
     });
     if (videoDetails.views == null) {
@@ -112,75 +125,62 @@ class Watch extends Component {
     }
     console.log(this.username);
     await API.graphql(
-      graphqlOperation(queries.getUser, {
-        input: {
-          username: this.username
-        }
+      graphqlOperation(queries.getLikes, {
+        videoID: videoID,
       })
-    )
-      .then(function(result) {
-        if (result.data.getUser == null) {
-        } else {
-          if (result.data.getUser.likes == null) {
-            result.data.getUser.likes = "[]";
-          }
-          if (result.data.getUser.dislikes == null) {
-            result.data.getUser.dislikes = "[]";
-          }
-          userInformation = result.data.getUser;
-          console.log(result.data.getUser.likes)
-          for (
-            let i = 0;
-            i < JSON.parse(result.data.getUser.likes).length;
-            i++
-          ) {
-            if (videoID == result.data.getUser.likes[i]) {
-              that.setState({
-                liked: true,
-                likeColor: "#24a0ed",
-                dislikeColor: "#909090"
-              });
-            }
-          }
-
-          for (
-            let i = 0;
-            i < JSON.parse(result.data.getUser.dislikes).length;
-            i++
-          ) {
-            if (videoID == JSON.parse(result.data.getUser.dislikes)[i]) {
-              that.setState({
-                disliked: true,
-                likeColor: "#909090",
-                dislikeColor: "#d8000c"
-              });
-            }
-          }
+    ).then((result) => {
+      console.log(username);
+      for (let i = 0; i < result.data.getLikes.length; i++) {
+        if (result.data.getLikes[i].username === this.state.username) {
+          this.setState({
+            liked: true,
+            likeColor: "#24a0ed",
+          });
         }
+      }
+      this.setState({
+        likes: result.data.getLikes.length,
+      });
+    });
+    await API.graphql(
+      graphqlOperation(queries.getDislikes, {
+        videoID: videoID,
       })
-      .catch(err => console.log(err));
+    ).then((result) => {
+      console.log(result);
+      for (let i = 0; i < result.data.getDislikes.length; i++) {
+        if (result.data.getDislikes[i].username === this.state.username) {
+          this.setState({
+            disliked: true,
+            dislikeColor: "#d8000c",
+          });
+        }
+      }
+      this.setState({
+        dislikes: result.data.getDislikes.length,
+      });
+    });
     let comments;
     let nextToken;
     await API.graphql(
       graphqlOperation(queries.getComments, {
         offset: this.state.offset,
         input: {
-          videoID: videoID
-        }
+          videoID: videoID,
+        },
       })
-    ).then(res => {
+    ).then((res) => {
       console.log(res);
       comments = res.data.getComments;
     });
-    console.log(videoDetails);
+    console.log(comments.length);
     this.setState({
       video: videoUrl,
       videoDetails: videoDetails,
-      likes: JSON.parse(videoDetails.likes),
-      dislikes: JSON.parse(videoDetails.dislikes),
+      tags: videoTags,
       comments: comments,
       ammountComments: videoDetails.ammountComments,
-      offset: this.state.offset + 20
+      offset: this.state.offset + 20,
     });
     console.log(this.state.ammountComments);
     if (this.state.ammountComments > 20) {
@@ -188,116 +188,92 @@ class Watch extends Component {
       document.addEventListener("scroll", this.trackScrolling);
     }
     const player = new Plyr("#player", {
-      title: this.state.videoDetails.title
+      title: this.state.videoDetails.title,
     });
     let secondsVideoPlayed = 0;
-    window.setInterval(function() {
+    window.setInterval(function () {
       if (player.playing) {
         if (Math.round(player.currentTime) < secondsVideoPlayed) {
         } else if (Math.round(player.currentTime) > secondsVideoPlayed) {
           secondsVideoPlayed++;
-          that.sendView(secondsVideoPlayed, player, videoDetails.views);
+          that.sendView(secondsVideoPlayed, player);
         }
       } else {
       }
     }, 1000);
     const likeButton = document.getElementById("like-button");
     const dislikeButton = document.getElementById("dislike-button");
-    console.log(userInformation);
-    likeButton.addEventListener("click", function() {
-      that.handleLikes(this.username, videoID, userInformation);
+    likeButton.addEventListener("click", function () {
+      that.handleLikes(that.username, videoID);
     });
-    dislikeButton.addEventListener("click", function() {
-      that.handleDisLikes(this.username, videoID, userInformation);
+    dislikeButton.addEventListener("click", function () {
+      that.handleDisLikes(that.username, videoID, userInformation);
     });
   }
 
-  handleLikes = async (username, videoID, userInformation) => {
-    let likesArray, dislikesArray;
-    console.log(videoID);
-    console.log(userInformation);
-    let video = await API.graphql(
-      graphqlOperation(queries.getVideo, {
-        input: {
-          id: videoID
-        }
-      })
-    ).then(res => {
-      return res.data.getVideo;
-    });
-    let videoLikes = JSON.parse(video.likes);
-    let videoDislikes = JSON.parse(video.dislikes);
-    try {
-      likesArray = JSON.parse(userInformation.likes);
-    } catch {
-      console.log("we are here");
-      likesArray = userInformation.likes;
-    }
-    try {
-      dislikesArray = JSON.parse(userInformation.dislikes);
-    } catch {
-      console.log("we are here");
-      dislikesArray = userInformation.dislikes;
-    }
-    console.log(userInformation.likes);
-    if (this.state.disliked == true) {
-      dislikesArray = dislikesArray.filter(e => e !== videoID);
-      this.setState({
-        disliked: false,
-        dislikes: JSON.parse(this.state.dislikes) - 1
-      });
-      videoDislikes = videoDislikes - 1;
-    }
-    if (this.state.liked == false) {
-      if (userInformation == null) {
-        userInformation = {
-          username: username,
-          likes: [videoID],
-          dislikes: []
-        };
-      } else {
-        console.log("here we are");
-        likesArray.push(JSON.stringify(videoID));
-        console.log(likesArray);
-        userInformation.likes = likesArray;
-        userInformation.dislikes = dislikesArray;
-      }
+  handleLikes = async (username, videoID) => {
+    console.log(username);
+    if (this.state.disliked === true) {
       this.setState({
         liked: true,
-        likes: JSON.parse(this.state.likes) + 1
+        disliked: false,
+        likeColor: "#24a0ed",
+        dislikeColor: "#909090",
+        likes: this.state.likes + 1,
+        dislikes: this.state.dislikes - 1,
       });
-      videoLikes = videoLikes + 1;
-      this.setState({ likeColor: "#24a0ed", dislikeColor: "#909090" });
-    } else if (this.state.liked == true) {
-      likesArray = likesArray.filter(e => e !== videoID);
-      userInformation.likes = likesArray;
+      await API.graphql(
+        graphqlOperation(mutations.sendDislike, {
+          input: {
+            username: username,
+            videoID: videoID,
+            conditional: "-",
+          },
+        })
+      ).catch((err) => {});
+      await API.graphql(
+        graphqlOperation(mutations.sendLike, {
+          input: {
+            username: username,
+            videoID: videoID,
+            conditional: "+",
+          },
+        })
+      );
+    } else if (this.state.liked === true) {
       this.setState({
         liked: false,
-        likes: JSON.parse(this.state.likes) - 1
+        likeColor: "#909090",
+        likes: this.state.likes - 1,
       });
-      videoLikes = videoLikes - 1;
-      this.setState({ likeColor: "#909090", dislikeColor: "#909090" });
+      await API.graphql(
+        graphqlOperation(mutations.sendLike, {
+          input: {
+            username: username,
+            videoID: videoID,
+            conditional: "-",
+          },
+        })
+      ).catch((err) => {});
+    } else if (this.state.liked === false && this.state.disliked === false) {
+      this.setState({
+        liked: true,
+        likeColor: "#24a0ed",
+        likes: this.state.likes + 1,
+      });
+      await API.graphql(
+        graphqlOperation(mutations.sendLike, {
+          input: {
+            username: username,
+            videoID: videoID,
+            conditional: "+",
+          },
+        })
+      );
     }
-    let userLikes = userInformation.likes;
-    let userDislikes = userInformation.dislikes;
-    await API.graphql(
-      graphqlOperation(mutations.editUser, {
-        input: {
-          username: userInformation.username,
-          likes: userLikes,
-          dislikes: userDislikes
-        }
-      })
-    ).catch(err => console.log(err));
-    console.log(videoID);
-    await API.graphql(
-      graphqlOperation(mutations.sendLike, {
-        id: videoID
-      })
-    ).catch(err => console.log(err));
   };
 
-  trackScrolling = e => {
+  trackScrolling = (e) => {
     const wrappedElement = document.getElementById("comments-wrapper");
     console.log("scrolling...");
     if (this.isBottom(wrappedElement)) {
@@ -314,10 +290,13 @@ class Watch extends Component {
   getMoreComments = async () => {
     await API.graphql(
       graphqlOperation(queries.getComments, {
-        input: {},
-        offset: this.state.offset
+        input: {
+          videoID: this.state.comments[0].videoID,
+        },
+        offset: this.state.offset,
       })
-    ).then(res => {
+    ).then((res) => {
+      console.log(res);
       let comments = this.state.comments;
       for (let i = 0; i < res.data.getComments.length; i++) {
         comments.push(res.data.getComments[i]);
@@ -325,85 +304,74 @@ class Watch extends Component {
       console.log(comments);
       this.setState({
         offset: this.state.offset + 20,
-        comments: comments
+        comments: comments,
       });
       document.addEventListener("scroll", this.trackScrolling);
     });
   };
 
-  async handleDisLikes(username, videoID, userInformation) {
-    let likesArray, dislikesArray;
-    try {
-      likesArray = JSON.parse(userInformation.likedVideos);
-    } catch {
-      console.log("we are here");
-      likesArray = userInformation.likedVideos;
-    }
-    try {
-      dislikesArray = JSON.parse(userInformation.dislikedVideos);
-    } catch {
-      console.log("we are here");
-      dislikesArray = userInformation.dislikedVideos;
-    }
-    console.log(dislikesArray);
-    if (this.state.liked == true) {
-      likesArray = likesArray.filter(e => e !== videoID);
-      this.setState({
-        liked: false,
-        likes: JSON.parse(this.state.likes) - 1
-      });
-    }
-    if (this.state.disliked == false) {
-      if (userInformation == null) {
-        userInformation = {
-          username: username,
-          likedVideos: [],
-          dislikedVideos: ""
-        };
-      } else {
-        console.log("here we are");
-        dislikesArray.push();
-        console.log(likesArray);
-        userInformation.likedVideos = likesArray;
-        userInformation.dislikedVideos = dislikesArray;
-      }
+  async handleDisLikes(username, videoID) {
+    if (this.state.liked === true) {
       this.setState({
         disliked: true,
-        dislikes: JSON.parse(this.state.dislikes) + 1
+        liked: false,
+        likeColor: "#909090",
+        dislikeColor: "#d8000c",
+        likes: this.state.likes - 1,
+        dislikes: this.state.dislikes + 1,
       });
-      this.setState({ likeColor: "#909090", dislikeColor: "#d8000c" });
-    } else if (this.state.disliked == true) {
-      dislikesArray = dislikesArray.filter(e => e !== "");
-      userInformation.dislikedVideos = dislikesArray;
+      await API.graphql(
+        graphqlOperation(mutations.sendLike, {
+          input: {
+            username: username,
+            videoID: videoID,
+            conditional: "-",
+          },
+        })
+      ).catch((err) => {});
+      await API.graphql(
+        graphqlOperation(mutations.sendDislike, {
+          input: {
+            username: username,
+            videoID: videoID,
+            conditional: "+",
+          },
+        })
+      );
+    } else if (this.state.disliked === true) {
       this.setState({
         disliked: false,
-        dislikes: JSON.parse(this.state.dislikes) - 1
+        dislikeColor: "#909090",
+        dislikes: this.state.dislikes - 1,
       });
-      this.setState({ likeColor: "#909090", dislikeColor: "#909090" });
+      await API.graphql(
+        graphqlOperation(mutations.sendDislike, {
+          input: {
+            username: username,
+            videoID: videoID,
+            conditional: "-",
+          },
+        })
+      ).catch((err) => {});
+    } else if (this.state.disliked === false && this.state.liked === false) {
+      this.setState({
+        disliked: true,
+        dislikeColor: "#d8000c",
+        dislikes: this.state.dislikes + 1,
+      });
+      await API.graphql(
+        graphqlOperation(mutations.sendDislike, {
+          input: {
+            username: username,
+            videoID: videoID,
+            conditional: "+",
+          },
+        })
+      );
     }
-    let userLikes = JSON.stringify(userInformation.likedVideos);
-    let userDislikes = JSON.stringify(userInformation.dislikedVideos);
-    await API.graphql(
-      graphqlOperation(mutations.editUser, {
-        input: {
-          username: userInformation.username,
-          likedVideos: userLikes,
-          dislikedVideos: userDislikes
-        }
-      })
-    ).catch(err => console.log(err));
-    await API.graphql(
-      graphqlOperation(mutations.editVideo, {
-        input: {
-          videoKey: "",
-          likes: this.state.likes,
-          dislikes: this.state.dislikes
-        }
-      })
-    );
   }
 
-  async sendView(seconds, player, views, key, mime) {
+  async sendView(seconds, player) {
     let watchTimeLimit = 0;
     if (player.duration < 30) {
       watchTimeLimit = Math.floor(player.duration);
@@ -412,16 +380,13 @@ class Watch extends Component {
     }
     if (seconds == watchTimeLimit) {
       clearInterval();
-      const updatedVideo = await API.graphql(
-        graphqlOperation(mutations.editVideo, {
-          input: {
-            videoKey: `uploads/${key}.${mime}`,
-            views: JSON.stringify(parseInt(views) + 1)
-          }
+      await API.graphql(
+        graphqlOperation(mutations.sendView, {
+          id: this.state.key,
         })
       )
-        .then(result => console.log(result))
-        .catch(err => console.log(err));
+        .then((result) => console.log(result))
+        .catch((err) => console.log(err));
     }
   }
 
@@ -430,7 +395,7 @@ class Watch extends Component {
     window.location.href = videoURL;
   }
 
-  handleComments() {
+  handleComments = async () => {
     let commentArray;
     if (
       $("#new-comment").text() == "" ||
@@ -442,73 +407,56 @@ class Watch extends Component {
       const comment = $("#new-comment").text();
       $("#new-comment").empty();
 
-      commentArray = that.state.comments;
-      console.log(`uploads/${that.state.key}.${that.state.mime}`);
+      commentArray = this.state.comments;
 
-      API.graphql(
+      await API.graphql(
         graphqlOperation(mutations.addComment, {
           input: {
-            videoID: that.state.videoID,
-            username: that.username,
-            comment: comment
-          }
+            videoID: this.state.key,
+            username: this.username,
+            comment: comment,
+          },
         })
       )
-        .then(result => {
-          console.log(result);
-          commentArray.push({
-            commentKey: result.data.createCommentStorage.commentKey,
-            videoKey: `uploads/${that.state.key}.${
-              that.state.mime.split("/")[1]
-            }`,
-            username: that.username,
-            comment: comment,
-            createdAt: new Date().toISOString(),
-            ammountReplies: "0",
-            likes: "[]",
-            dislikes: "[]"
+        .then((result) => {
+          console.log(result.data.addComment);
+          let newComment = result.data.addComment;
+          commentArray.push(newComment);
+          console.log(commentArray);
+          this.setState({
+            comments: commentArray,
+            ammountComments: this.state.ammountComments + 1,
           });
-          that.setState({
-            comments: commentArray
-          });
-          API.graphql(
-            graphqlOperation(queries.getVideo, {
-              videoKey: `uploads/${that.state.key}.${
-                that.state.mime.split("/")[1]
-              }`
-            })
-          )
-            .then(result => {
-              let currentComments = result.data.getVideoStorage.ammountComments;
-              API.graphql(
-                graphqlOperation(mutations.editVideo, {
-                  input: {
-                    videoKey: "",
-                    ammountComments: JSON.stringify(
-                      parseInt(currentComments) + 1
-                    )
-                  }
-                })
-              )
-                .then(result => console.log(result))
-                .catch(err => console.log(err));
-            })
-            .catch(err => console.log(err));
         })
-        .catch(err => console.log(err));
+        .catch((err) => console.log(err));
     }
-  }
+  };
 
-  updateComments = editedComment => {
+  updateComments = (editedComment) => {
     let previousComments = this.state.comments;
     for (let i = 0; i < previousComments.length; i++) {
-      if (previousComments[i].commentKey === editedComment.commentKey) {
+      if (previousComments[i].id === editedComment.id) {
         previousComments[i] = editedComment;
       }
       this.setState({
-        comments: previousComments
+        comments: previousComments,
       });
     }
+  };
+
+  removeComment = (commentID) => {
+    let previousComments = this.state.comments;
+    console.log(commentID);
+    for (let i = 0; i < previousComments.length; i++) {
+      if (previousComments[i].id === commentID) {
+        console.log("we here");
+        previousComments.splice(i, 1);
+      }
+    }
+    this.setState({
+      comments: previousComments,
+      ammountComments: this.state.ammountComments - 1,
+    });
   };
 
   componentWillUnmount() {
@@ -517,20 +465,23 @@ class Watch extends Component {
   }
 
   render() {
+    console.log(this.state.likes);
     let numberLikes = 0;
     let numberDislikes = 0;
-    if (this.state.likes >= 1000 && this.state.likes < 1000000) {
+    if (this.state.likes == null) {
+      numberLikes = 0;
+    } else if (this.state.likes >= 1000 && this.state.likes < 1000000) {
       numberLikes = Math.round(this.state.likes / 1000) + "tn";
     } else if (this.state.likes >= 1000000 && this.state.likes < 1000000000) {
       numberLikes = Math.round(this.state.likes / 1000000) + "mn";
     } else if (this.state.likes >= 1000000000) {
       numberLikes = Math.round(this.state.likes / 1000000000) + "md";
-    } else if (this.state.likes == null) {
-      numberLikes = 0;
     } else {
       numberLikes = this.state.likes;
     }
-    if (this.state.dislikes >= 1000 && this.state.dislikes < 1000000) {
+    if (this.state.dislikes == null) {
+      numberDislikes = 0;
+    } else if (this.state.dislikes >= 1000 && this.state.dislikes < 1000000) {
       numberDislikes = Math.round(this.state.dislikes / 1000) + "tn";
     } else if (
       this.state.dislikes >= 1000000 &&
@@ -539,8 +490,6 @@ class Watch extends Component {
       numberDislikes = Math.round(this.state.dislikes / 1000000) + "mn";
     } else if (this.state.dislikes >= 1000000000) {
       numberDislikes = Math.round(this.state.dislikes / 1000000000) + "md";
-    } else if (this.state.dislikes == null) {
-      numberDislikes = 0;
     } else {
       numberDislikes = this.state.dislikes;
     }
@@ -555,7 +504,7 @@ class Watch extends Component {
     }
     let tags;
     try {
-      tags = JSON.parse(this.state.videoDetails.tags);
+      tags = JSON.parse(this.state.tags);
     } catch {
       tags = [];
     }
@@ -656,7 +605,7 @@ class Watch extends Component {
             </div>
             <div id="comments-wrapper" className="comments-wrapper">
               <div className="ammount-comments-wrapper">
-                <h3>{this.state.videoDetails.ammountComments} kommentarer</h3>
+                <h3>{this.state.ammountComments} kommentarer</h3>
               </div>
               <div className="post-comment-wrapper">
                 <div className="error">Kommentaren kan inte vara tom</div>
@@ -687,6 +636,7 @@ class Watch extends Component {
                     videoDetails={this.state.videoDetails}
                     username={this.username}
                     updateComments={this.updateComments}
+                    removeComment={this.removeComment}
                   />
                 ))}
               </div>
@@ -710,52 +660,72 @@ class CommentBox extends Component {
       dislikeColor: "#909090",
       liked: false,
       disliked: false,
-      likes: [],
-      dislikes: [],
+      likes: "",
+      dislikes: "",
       nextToken: "",
       openBox: false,
       moreReplies: false,
       editable: false,
-      showOptions: false
+      showOptions: false,
+      offset: 0,
+      replyFieldOpen: false,
     };
   }
   async componentDidMount() {
     commentClass = this;
+    let commentLikes = await API.graphql(
+      graphqlOperation(queries.getCommentLikes, {
+        commentID: this.props.comment.id,
+      })
+    ).then((result) => {
+      return result.data.getCommentLikes;
+    });
+    let commentDislikes = await API.graphql(
+      graphqlOperation(queries.getCommentDislikes, {
+        commentID: this.props.comment.id,
+      })
+    ).then((result) => {
+      return result.data.getCommentDislikes;
+    });
+    console.log(commentLikes);
     this.setState({
       isEdited: this.props.comment.isEdited,
-      likes: JSON.parse(this.props.comment.likes),
-      dislikes: JSON.parse(this.props.comment.dislikes),
-      ammountReplies: JSON.parse(this.props.comment.ammountReplies)
+      likes: commentLikes.length,
+      dislikes: commentDislikes.length,
+      ammountReplies: this.props.comment.ammountReplies,
     });
-    if (JSON.parse(this.props.comment.ammountReplies) > 5) {
+    if (this.props.comment.ammountReplies > 5) {
       this.setState({
-        moreReplies: true
+        moreReplies: true,
       });
     }
-    for (let i = 0; i < JSON.parse(this.props.comment.likes).length; i++) {
-      if (JSON.parse(this.props.comment.likes)[i] == this.props.username) {
-        this.setState({
-          liked: true,
-          likeColor: "#24a0ed"
-        });
+    if (commentLikes != null) {
+      for (let i = 0; i < commentLikes.length; i++) {
+        if (commentLikes[i].username == this.props.username) {
+          this.setState({
+            liked: true,
+            likeColor: "#24a0ed",
+          });
+        }
       }
     }
-    for (let i = 0; i < JSON.parse(this.props.comment.dislikes).length; i++) {
-      if (JSON.parse(this.props.comment.dislikes)[i] == this.props.username) {
-        this.setState({
-          disliked: true,
-          dislikeColor: "#d8000c"
-        });
+    if (commentDislikes != null) {
+      for (let i = 0; i < commentDislikes.length; i++) {
+        if (commentDislikes[i].username == this.props.username) {
+          this.setState({
+            disliked: true,
+            dislikeColor: "#d8000c",
+          });
+        }
       }
     }
     document.addEventListener("click", this.checkOutsideClick, false);
   }
 
-  componentWillUnmount = async => {
+  componentWillUnmount = (async) => {
     document.removeEventListener("click", this.checkOutsideClick, false);
   };
-  handleReplies = async (key, el) => {
-    console.log(key);
+  handleReplies = async (id, el) => {
     console.log(el.currentTarget);
     let replyField = el.currentTarget.parentNode.getElementsByTagName("div")[1];
     let replyArray;
@@ -769,186 +739,172 @@ class CommentBox extends Component {
       reply = await API.graphql(
         graphqlOperation(mutations.addReply, {
           input: {
-            commentKey: key,
+            videoID: this.props.comment.videoID,
             username: this.props.username,
             comment: reply,
-            createdAt: new Date().toISOString(),
-            likes: "[]",
-            dislikes: "[]"
-          }
+            commentID: id,
+          },
         })
-      ).then(res => {
-        return res.data.createReplyStorage;
+      ).then((res) => {
+        return res.data.addReply;
       });
-      let comment = await API.graphql(
-        graphqlOperation(queries.getComment, {
-          commentKey: key,
-          videoKey: this.props.comment.videoKey
-        })
-      ).then(res => {
-        return res.data.getCommentStorage;
-      });
-      let ammountReplies = JSON.parse(comment.ammountReplies);
-      replyArray = this.state.replies;
-      replyArray.push(reply);
-      console.log(replyArray);
+      let replies = this.state.replies;
+      replies.push(reply);
       this.setState({
-        replies: replyArray,
-        ammountReplies: this.state.ammountReplies + 1
+        replies: replies,
+        ammountReplies: this.state.ammountReplies + 1,
       });
-      console.log(this.props.comment.videoKey);
-      await API.graphql(
-        graphqlOperation(mutations.editComment, {
-          input: {
-            commentKey: key,
-            videoKey: this.props.comment.videoKey,
-            ammountReplies: JSON.stringify(ammountReplies + 1)
-          }
-        })
-      );
     }
   };
-  handleCommentLikes = async (key, videoKey, id) => {
-    let comment = await API.graphql(
-      graphqlOperation(queries.getComment, {
-        commentKey: key,
-        videoKey: videoKey
-      })
-    )
-      .then(res => {
-        return res.data.getCommentStorage;
-      })
-      .catch(err => console.log(err));
-    let likes = JSON.parse(comment.likes);
-    let dislikes = JSON.parse(comment.dislikes);
-    console.log(comment);
+  handleCommentLikes = async (commentID, id) => {
+    let username = this.props.username;
     if (id === "reply-like-button") {
-      if (this.state.liked === true) {
-        this.setState({
-          liked: false,
-          likeColor: "#909090"
-        });
-        const index = likes.indexOf(this.props.username);
-        likes.splice(index, 1);
-      } else if (this.state.liked === false) {
+      if (this.state.disliked === true) {
         this.setState({
           liked: true,
           disliked: false,
           likeColor: "#24a0ed",
-          dislikeColor: "#909090"
+          dislikeColor: "#909090",
+          likes: this.state.likes + 1,
+          dislikes: this.state.dislikes - 1,
         });
-        likes.push(this.props.username);
-        const index = dislikes.indexOf(this.props.username);
-        if (index > -1) {
-          dislikes.splice(index, 1);
-        }
-      }
-    } else if (id === "reply-dislike-button") {
-      if (this.state.disliked === true) {
-        this.setState({
-          disliked: false,
-          dislikeColor: "#909090"
-        });
-        const index = dislikes.indexOf(this.props.username);
-        dislikes.splice(index, 1);
-      } else if (this.state.disliked === false) {
+        await API.graphql(
+          graphqlOperation(mutations.dislikeComment, {
+            input: {
+              username: username,
+              commentID: commentID,
+              conditional: "-",
+            },
+          })
+        ).catch((err) => {});
+        await API.graphql(
+          graphqlOperation(mutations.likeComment, {
+            input: {
+              username: username,
+              commentID: commentID,
+              videoID: this.props.comment.videoID,
+              conditional: "+",
+            },
+          })
+        );
+      } else if (this.state.liked === true) {
         this.setState({
           liked: false,
-          disliked: true,
           likeColor: "#909090",
-          dislikeColor: "#d8000c"
+          likes: this.state.likes - 1,
         });
-        dislikes.push(this.props.username);
-        const index = likes.indexOf(this.props.username);
-        if (index > -1) {
-          likes.splice(index, 1);
-        }
+        await API.graphql(
+          graphqlOperation(mutations.likeComment, {
+            input: {
+              username: username,
+              commentID: commentID,
+              conditional: "-",
+            },
+          })
+        ).catch((err) => {});
+      } else if (this.state.liked === false && this.state.disliked === false) {
+        this.setState({
+          liked: true,
+          likeColor: "#24a0ed",
+          likes: this.state.likes + 1,
+        });
+        await API.graphql(
+          graphqlOperation(mutations.likeComment, {
+            input: {
+              username: username,
+              commentID: commentID,
+              videoID: this.props.comment.videoID,
+              conditional: "+",
+            },
+          })
+        );
       }
-    }
-    comment.likes = JSON.stringify(likes);
-    comment.dislikes = JSON.stringify(dislikes);
-    console.log(comment);
-    this.setState({
-      likes: JSON.parse(comment.likes),
-      dislikes: JSON.parse(comment.dislikes)
-    });
-    await API.graphql(
-      graphqlOperation(mutations.editComment, {
-        input: {
-          commentKey: key,
-          videoKey: videoKey,
-          likes: comment.likes,
-          dislikes: comment.dislikes
-        }
-      })
-    );
-    console.log(id);
-  };
-  handleReplyContainer = el => {
-    console.log("hey");
-    console.log(el.currentTarget);
-    let replyContainer = el.currentTarget.parentNode.parentNode.parentNode.getElementsByClassName(
-      "reply-field-container"
-    )[0];
-    replyContainer.classList.toggle("show-container");
-    let replyField = replyContainer.getElementsByTagName("div")[1];
-    replyField.focus();
-  };
-
-  openReplies = async el => {
-    let replyWrapper = el.currentTarget.parentNode.parentNode.getElementsByClassName(
-      "replies-container"
-    )[0];
-    if (this.state.openBox === false) {
-      this.setState({
-        openBox: true
-      });
-    } else if (this.state.openBox === true) {
-      this.setState({
-        openBox: false
-      });
-    }
-    console.log(replyWrapper);
-    console.log(this.props.comment.commentKey);
-    let commentKey = this.props.comment.commentKey;
-    replyWrapper.classList.toggle("show-container");
-    if (this.state.replies.length < 1) {
-      let commentReplies = await API.graphql(
-        graphqlOperation(queries.getReplies, {
-          commentKey: commentKey
-        })
-      ).then(res => {
-        console.log(res);
-        return res.data.listReplyStorages;
-      });
-      this.setState({
-        replies: commentReplies.items,
-        nextToken: commentReplies.nextToken
-      });
+    } else if (id === "reply-dislike-button") {
+      if (this.state.liked === true) {
+        this.setState({
+          disliked: true,
+          liked: false,
+          likeColor: "#909090",
+          dislikeColor: "#d8000c",
+          likes: this.state.likes - 1,
+          dislikes: this.state.dislikes + 1,
+        });
+        await API.graphql(
+          graphqlOperation(mutations.likeComment, {
+            input: {
+              username: username,
+              commentID: commentID,
+              conditional: "-",
+            },
+          })
+        ).catch((err) => {});
+        await API.graphql(
+          graphqlOperation(mutations.dislikeComment, {
+            input: {
+              username: username,
+              commentID: commentID,
+              videoID: this.props.comment.videoID,
+              conditional: "+",
+            },
+          })
+        );
+      } else if (this.state.disliked === true) {
+        this.setState({
+          disliked: false,
+          dislikeColor: "#909090",
+          dislikes: this.state.dislikes - 1,
+        });
+        await API.graphql(
+          graphqlOperation(mutations.dislikeComment, {
+            input: {
+              username: username,
+              commentID: commentID,
+              conditional: "-",
+            },
+          })
+        ).catch((err) => {});
+      } else if (this.state.disliked === false && this.state.liked === false) {
+        this.setState({
+          disliked: true,
+          dislikeColor: "#d8000c",
+          dislikes: this.state.dislikes + 1,
+        });
+        await API.graphql(
+          graphqlOperation(mutations.dislikeComment, {
+            input: {
+              username: username,
+              commentID: commentID,
+              videoID: this.props.comment.videoID,
+              conditional: "+",
+            },
+          })
+        );
+      }
     }
   };
 
   loadMoreReplies = async () => {
+    console.log("here");
     let commentReplies = await API.graphql(
       graphqlOperation(queries.getReplies, {
-        limit: 5,
-        nextToken: this.state.nextToken,
-        commentKey: this.props.comment.commentKey
+        offset: this.state.offset,
+        input: {
+          commentID: this.props.comment.id,
+        },
       })
-    ).then(res => {
-      return res.data.listReplyStorages;
+    ).then((res) => {
+      console.log(res);
+      return res.data.getReplies;
     });
     let currentReplies = this.state.replies;
-    for (let i = 0; i < commentReplies.items.length; i++) {
-      currentReplies.push(commentReplies.items[i]);
-    }
+    let combinedArray = [...currentReplies, ...commentReplies];
     this.setState({
-      replies: currentReplies,
-      nextToken: commentReplies.nextToken
+      replies: combinedArray,
+      offset: this.state.offset + 5,
     });
-    if (commentReplies.nextToken == null) {
+    if (this.state.ammountReplies == this.state.replies.length) {
       this.setState({
-        moreReplies: false
+        moreReplies: false,
       });
     }
   };
@@ -976,64 +932,47 @@ class CommentBox extends Component {
       .removeEventListener("click", this.closeMoreOptions);
   };
 
-  deleteComment = async commentKey => {
+  deleteComment = async (el) => {
     await API.graphql(
       graphqlOperation(mutations.deleteComment, {
         input: {
-          commentKey: this.props.comment.commentKey,
-          videoKey: this.props.comment.videoKey
-        }
+          id: this.props.comment.id,
+          videoID: this.props.comment.videoID,
+        },
       })
-    );
-    console.log(this.state.replies);
-    let token = "";
-    let commentReplies = "";
-    while (token != null) {
-      await API.graphql(
-        graphqlOperation(queries.getReplies, {
-          nextToken: token,
-          commentKey: this.props.comment.commentKey
-        })
-      ).then(res => {
-        if (res.data.listReplyStorages.nextToken != null) {
-          token = res.data.listReplyStorages.nextToken;
-        } else {
-          token = null;
-        }
-        commentReplies = res.data.listReplyStorages.items.concat(
-          commentReplies
-        );
+    ).then((res) => {
+      this.setState({
+        replies: [],
+        ammountReplies: "",
+        isEdited: false,
+        likeColor: "#909090",
+        dislikeColor: "#909090",
+        liked: false,
+        disliked: false,
+        likes: "",
+        dislikes: "",
+        nextToken: "",
+        openBox: false,
+        moreReplies: false,
+        editable: false,
+        showOptions: false,
+        offset: 0,
+        replyFieldOpen: false,
       });
-    }
-    console.log(commentReplies);
-    if (commentReplies.length > 0) {
-      for (let i = 0; i < commentReplies.length; i++) {
-        await API.graphql(
-          graphqlOperation(mutations.deleteReply, {
-            input: {
-              replyKey: commentReplies[i].replyKey,
-              commentKey: commentReplies[i].commentKey
-            }
-          })
-        )
-          .then(res => {})
-          .catch(err => console.log(err));
-      }
-    }
+      this.props.removeComment(this.props.comment.id);
+    });
   };
-  getReplies = async () => {};
 
-  editComment = async commentKey => {
-    console.log(commentKey);
+  editComment = async () => {
     if (isMobile) {
       this.closeMoreOptions();
     }
     this.setState({
-      editable: true
+      editable: true,
     });
   };
 
-  saveEdit = async e => {
+  saveEdit = async (e) => {
     const errorNode = e.currentTarget.parentNode.children[0];
     const editedText = e.currentTarget.parentNode.children[1].innerHTML;
     if (editedText == "" || !/\S/.test(editedText)) {
@@ -1044,26 +983,24 @@ class CommentBox extends Component {
       let editedComment = await API.graphql(
         graphqlOperation(mutations.editComment, {
           input: {
-            commentKey: this.props.comment.commentKey,
-            videoKey: this.props.comment.videoKey,
+            id: this.props.comment.id,
             comment: editedText,
-            isEdited: true
-          }
+          },
         })
-      ).then(res => {
-        return res.data.updateCommentStorage;
+      ).then((res) => {
+        return res.data.editComment;
       });
       this.props.updateComments(editedComment);
       this.setState({
         editable: false,
-        isEdited: true
+        isEdited: true,
       });
     }
   };
 
   closeMoreOptions = () => {
     this.setState({
-      showOptions: false
+      showOptions: false,
     });
     $("body").removeClass("noscroll");
   };
@@ -1071,11 +1008,11 @@ class CommentBox extends Component {
   handleMoreOptions = () => {
     if (this.state.showOptions === false) {
       this.setState({
-        showOptions: true
+        showOptions: true,
       });
     } else if (this.state.showOptions === true) {
       this.setState({
-        showOptions: false
+        showOptions: false,
       });
       $(".tooltip").blur();
     }
@@ -1084,13 +1021,73 @@ class CommentBox extends Component {
       $("body").addClass("noscroll");
     }
   };
-  checkOutsideClick = e => {
+  checkOutsideClick = (e) => {
     if (!ReactDOM.findDOMNode(this).contains(e.target)) {
       if (this.state.showOptions === true) {
         this.setState({
-          showOptions: false
+          showOptions: false,
         });
       }
+    }
+  };
+  updateReplies = (editedReply) => {
+    let previousReplies = this.state.replies;
+    for (let i = 0; i < previousReplies.length; i++) {
+      if (previousReplies[i].id === editedReply.id) {
+        previousReplies[i] = editedReply;
+      }
+      this.setState({
+        replies: previousReplies,
+      });
+    }
+  };
+  removeReply = (replyID) => {
+    let previousReplies = this.state.replies;
+    for (let i = 0; i < previousReplies.length; i++) {
+      if (previousReplies[i].id === replyID) {
+        previousReplies.splice(i, 1);
+      }
+    }
+    this.setState({
+      replies: previousReplies,
+      ammountReplies: this.state.ammountReplies - 1,
+    });
+  };
+  handleReplyField = () => {
+    if (this.state.replyFieldOpen === true) {
+      this.setState({ replyFieldOpen: false });
+    } else if (this.state.replyFieldOpen === false) {
+      this.setState({ replyFieldOpen: true });
+    }
+  };
+  openReplies = async (el) => {
+    if (this.state.openBox === false) {
+      this.setState({
+        openBox: true,
+      });
+    } else if (this.state.openBox === true) {
+      this.setState({
+        openBox: false,
+      });
+    }
+    if (this.state.replies.length < 1) {
+      let commentReplies = await API.graphql(
+        graphqlOperation(queries.getReplies, {
+          offset: this.state.offset,
+          input:{
+            commentID: this.props.comment.id,
+          }
+          
+        })
+      ).then((res) => {
+        console.log(res);
+        return res.data.getReplies;
+      });
+      this.setState({
+        replies: commentReplies,
+        offset: this.state.offset + 5,
+        replyFieldOpen: false,
+      });
     }
   };
   render() {
@@ -1101,16 +1098,13 @@ class CommentBox extends Component {
         )}
         {this.state.showOptions === true && isMobile === true && (
           <div className="mobile-more-options">
-            <div
-              onClick={() => this.editComment(this.props.comment.commentKey)}
-              className="edit-text"
-            >
+            <div onClick={() => this.editComment()} className="edit-text">
               <i className="fas fa-edit"></i>
               {` Edit comment`}
             </div>
             <hr></hr>
             <div
-              onClick={() => this.deleteComment(this.props.comment.commentKey)}
+              onClick={() => this.deleteComment()}
               className="delete-comment"
             >
               <i className="fas fa-trash"></i>
@@ -1118,7 +1112,6 @@ class CommentBox extends Component {
             </div>
           </div>
         )}
-
         {this.state.editable === false ? (
           <div className="comment-details-wrapper">
             <div className="username-wrapper">
@@ -1141,8 +1134,7 @@ class CommentBox extends Component {
                 id="reply-like-button"
                 onClick={() =>
                   this.handleCommentLikes(
-                    this.props.comment.commentKey,
-                    this.props.comment.videoKey,
+                    this.props.comment.id,
                     "reply-like-button"
                   )
                 }
@@ -1151,15 +1143,14 @@ class CommentBox extends Component {
                   style={{ color: this.state.likeColor }}
                   className="fas fa-thumbs-up"
                 ></i>
-                <p>{this.state.likes.length}</p>
+                <p>{this.state.likes}</p>
               </button>
               <button
                 className="likes-dislikes-buttons"
                 id="reply-dislike-button"
                 onClick={() =>
                   this.handleCommentLikes(
-                    this.props.comment.commentKey,
-                    this.props.comment.videoKey,
+                    this.props.comment.id,
                     "reply-dislike-button"
                   )
                 }
@@ -1170,7 +1161,7 @@ class CommentBox extends Component {
                 ></i>
               </button>
               <button
-                onClick={this.handleReplyContainer}
+                onClick={() => this.handleReplyField()}
                 className="likes-dislikes-buttons"
                 id="reply-answer-button"
               >
@@ -1191,18 +1182,14 @@ class CommentBox extends Component {
                   {this.state.showOptions === true && isMobile === false && (
                     <span className="tooltiptext">
                       <div
-                        onClick={() =>
-                          this.editComment(this.props.comment.commentKey)
-                        }
+                        onClick={() => this.editComment()}
                         className="edit-text"
                       >
                         <i className="fas fa-edit"></i>
                         {` Edit comment`}
                       </div>
                       <div
-                        onClick={() =>
-                          this.deleteComment(this.props.comment.commentKey)
-                        }
+                        onClick={() => this.deleteComment()}
                         className="delete-comment"
                       >
                         <i className="fas fa-trash"></i>
@@ -1242,25 +1229,25 @@ class CommentBox extends Component {
             </button>
           </div>
         )}
-        <div className="reply-field-container">
-          <div className="error">Kommentaren kan inte vara tom</div>
-          <div
-            contenteditable="true"
-            className="comment-field"
-            id="new-reply"
-            placeholder="Lägg till en ny kommentar..."
-            aria-label="Lägg till ett svar..."
-          ></div>
-          <button
-            className="comment-submit"
-            onClick={el =>
-              this.handleReplies(this.props.comment.commentKey, el)
-            }
-            id="post-reply"
-          >
-            Svara
-          </button>
-        </div>
+        {this.state.replyFieldOpen === true && (
+          <div className="reply-field-container">
+            <div className="error">Kommentaren kan inte vara tom</div>
+            <div
+              contenteditable="true"
+              className="comment-field"
+              id="new-reply"
+              placeholder="Lägg till en ny kommentar..."
+              aria-label="Lägg till ett svar..."
+            ></div>
+            <button
+              className="comment-submit"
+              onClick={(el) => this.handleReplies(this.props.comment.id, el)}
+              id="post-reply"
+            >
+              Svara
+            </button>
+          </div>
+        )}
         {this.state.ammountReplies > 0 && (
           <div className="ammount-replies">
             {this.state.openBox === false ? (
@@ -1279,17 +1266,24 @@ class CommentBox extends Component {
             )}
           </div>
         )}
-
-        <div className="replies-container">
-          {this.state.replies.map((reply, i) => (
-            <ReplyBox key={i} reply={reply} username={this.props.username} />
-          ))}
-          {this.state.moreReplies == true && (
-            <div onClick={this.loadMoreReplies} className="view-replies">
-              {`Visa fler svar`}
-            </div>
-          )}
-        </div>
+        {this.state.openBox === true && (
+          <div className="replies-container">
+            {this.state.replies.map((reply, i) => (
+              <ReplyBox
+                key={i}
+                reply={reply}
+                username={this.props.username}
+                updateReplies={this.updateReplies}
+                removeReply={this.removeReply}
+              />
+            ))}
+            {this.state.moreReplies == true && (
+              <div onClick={this.loadMoreReplies} className="view-replies">
+                {`Visa fler svar`}
+              </div>
+            )}
+          </div>
+        )}
       </div>
     );
   }
@@ -1304,163 +1298,404 @@ class ReplyBox extends Component {
       liked: false,
       disliked: false,
       likes: [],
-      dislikes: []
+      dislikes: [],
+      showOptions: false,
+      editable: false,
+      isEdited: false,
     };
   }
 
   async componentDidMount() {
-    this.setState({
-      likes: JSON.parse(this.props.reply.likes),
-      dislikes: JSON.parse(this.props.reply.dislikes)
+    if (this.props.reply.isEdited === true) {
+      this.setState({
+        isEdited: true,
+      });
+    }
+    let replyLikes = await API.graphql(
+      graphqlOperation(queries.getReplyLikes, {
+        replyID: this.props.reply.id,
+      })
+    ).then((res) => {
+      return res.data.getReplyLikes;
     });
-    for (let i = 0; i < JSON.parse(this.props.reply.likes).length; i++) {
-      if (JSON.parse(this.props.reply.likes)[i] == this.props.username) {
+    let replyDislikes = await API.graphql(
+      graphqlOperation(queries.getReplyDislikes, {
+        replyID: this.props.reply.id,
+      })
+    ).then((res) => {
+      return res.data.getReplyDislikes;
+    });
+    this.setState({
+      likes: replyLikes.length,
+      dislikes: replyDislikes.length,
+    });
+    for (let i = 0; i < replyLikes.length; i++) {
+      if (replyLikes[i].username == this.props.username) {
         this.setState({
           liked: true,
-          likeColor: "#24a0ed"
+          likeColor: "#24a0ed",
         });
       }
     }
-    for (let i = 0; i < JSON.parse(this.props.reply.dislikes).length; i++) {
-      if (JSON.parse(this.props.reply.dislikes)[i] == this.props.username) {
+    for (let i = 0; i < replyDislikes.length; i++) {
+      if (replyDislikes[i].username == this.props.username) {
         this.setState({
           disliked: true,
-          dislikeColor: "#d8000c"
+          dislikeColor: "#d8000c",
         });
       }
     }
   }
 
-  handleReplyLikes = async (key, commentKey, id) => {
-    let comment = await API.graphql(
-      graphqlOperation(queries.getReply, {
-        replyKey: key,
-        commentKey: commentKey
-      })
-    ).then(res => {
-      return res.data.getReplyStorage;
-    });
-    let likes = JSON.parse(comment.likes);
-    let dislikes = JSON.parse(comment.dislikes);
-    console.log(comment);
+  handleReplyLikes = async (replyID, id) => {
+    let username = this.props.username;
+
     if (id === "reply-like-button") {
-      if (this.state.liked === true) {
-        this.setState({
-          liked: false,
-          likeColor: "#909090"
-        });
-        const index = likes.indexOf(this.props.username);
-        likes.splice(index, 1);
-      } else if (this.state.liked === false) {
+      if (this.state.disliked === true) {
         this.setState({
           liked: true,
           disliked: false,
           likeColor: "#24a0ed",
-          dislikeColor: "#909090"
+          dislikeColor: "#909090",
+          likes: this.state.likes + 1,
+          dislikes: this.state.dislikes - 1,
         });
-        likes.push(this.props.username);
-        const index = dislikes.indexOf(this.props.username);
-        if (index > -1) {
-          dislikes.splice(index, 1);
-        }
-      }
-    } else if (id === "reply-dislike-button") {
-      if (this.state.disliked === true) {
-        this.setState({
-          disliked: false,
-          dislikeColor: "#909090"
-        });
-        const index = dislikes.indexOf(this.props.username);
-        dislikes.splice(index, 1);
-      } else if (this.state.disliked === false) {
+        await API.graphql(
+          graphqlOperation(mutations.dislikeReply, {
+            input: {
+              username: username,
+              replyID: replyID,
+              conditional: "-",
+            },
+          })
+        ).catch((err) => {});
+        await API.graphql(
+          graphqlOperation(mutations.likeReply, {
+            input: {
+              username: username,
+              replyID: replyID,
+              commentID: this.props.reply.commentID,
+              videoID: this.props.reply.videoID,
+              conditional: "+",
+            },
+          })
+        );
+      } else if (this.state.liked === true) {
         this.setState({
           liked: false,
-          disliked: true,
           likeColor: "#909090",
-          dislikeColor: "#d8000c"
+          likes: this.state.likes - 1,
         });
-        dislikes.push(this.props.username);
-        const index = likes.indexOf(this.props.username);
-        if (index > -1) {
-          likes.splice(index, 1);
-        }
+        await API.graphql(
+          graphqlOperation(mutations.likeReply, {
+            input: {
+              username: username,
+              replyID: replyID,
+              conditional: "-",
+            },
+          })
+        ).catch((err) => {});
+      } else if (this.state.liked === false && this.state.disliked === false) {
+        this.setState({
+          liked: true,
+          likeColor: "#24a0ed",
+          likes: this.state.likes + 1,
+        });
+        await API.graphql(
+          graphqlOperation(mutations.likeReply, {
+            input: {
+              username: username,
+              replyID: replyID,
+              commentID: this.props.reply.commentID,
+              videoID: this.props.reply.videoID,
+              conditional: "+",
+            },
+          })
+        );
+      }
+    } else if (id === "reply-dislike-button") {
+      if (this.state.liked === true) {
+        this.setState({
+          disliked: true,
+          liked: false,
+          likeColor: "#909090",
+          dislikeColor: "#d8000c",
+          likes: this.state.likes - 1,
+          dislikes: this.state.dislikes + 1,
+        });
+        await API.graphql(
+          graphqlOperation(mutations.likeReply, {
+            input: {
+              username: username,
+              replyID: replyID,
+              conditional: "-",
+            },
+          })
+        ).catch((err) => {});
+        await API.graphql(
+          graphqlOperation(mutations.dislikeReply, {
+            input: {
+              username: username,
+              replyID: replyID,
+              commentID: this.props.reply.commentID,
+              videoID: this.props.reply.videoID,
+              conditional: "+",
+            },
+          })
+        );
+      } else if (this.state.disliked === true) {
+        this.setState({
+          disliked: false,
+          dislikeColor: "#909090",
+          dislikes: this.state.dislikes - 1,
+        });
+        await API.graphql(
+          graphqlOperation(mutations.dislikeReply, {
+            input: {
+              username: username,
+              replyID: replyID,
+              conditional: "-",
+            },
+          })
+        ).catch((err) => {});
+      } else if (this.state.disliked === false && this.state.liked === false) {
+        this.setState({
+          disliked: true,
+          dislikeColor: "#d8000c",
+          dislikes: this.state.dislikes + 1,
+        });
+        await API.graphql(
+          graphqlOperation(mutations.dislikeReply, {
+            input: {
+              username: username,
+              replyID: replyID,
+              commentID: this.props.reply.commentID,
+              videoID: this.props.reply.videoID,
+              conditional: "+",
+            },
+          })
+        );
       }
     }
-    comment.likes = JSON.stringify(likes);
-    comment.dislikes = JSON.stringify(dislikes);
-    console.log(comment);
+  };
+  closeMoreOptions = () => {
     this.setState({
-      likes: JSON.parse(comment.likes),
-      dislikes: JSON.parse(comment.dislikes)
+      showOptions: false,
     });
+    $("body").removeClass("noscroll");
+  };
+
+  handleMoreOptions = () => {
+    if (this.state.showOptions === false) {
+      this.setState({
+        showOptions: true,
+      });
+    } else if (this.state.showOptions === true) {
+      this.setState({
+        showOptions: false,
+      });
+      $(".tooltip").blur();
+    }
+
+    if (isMobile) {
+      $("body").addClass("noscroll");
+    }
+  };
+  checkOutsideClick = (e) => {
+    if (!ReactDOM.findDOMNode(this).contains(e.target)) {
+      if (this.state.showOptions === true) {
+        this.setState({
+          showOptions: false,
+        });
+      }
+    }
+  };
+  editReply = () => {
+    if (isMobile) {
+      this.closeMoreOptions();
+    }
+    this.setState({
+      editable: true,
+    });
+  };
+  saveEdit = async (e) => {
+    const errorNode = e.currentTarget.parentNode.children[0];
+    const editedText = e.currentTarget.parentNode.children[1].innerHTML;
+    if (editedText == "" || !/\S/.test(editedText)) {
+      console.log(editedText);
+      errorNode.classList.add("error-visible");
+    } else {
+      console.log(this.props);
+      let editedReply = await API.graphql(
+        graphqlOperation(mutations.editReply, {
+          input: {
+            id: this.props.reply.id,
+            comment: editedText,
+          },
+        })
+      ).then((res) => {
+        return res.data.editReply;
+      });
+      this.props.updateReplies(editedReply);
+      this.setState({
+        editable: false,
+        isEdited: true,
+      });
+    }
+  };
+
+  deleteReply = async (replyID) => {
     await API.graphql(
-      graphqlOperation(mutations.editReply, {
+      graphqlOperation(mutations.deleteReply, {
         input: {
-          replyKey: key,
-          commentKey: commentKey,
-          likes: comment.likes,
-          dislikes: comment.dislikes
-        }
+          id: replyID,
+          commentID: this.props.reply.commentID,
+        },
       })
-    );
-    console.log(id);
+    )
+      .then((res) => {
+        console.log(res);
+        this.props.removeReply(replyID);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
   };
   render() {
     return (
       <div className="reply-wrapper">
-        <div className="username-wrapper">
-          <Link to={`profile/${this.props.reply.username}`}>
-            {this.props.reply.username}
-          </Link>{" "}
-          <TimeAgo
-            className="time-ago"
-            date={this.props.reply.createdAt}
-            formatter={formatter}
-          />
-        </div>
-        <div className="reply">
-          <MDReactComponent text={this.props.reply.comment} />
-        </div>
-        <div className="comment-likes">
-          <button
-            className="likes-dislikes-buttons"
-            id="reply-like-button"
-            onClick={() =>
-              this.handleReplyLikes(
-                this.props.reply.replyKey,
-                this.props.reply.commentKey,
-                "reply-like-button"
-              )
-            }
-          >
-            <i
-              style={{ color: this.state.likeColor }}
-              className="fas fa-thumbs-up"
-            ></i>
-            <p>{this.state.likes.length}</p>
-          </button>
-          <button
-            className="likes-dislikes-buttons"
-            id="reply-dislike-button"
-            onClick={() =>
-              this.handleReplyLikes(
-                this.props.reply.replyKey,
-                this.props.reply.commentKey,
-                "reply-dislike-button"
-              )
-            }
-          >
-            <i
-              style={{ color: this.state.dislikeColor }}
-              className="fas fa-thumbs-down"
-            ></i>
-          </button>
-          {this.props.reply.username === this.props.username && (
-            <button className="likes-dislikes-buttons more-options">
-              <i className="fas fa-ellipsis-v"></i>
+        {this.state.showOptions === true && isMobile === true && (
+          <div onClick={this.closeMoreOptions} className="overlay"></div>
+        )}
+        {this.state.showOptions === true && isMobile === true && (
+          <div className="mobile-more-options">
+            <div
+              onClick={() => this.editReply(this.props.reply.id)}
+              className="edit-text"
+            >
+              <i className="fas fa-edit"></i>
+              {` Edit reply`}
+            </div>
+            <hr></hr>
+            <div
+              onClick={() => this.deleteReply(this.props.reply.id)}
+              className="delete-comment"
+            >
+              <i className="fas fa-trash"></i>
+              {` Delete reply`}
+            </div>
+          </div>
+        )}
+        {this.state.editable === false ? (
+          <div className="reply-inner-wrapper">
+            <div className="username-wrapper">
+              <Link to={`profile/${this.props.reply.username}`}>
+                {this.props.reply.username}
+              </Link>{" "}
+              <TimeAgo
+                className="time-ago"
+                date={this.props.reply.createdAt}
+                formatter={formatter}
+              />
+              {" " + (this.state.isEdited === true ? "(edited)" : "")}
+            </div>
+            <div className="reply">
+              <MDReactComponent text={this.props.reply.comment} />
+            </div>
+            <div className="comment-likes">
+              <button
+                className="likes-dislikes-buttons"
+                id="reply-like-button"
+                onClick={() =>
+                  this.handleReplyLikes(
+                    this.props.reply.id,
+                    "reply-like-button"
+                  )
+                }
+              >
+                <i
+                  style={{ color: this.state.likeColor }}
+                  className="fas fa-thumbs-up"
+                ></i>
+                <p>{this.state.likes}</p>
+              </button>
+              <button
+                className="likes-dislikes-buttons"
+                id="reply-dislike-button"
+                onClick={() =>
+                  this.handleReplyLikes(
+                    this.props.reply.id,
+                    "reply-dislike-button"
+                  )
+                }
+              >
+                <i
+                  style={{ color: this.state.dislikeColor }}
+                  className="fas fa-thumbs-down"
+                ></i>
+              </button>
+              {this.props.reply.username === this.props.username && (
+                <button
+                  onClick={this.handleMoreOptions}
+                  className={
+                    "likes-dislikes-buttons tooltip more-options " +
+                    (isMobile ||
+                    (this.state.showOptions === true && isMobile === false)
+                      ? "tooltipshow"
+                      : "")
+                  }
+                >
+                  <i className="fas fa-ellipsis-v"></i>
+                  {this.state.showOptions === true && isMobile === false && (
+                    <span className="tooltiptext">
+                      <div
+                        onClick={() => this.editReply(this.props.reply.id)}
+                        className="edit-text"
+                      >
+                        <i className="fas fa-edit"></i>
+                        {` Edit reply`}
+                      </div>
+                      <div
+                        onClick={() => this.deleteReply(this.props.reply.id)}
+                        className="delete-comment"
+                      >
+                        <i className="fas fa-trash"></i>
+                        {` Delete reply`}
+                      </div>
+                    </span>
+                  )}
+                </button>
+              )}
+            </div>
+          </div>
+        ) : (
+          <div className="edit-comment-field">
+            <div className="error">Kommentaren kan inte vara tom</div>
+            <div
+              contenteditable="true"
+              className="comment-field editable-comment"
+              id="edit-field"
+              placeholder="Lägg till en ny kommentar..."
+              aria-label="Lägg till en ny kommentar..."
+            >
+              {this.props.reply.comment}
+            </div>
+            <button
+              onClick={() => this.setState({ editable: false })}
+              className="comment-submit"
+              id="cancel-comment"
+            >
+              Avbryt
             </button>
-          )}
-        </div>
+            <button
+              onClick={this.saveEdit}
+              className="comment-submit"
+              id="edit-comment"
+            >
+              Spara
+            </button>
+          </div>
+        )}
       </div>
     );
   }
