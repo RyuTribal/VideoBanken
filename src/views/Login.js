@@ -5,7 +5,8 @@ import { Auth, Hub } from "aws-amplify";
 import awsconfig from "../aws-exports";
 import $ from "jquery";
 import { withFederated } from "aws-amplify-react";
-const Buttons = props => (
+import HermesLogo from "../img/hermes-logo.svg";
+const Buttons = (props) => (
   <div>
     <button className="social-btn">
       <div>
@@ -27,157 +28,202 @@ const Federated = withFederated(Buttons);
 const federated = {
   google_client_id:
     "216481722641-n8cdp068qrd3ebpi70l2recq8rkj3430.apps.googleusercontent.com", // Enter your google_client_id here
-  facebook_app_id: "2711841088850140" // Enter your facebook_app_id here
+  facebook_app_id: "2711841088850140", // Enter your facebook_app_id here
 };
 
+function validate(username, password) {
+  return {
+    username: username.length === 0,
+    password: password.length === 0,
+  };
+}
+
 // You can get the current config object
-var that;
 class Login extends Component {
-  componentWillMount() {
-    that = this;
-    Auth.currentAuthenticatedUser({
-      bypassCache: false // Optional, By default is false. If set to true, this call will send a request to Cognito to get the latest user data
-    })
-      .then(function(user) {
-        that.props.history.push("/home");
-      })
-      .catch(function() {
-        $("input").keyup(function(event) {
-          if (event.keyCode === 13) {
-            $(".login-btn-confirm").click();
-          }
-        });
-        $(".icon-wrapper").click(function() {
-          $(this)
-            .find("i")
-            .toggleClass("fa-eye");
-          $(this)
-            .find("i")
-            .toggleClass("fa-eye-slash");
-          var input = $($(".toggle-password").attr("toggle"));
-          if (input.attr("type") == "password") {
-            input.attr("type", "text");
-          } else {
-            input.attr("type", "password");
-          }
-        });
-      });
+  constructor() {
+    super();
+    this.state = {
+      username: "",
+      password: "",
+      everFocusedUsername: false,
+      everFocusedPassword: false,
+      inFocus: "",
+      touched: {
+        username: false,
+        password: false,
+      },
+      usernameErrorMessage: "Detta fält kan inte vara tomt",
+      passwordErrorMessage: "Detta fält kan inte vara tomt",
+      usernameError: false,
+      passwordError: false,
+      uniError: false,
+      loading: false,
+    };
   }
-  manageLogin() {
-    $(".error").css("opacity", "0");
-    $(".error")
-      .find("p")
-      .text();
-    var username = $("#username").val();
-    var password = $("#password").val();
+  componentDidMount() {
+    Auth.currentAuthenticatedUser({
+      bypassCache: false, // Optional, By default is false. If set to true, this call will send a request to Cognito to get the latest user data
+    })
+      .then((user) => {
+        this.props.history.push("/home");
+      })
+      .catch((err) => {});
+  }
+  shouldMarkError = (field) => {
+    const hasError = validate(this.state.username, this.state.password)[field];
+    const shouldShow = this.state.touched[field];
+    return hasError ? shouldShow : false;
+  };
+  handleUsernameChange = (evt) => {
+    this.setState({ username: evt.target.value, uniError: false });
+  };
+
+  handlePasswordChange = (evt) => {
+    this.setState({ password: evt.target.value, uniError: false });
+  };
+
+  handleBlur = (field) => (evt) => {
+    this.setState({
+      touched: { ...this.state.touched, [field]: true },
+    });
+  };
+
+  canBeSubmitted = () => {
+    const errors = validate(this.state.username, this.state.password);
+    const isDisabled = Object.keys(errors).some((x) => errors[x]);
+    return !isDisabled;
+  };
+
+  checkForEnter = (e) => {
+    if (e.key === "Enter") {
+      this.manageLogin();
+    }
+  };
+  manageLogin = (evt) => {
+    this.setState({
+      loading: true,
+    });
+    if (!this.canBeSubmitted()) {
+      evt.preventDefault();
+      return;
+    }
+    const username = this.state.username;
+    const password = this.state.password;
     Auth.signIn({
       username, // Required, the username
-      password // Optional, the password
+      password, // Optional, the password
     })
-      .then(function(user) {
-        
-        that.props.history.push("/home");
+      .then((user) => {
+        this.props.history.push("/home");
       })
-      .catch(function(err) {
-        console.log(err);
+      .catch((err) => {
         if (
           err ==
             "AuthError: The username should either be a string or one of the sign in types" ||
           err.message == "null invocation failed due to configuration."
         ) {
-          $("input").each(function() {
-            if ($(this).val() == "") {
-              var nameInput = $(this).attr("name");
-              $(this)
-                .parent()
-                .parent()
-                .find(".error")
-                .find("p")
-                .text("Please enter a " + nameInput);
-              $(this)
-                .parent()
-                .parent()
-                .find(".error")
-                .css("opacity", "1");
-            }
+          this.setState({
+            usernameError: true,
+            usernameErrorMessage: "Detta fält kan inte vara tomt",
+            passwordError: true,
+            passwordErrorMessage: "Detta fält kan inte vara tomt",
+            loading: false,
           });
         } else if (
           err.code == "NotAuthorizedException" ||
           err.code == "UserNotFoundException"
         ) {
-          $(".error-msg-wrong").css("opacity", "1");
+          console.log("Hey");
+          this.setState({
+            usernameError: false,
+            passwordError: false,
+            uniError: true,
+            loading: false,
+          });
         }
       });
-  }
+  };
 
   render() {
+    const errors = validate(this.state.username, this.state.password);
+    const isDisabled = Object.keys(errors).some((x) => errors[x]);
     return (
-      <div className="login-container">
-        <div className="form-container">
-          <h2 className="form-title">Sign in</h2>
-          <div className="form">
-            <div className="error error-msg-wrong">
-              <p>Username and password didn't match</p>
+      <div className="login-wrapper">
+        <div className="login-container">
+          <div className="login-header">
+            <h2>Logga in</h2>
+          </div>
+          <div className="form-container">
+            {this.state.uniError === true && (
+              <p className="universal-input-error">
+                Användarnamnet och lösenordet matchar inte
+              </p>
+            )}
+            <div className="input-wrappers">
+              <lable for="username">Användarnamn</lable>
+              <input
+                type="text"
+                className={
+                  this.shouldMarkError("username") ||
+                  this.state.usernameError === true
+                    ? "input-error custom-input"
+                    : "custom-input"
+                }
+                id="username"
+                value={this.state.username}
+                onChange={this.handleUsernameChange}
+                onBlur={this.handleBlur("username")}
+                onKeyDown={this.checkForEnter}
+                autoFocus
+              ></input>
+              {this.state.usernameError ||
+                (this.shouldMarkError("username") && (
+                  <p className="input-error-message">
+                    {this.state.usernameErrorMessage}
+                  </p>
+                ))}
             </div>
-            <div className="col-md-12">
-              <div className="label-error-wrapper">
-                <label className="input-label" for="username">
-                  Username*:
-                </label>
-              </div>
-              <div className="field-wrapper">
-                <input
-                  type="text"
-                  id="username"
-                  className="form-input"
-                  name="username"
-                  placeholder="eg. TheTerminator2008"
-                />
-              </div>
-              <div className="error error-msg-pass">
-                <p></p>
-              </div>
+            <div className="input-wrappers">
+              <lable for="password">Lösenord</lable>
+              <input
+                type="password"
+                className={
+                  this.shouldMarkError("password") ||
+                  this.state.passwordError === true
+                    ? "input-error custom-input"
+                    : "custom-input"
+                }
+                id="password"
+                value={this.state.password}
+                onChange={this.handlePasswordChange}
+                onBlur={this.handleBlur("password")}
+                onKeyDown={this.checkForEnter}
+              ></input>
+              {this.state.passwordError ||
+                (this.shouldMarkError("password") && (
+                  <p className="input-error-message">
+                    {this.state.passwordErrorMessage}
+                  </p>
+                ))}
+              <Link to="password-reset">Glömt lösenordet?</Link>
             </div>
-            <div className="col-md-12">
-              <div className="label-error-wrapper">
-                <label className="input-label" for="password">
-                  Password*:{" "}
-                  <Link className="forgot-info" to="password-reset">
-                    {" "}
-                    Forgot password?
-                  </Link>
-                </label>
-              </div>
-              <div className="field-wrapper">
-                <input
-                  id="password"
-                  type="password"
-                  className="form-input password-wrap"
-                  name="password"
-                />
-                <div className="icon-wrapper">
-                  <i
-                    toggle="#password"
-                    className="fas fa-eye toggle-password"
-                  ></i>
-                </div>
-              </div>
-              <div className="error error-msg-pass">
-                <p></p>
-              </div>
-            </div>
-            <button className="login-btn-confirm" onClick={this.manageLogin}>
-              Login
+            <button
+              disabled={isDisabled || this.state.loading}
+              type="submit"
+              className="login-button"
+              onClick={() => this.manageLogin()}
+            >
+              {this.state.loading === true ? (
+                <i class="fas fa-sync fa-spin"></i>
+              ) : (
+                "Logga in"
+              )}
             </button>
-            <hr className="hr-text" data-content="or sign in with" />
-            <div className="col-md-12">
-              <Federated federated={federated} />
-            </div>
-            <div className="col-md-12">
-              <div className="reg-links">
-                Don't an account? <Link to="/registration">Register here</Link>
-              </div>
-            </div>
+            <div class="separator">eller</div>
+            <Federated federated={federated} />
+          </div>
+          <div className="login-link">
+            Har inget konto? <Link to="registration">Skapa ett här</Link>
           </div>
         </div>
       </div>

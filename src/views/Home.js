@@ -12,52 +12,32 @@ class Home extends Component {
     super();
     this.state = {};
   }
-  async componentDidMount(prevProps) {
-    that = this;
-    $("html").click(function () {
-      closeNav();
-    });
+  componentDidMount = async () => {};
 
-    $("#app-nav").click(function (event) {
-      event.stopPropagation();
-    });
-
-    $(".closebtn").click(function () {
-      closeNav();
-    });
-
-    $("#logout-btn").click(function () {
-      Auth.signOut()
-        .then((data) => that.props.history.push("/login"))
-        .catch((err) => console.log(err));
-    });
-  }
-
-  redirectToVideo() {
+  redirectToVideo = () => {
     this.props.history.push(`${this.props.match.path}/video-upload`);
-  }
+  };
   componentWillUnmount() {
     $("html").unbind();
   }
+  logout = () => {
+    Auth.signOut()
+      .then((data) => this.props.history.push("/login"))
+      .catch((err) => console.log(err));
+  };
   render() {
     return (
       <BrowserRouter>
         <div>
-          <div id="app-nav" className="home-navigation">
-            <a href="javascript:void(0)" className="closebtn">
-              ×
-            </a>
-            <Link to={`${this.props.match.path}/`}>About</Link>
-            <Link href="#">Services</Link>
-            <Link href="#">Clients</Link>
-            <Link href="#">Contact</Link>
-          </div>
           <main id="main-content" className="content-container">
             <nav className="navigation-container">
               {isMobile === false && (
                 <div className="search-wrapper">
                   <input className="search-bar" placeholder="Sök..."></input>
-                  <button id="logout-btn" className="confirm-search">
+                  <button
+                    onClick={() => this.logout()}
+                    className="confirm-search"
+                  >
                     <i className="fas fa-search"></i>
                   </button>
                 </div>
@@ -81,26 +61,34 @@ class Home extends Component {
                 <p></p>
               </div>
             </div>
+            <div className="inner-content">
+              <Route
+                render={(props) => {
+                  return (
+                    <Switch>
+                      <Route
+                        exact
+                        path={this.props.match.path}
+                        component={HomeFeed}
+                      />
+                      <Route
+                        path={`${this.props.match.path}/video-upload`}
+                        component={VideoUpload}
+                      />
+                      <Route
+                        path={`${this.props.match.path}/watch`}
+                        component={Watch}
+                      />
+                    </Switch>
+                  );
+                }}
+              />
+            </div>
           </main>
         </div>
       </BrowserRouter>
     );
   }
-}
-
-function openNav() {
-  if (!$("#app-nav").css("width", "0")) {
-    closeNav();
-  } else {
-    document.getElementById("app-nav").style.width = "280px";
-    $("#main-content").css("width", "calc(100% - 280px)");
-    $(".navigation-container").css("width", "calc(100% - 280px)");
-  }
-}
-function closeNav() {
-  document.getElementById("app-nav").style.width = "0";
-  $("#main-content").css("width", "100%");
-  $(".navigation-container").css("width", "100%");
 }
 
 export default Home;

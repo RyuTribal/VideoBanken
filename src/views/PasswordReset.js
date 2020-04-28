@@ -2,323 +2,462 @@ import React, { Component } from "react";
 import $ from "jquery";
 import { Link } from "react-router-dom";
 import { Auth, Hub } from "aws-amplify";
-import slick from "../commercial/slick/slick";
-import { blockStatement } from "@babel/types";
+import ReactCSSTransitionReplace from "react-css-transition-replace";
 
 class PasswordReset extends Component {
-  componentDidMount() {
-    var upperCase = new RegExp("[A-Z]");
-    var lowerCase = new RegExp("[a-z]");
-    var numbers = new RegExp("[0-9]");
-    $("#new_password").keyup(function() {
-      if ($(this).val().length >= 7) {
-        console.log("works");
-        $(".password-length").addClass("validPassword");
-      } else {
-        $(".password-length").removeClass("validPassword");
-      }
-      if (
-        $(this)
-          .val()
-          .match(upperCase) &&
-        $(this)
-          .val()
-          .match(lowerCase)
-      ) {
-        $(".password-upper").addClass("validPassword");
-      } else {
-        $(".password-upper").removeClass("validPassword");
-      }
-      if (
-        $(this)
-          .val()
-          .match(numbers)
-      ) {
-        $(".password-number").addClass("validPassword");
-      } else {
-        $(".password-number").removeClass("validPassword");
-      }
-      if ($("#password").val() == $("#password-repeat").val()) {
-        $(".password-match").addClass("validPassword");
-      } else {
-        $(".password-match").removeClass("validPassword");
-      }
-    });
-    $("#confirm").keyup(function() {
-      if ($("#new_password").val() == $("#confirm").val()) {
-        $(".password-match").addClass("validPassword");
-      } else {
-        $(".password-match").removeClass("validPassword");
-      }
-    });
-    $(".icon-wrapper").click(function() {
-      $(this)
-        .find("i")
-        .toggleClass("fa-eye");
-      $(this)
-        .find("i")
-        .toggleClass("fa-eye-slash");
-      var input = $(
-        $(this)
-          .find("i")
-          .attr("toggle")
-      );
-      if (input.attr("type") == "password") {
-        input.attr("type", "text");
-      } else {
-        input.attr("type", "password");
-      }
-    });
+  constructor() {
+    super();
+    this.state = {
+      username: "",
+      password: "",
+      everFocusedUsername: false,
+      inFocus: "",
+      touched: {
+        username: false,
+      },
+      usernameErrorMessage: "Detta fält kan inte vara tomt",
+      usernameError: false,
+      gotUsername: false,
+      loading: false,
+    };
   }
-  managePassword() {
-    $(".error").css("opacity", "0");
-    $(".error")
-      .find("p")
-      .text();
-    var username = $("#username").val();
-    Auth.forgotPassword(username)
-      .then(function(data) {
-        $("#code-comf").css("display", "block");
-        $("#username-comf").css("display", "none");
-        $("#new-password").css("display", "block");
-        $("#confirm-password").css("display", "block");
-        $("#new-pass-req").css("display", "block");
-        $(".send-code-btn").css("display", "none");
-        $(".confirm-password-btn").css("display", "block");
+
+  validate = (username) => {
+    return {
+      username: username.length === 0,
+    };
+  };
+  componentDidMount() {
+    Auth.currentAuthenticatedUser({
+      bypassCache: false, // Optional, By default is false. If set to true, this call will send a request to Cognito to get the latest user data
+    })
+      .then((user) => {
+        this.props.history.push("/home");
       })
-      .catch(function(err) {
-        console.log(err);
+      .catch((err) => {});
+  }
+
+  shouldMarkError = (field) => {
+    const hasError = this.validate(this.state.username)[field];
+    const shouldShow = this.state.touched[field];
+    return hasError ? shouldShow : false;
+  };
+  handleUsernameChange = (evt) => {
+    this.setState({ username: evt.target.value });
+  };
+
+  handleBlur = (field) => (evt) => {
+    this.setState({
+      touched: {
+        ...this.state.touched,
+        [field]: true,
+      },
+      usernameError: false,
+      usernameErrorMessage: "Detta fält kan inte vara tomt",
+      codeError: false,
+      codeErrorMessage: "Detta fält kan inte vara tomt",
+    });
+  };
+
+  canBeSubmitted = () => {
+    const errors = this.validate(this.state.username);
+    const isDisabled = Object.keys(errors).some((x) => errors[x]);
+    return !isDisabled;
+  };
+
+  checkForEnter = (e) => {
+    if (e.key === "Enter") {
+      this.managePassword();
+    }
+  };
+  managePassword = () => {
+    this.setState({
+      loading: true,
+    });
+    var username = this.state.username;
+    Auth.forgotPassword(username)
+      .then((data) => {
+        this.setState({
+          gotUsername: true,
+          loading: false,
+        });
+      })
+      .catch((err) => {
+        this.setState({
+          loading: false,
+        });
         if (err.code == "LimitExceededException") {
-          $("#username")
-            .closest(".col-md-12")
-            .find(".error")
-            .find("p")
-            .text(err.message);
-          $("#username")
-            .closest(".col-md-12")
-            .find(".error")
-            .css("opacity", "1");
-        }
-        else{
-          $("#username")
-            .closest(".col-md-12")
-            .find(".error")
-            .find("p")
-            .text("User doesn't exist");
-          $("#username")
-            .closest(".col-md-12")
-            .find(".error")
-            .css("opacity", "1");
+          console.log(err.message);
+          this.setState({
+            usernameError: true,
+            usernameErrorMessage:
+              "Gränsen för försök har uppnåtts, var god och försök igen senare",
+          });
+        } else {
+          this.setState({
+            usernameError: true,
+            usernameErrorMessage: "Användaren existerar inte",
+          });
         }
       });
-  }
-
-  confirmCode() {
-    $(".error").css("opacity", "0");
-    $(".error")
-      .find("p")
-      .text();
-    var username = $("#username").val();
-    var code = $("#code").val();
-    var new_password = $("#new_password").val();
-    var confirm = $("#confirm").val();
-    if (new_password != confirm) {
-      $("#confirm")
-        .closest(".col-md-6")
-        .find(".error")
-        .find("p")
-        .text("Passwords do not match");
-      $("#confirm")
-        .closest(".col-md-6")
-        .find(".error")
-        .css("opacity", "1");
-    } else {
-      Auth.forgotPasswordSubmit(username, code, new_password)
-        .then(function(data) {
-          $(".col-md-12").css("display", "none");
-          $(".col-md-6").css("display", "none");
-          $("button").css("display", "none");
-          $("hr").css("display", "none");
-          $(".reg-links").css("display", "none");
-          $("#redirect-new-pass").css("display", "block");
-        })
-        .catch(function(err) {
-          console.log(err);
-          if (
-            err.message == "Confirmation code cannot be empty" ||
-            err.message == "Password cannot be empty"
-          ) {
-            $("input").each(function() {
-              if ($(this).val() == "") {
-                $(this)
-                  .parent()
-                  .parent()
-                  .find(".error")
-                  .find("p")
-                  .text("This field cannot be empty");
-                $(this)
-                  .parent()
-                  .parent()
-                  .find(".error")
-                  .css("opacity", "1");
-              }
-            });
-          } else if(err.code == "CodeMismatchException"){
-            $("#code")
-              .closest(".col-md-12")
-              .find(".error")
-              .find("p")
-              .text("Please enter a valid code");
-            $("#code")
-              .closest(".col-md-12")
-              .find(".error")
-              .css("opacity", "1");
-          }
-        });
-    }
-  }
-
-  resend() {
-    var username = $("#username").val();
-    Auth.forgotPassword(username);
-  }
+  };
+  finishReset = (password) => {
+    this.setState({
+      finished: true,
+      password: password,
+    });
+  };
   render() {
+    const errors = this.validate(this.state.username);
+    const isDisabled = Object.keys(errors).some((x) => errors[x]);
     return (
-      <div className="login-container">
-        <div className="form-container">
-          <h2 className="form-title">Reset password</h2>
-          <div className="form">
-            <div id="username-comf" className="col-md-12">
-              <div className="label-error-wrapper">
-                <label className="input-label" for="username">
-                  Username*:
-                </label>
-              </div>
-              <div className="field-wrapper">
+      <div className="login-wrapper">
+        <div className="login-container">
+          <div className="login-header">
+            <h2>Ändra lösenordet</h2>
+          </div>
+          {this.state.gotUsername === false && (
+            <div className="form-container">
+              <div className="input-wrappers">
+                <lable for="username">Användarnamn</lable>
                 <input
                   type="text"
+                  className={
+                    this.shouldMarkError("username") ||
+                    this.state.usernameError === true
+                      ? "input-error custom-input"
+                      : "custom-input"
+                  }
                   id="username"
-                  className="form-input"
-                  name="username"
-                  placeholder="eg. TheTerminator2008"
-                />
+                  autocomplete="off"
+                  value={this.state.username}
+                  onChange={this.handleUsernameChange}
+                  onBlur={this.handleBlur("username")}
+                  onKeyDown={this.checkForEnter}
+                  autoFocus
+                ></input>
+                {this.shouldMarkError("username") ||
+                this.state.usernameError ? (
+                  <p className="input-error-message">
+                    {this.state.usernameErrorMessage}
+                  </p>
+                ) : (
+                  ""
+                )}
               </div>
-              <div className="error error-msg-pass">
-                <p></p>
-              </div>
+              <button
+                disabled={isDisabled || this.state.loading}
+                type="submit"
+                className="login-button"
+                onClick={() => this.managePassword()}
+              >
+                {this.state.loading === true ? (
+                  <i class="fas fa-sync fa-spin"></i>
+                ) : (
+                  "Skicka kod"
+                )}
+              </button>
             </div>
-            <div id="code-comf" className="col-md-12">
-              <p>
-                You will recieve a code to your email. Enter the code sent here
-              </p>
-              <p>
-                If you didn't recieve the code,{" "}
-                <Link onClick={this.resend}>click here to resend.</Link>
-              </p>
-              <div className="label-error-wrapper">
-                <label className="input-label" for="code">
-                  Code*:
-                </label>
-              </div>
-              <div className="field-wrapper">
-                <input
-                  type="text"
-                  id="code"
-                  className="form-input"
-                  name="code"
-                  placeholder="eg. 123345"
-                />
-              </div>
-              <div className="error error-msg-pass">
-                <p></p>
-              </div>
-            </div>
-            <div id="new-password" className="col-md-6">
-              <div className="label-error-wrapper">
-                <label className="input-label" for="new_password">
-                  New password*:
-                </label>
-              </div>
-              <div className="field-wrapper">
-                <input
-                  type="password"
-                  id="new_password"
-                  className="form-input password-wrap"
-                  name="new_password"
-                />
-                <div className="icon-wrapper">
-                  <i
-                    toggle="#new_password"
-                    className="fas fa-eye toggle-password"
-                  ></i>
-                </div>
-              </div>
-              <div className="error error-msg-pass">
-                <p></p>
-              </div>
-            </div>
-            <div id="confirm-password" className="col-md-6">
-              <div className="label-error-wrapper">
-                <label className="input-label" for="confirm">
-                  Confirm Password*:
-                </label>
-              </div>
-              <div className="field-wrapper">
-                <input
-                  type="password"
-                  id="confirm"
-                  className="form-input password-wrap"
-                  name="confirm"
-                />
-                <div className="icon-wrapper">
-                  <i
-                    toggle="#confirm"
-                    className="fas fa-eye toggle-password"
-                  ></i>
-                </div>
-              </div>
-
-              <div className="error error-msg-pass">
-                <p></p>
-              </div>
-            </div>
-            <div id="new-pass-req" className="col-md-12">
-              <ul className="password-req">
-                <li className="password-desc">Password requirements:</li>
-                <li className="password-length">
-                  Must be atleast 8 characters long
-                </li>
-                <li className="password-upper">
-                  Must contain an uppercase and lowercase character
-                </li>
-                <li className="password-number">Must contain a number</li>
-                <li className="password-match">Password must match</li>
-              </ul>
-            </div>
-            <div id="redirect-new-pass" className="col-md-12">
-              <p>Password successfully changed!</p>
-              <p>
-                To sign in click <Link to="/login">here</Link>
-              </p>
-            </div>
-            <button
-              className="send-code-btn login-btn-confirm"
-              onClick={this.managePassword}
-            >
-              Send Code
-            </button>
-            <button
-              className="confirm-password-btn login-btn-confirm"
-              onClick={this.confirmCode}
-            >
-              Change Password
-            </button>
-            <hr className="hr-text" data-content="or" />
-            <div className="reg-links">
-              <Link to="/registration">Create a new account here</Link>
-            </div>
+          )}
+          {this.state.gotUsername === true && (
+            <PasswordConfirmation
+              username={this.state.username}
+              history={this.props.history}
+            ></PasswordConfirmation>
+          )}
+          <div className="login-link">
+            <Link to="registration">Skapa ett nytt konto här</Link>
           </div>
         </div>
+      </div>
+    );
+  }
+}
+
+class PasswordConfirmation extends Component {
+  constructor() {
+    super();
+    this.state = {
+      code: "",
+      password: "",
+      confirmPassword: "",
+      everFocusedCode: false,
+      everFocusedPassword: false,
+      everFocusedConfirm: false,
+      inFocus: "",
+      touched: {
+        code: false,
+        password: false,
+        confirmPassword: false,
+      },
+      codeErrorMessage: "Detta fält kan inte vara tomt",
+      codeError: false,
+      passwordErrorMessage: "Detta fält kan inte vara tomt",
+      passwordError: false,
+      confirmErrorMessage: "Detta fält kan inte vara tomt",
+      confirmError: false,
+      hidden: true,
+      finished: false,
+      loadingResend: false,
+      loadingResendDone: false,
+      loading: false,
+    };
+  }
+  validate = (code, password) => {
+    return {
+      code: code.length === 0,
+      password: password.length === 0,
+    };
+  };
+  shouldMarkError = (field) => {
+    const hasError = this.validate(this.state.code, this.state.password)[field];
+    console.log(hasError);
+    const shouldShow = this.state.touched[field];
+    return hasError ? shouldShow : false;
+  };
+  handleCodeChange = (evt) => {
+    this.setState({ code: evt.target.value });
+  };
+  handlePasswordChange = (evt) => {
+    this.setState({ password: evt.target.value });
+    if (this.state.password.length < 8) {
+      this.setState({
+        passwordError: true,
+        passwordErrorMessage: "Lösenordet måste vara minst 8 tecken lång",
+      });
+    } else if (this.state.password.length >= 8) {
+      this.setState({
+        passwordError: false,
+        passwordErrorMessage: "Detta fält kan inte vara tomt",
+      });
+    }
+  };
+  handleBlur = (field) => (evt) => {
+    this.setState({
+      touched: {
+        ...this.state.touched,
+        [field]: true,
+      },
+      codeError: false,
+      codeErrorMessage: "Detta fält kan inte vara tomt",
+      passwordErrorMessage: "Detta fält kan inte vara tomt",
+      passwordError: false,
+    });
+  };
+
+  canBeSubmitted = () => {
+    const errors = this.validate(this.state.code, this.state.password);
+    const isDisabled = Object.keys(errors).some((x) => errors[x]);
+    return !isDisabled;
+  };
+
+  checkForEnter = (e) => {
+    if (e.key === "Enter") {
+      this.confirmCode();
+    }
+  };
+
+  toggleHide = () => {
+    if (this.state.hidden === true) {
+      this.setState({
+        hidden: false,
+      });
+    } else if (this.state.hidden === false) {
+      this.setState({
+        hidden: true,
+      });
+    }
+  };
+
+  confirmCode = () => {
+    this.setState({
+      loading: true,
+    });
+    var username = this.props.username;
+    var code = this.state.code;
+    var new_password = this.state.password;
+    Auth.forgotPasswordSubmit(username, code, new_password)
+      .then((data) => {
+        this.setState({
+          loading: false,
+          finished: true,
+        });
+      })
+      .catch((err) => {
+        this.setState({
+          loading: false,
+        });
+        console.log(err);
+        if (err.code === "CodeMismatchException") {
+          this.setState({
+            codeError: true,
+            codeErrorMessage: "Var vänlig och skriv in en korrekt kod",
+          });
+        } else if (err.code === "InvalidParameterException") {
+          this.setState({
+            passwordError: true,
+            passwordErrorMessage: "Lösenordet måste vara minst 8 tecken lång",
+          });
+        }
+      });
+  };
+  resend = () => {
+    var username = this.props.username;
+    this.setState({
+      loading: true,
+      loadingResend: true,
+      loadingResendDone: false,
+    });
+    Auth.forgotPassword(username).then((res) => {
+      setTimeout(() => {
+        this.setState({
+          loading: false,
+          loadingResend: false,
+          loadingResendDone: true,
+        });
+      }, 500);
+    }).catch(err =>{
+      console.log(err)
+    });
+  };
+  login = () => {
+    this.setState({
+      loading: true,
+    });
+    const username = this.props.username;
+    const password = this.state.password;
+    Auth.signIn({
+      username, // Required, the username
+      password, // Optional, the password
+    })
+      .then((user) => {
+        this.props.history.push("/home");
+      })
+      .catch((err) => console.log(err));
+  };
+  render() {
+    const errors = this.validate(this.state.code, this.state.password);
+    const isDisabled = Object.keys(errors).some((x) => errors[x]);
+    console.log(this.state.finished);
+    return (
+      <div className="form-container">
+        {this.state.finished === false ? (
+          <div>
+            <p style={{ fontSize: "15px" }}>
+              Koden bör komma till er email inom kort. Håll koll på er spam
+              folder ifall mejlet inte dyker upp eller
+              <Link onClick={() => this.resend()} className="text-link">
+                tryck här för att skicka koden igen
+              </Link>{" "}
+              {this.state.loadingResend === true && (
+                <i
+                  style={{ color: "#b1aca3" }}
+                  className="fas fa-sync fa-spin"
+                ></i>
+              )}
+              {this.state.loadingResendDone === true && (
+                <i style={{ color: "#7b8c49" }} className="fas fa-check"></i>
+              )}
+            </p>
+            <div className="input-wrappers">
+              <lable for="code">Kod</lable>
+              <input
+                type="number"
+                className={
+                  this.shouldMarkError("code") || this.state.codeError === true
+                    ? "input-error custom-input"
+                    : "custom-input"
+                }
+                id="code"
+                autocomplete="off"
+                value={this.state.code}
+                onChange={this.handleCodeChange}
+                onBlur={this.handleBlur("code")}
+                onKeyDown={this.checkForEnter}
+                autoFocus
+              ></input>
+              {this.shouldMarkError("code") || this.state.codeError ? (
+                <p className="input-error-message">
+                  {this.state.codeErrorMessage}
+                </p>
+              ) : (
+                ""
+              )}
+            </div>
+            <div className="input-wrappers">
+              <lable for="password">Nytt Lösenord</lable>
+              <div
+                className={`input-icon ${
+                  this.shouldMarkError("password") ||
+                  this.state.passwordError === true
+                    ? "input-error"
+                    : ""
+                }`}
+              >
+                <input
+                  type={this.state.hidden === true ? "password" : "text"}
+                  className="custom-input"
+                  id="password"
+                  value={this.state.password}
+                  onChange={this.handlePasswordChange}
+                  onBlur={this.handleBlur("password")}
+                  onKeyDown={this.checkForEnter}
+                ></input>
+                <button
+                  onClick={() => this.toggleHide()}
+                  className="confirmPassword"
+                >
+                  <i
+                    className={
+                      this.state.hidden === true
+                        ? "fas fa-eye"
+                        : "fas fa-eye-slash"
+                    }
+                  ></i>
+                </button>
+              </div>
+              {this.shouldMarkError("password") || this.state.passwordError ? (
+                <p className="input-error-message">
+                  {this.state.passwordErrorMessage}
+                </p>
+              ) : (
+                ""
+              )}
+            </div>
+            <button
+              disabled={isDisabled || this.state.loading}
+              type="submit"
+              className="login-button"
+              onClick={() => this.confirmCode()}
+            >
+              {this.state.loading === true ? (
+                <i class="fas fa-sync fa-spin"></i>
+              ) : (
+                "Ändra lösenordet"
+              )}
+            </button>
+          </div>
+        ) : (
+          <div>
+            <p>
+              <b>Klart!</b> Lösenordet är nu bytt och du kan logga in med ditt
+              nya lösenord automatiskt genom att trycka på knappen nedan eller
+              använda inloggnings sidan
+            </p>
+            <button
+              disabled={this.state.loading}
+              type="submit"
+              className="login-button"
+              onClick={() => this.login()}
+            >
+              {this.state.loading === true ? (
+                <i className="fas fa-sync fa-spin"></i>
+              ) : (
+                "Logga in"
+              )}
+            </button>
+          </div>
+        )}
       </div>
     );
   }

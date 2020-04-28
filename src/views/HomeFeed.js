@@ -13,7 +13,7 @@ class HomeFeed extends Component {
     super();
     this.state = { details: [], rows: [], offset: 0};
   }
-  async componentDidMount(prevProps) {
+  componentDidMount = async () => {
     let videos = "";
     let rows = [];
     await Auth.currentAuthenticatedUser({

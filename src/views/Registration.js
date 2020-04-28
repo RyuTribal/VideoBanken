@@ -4,421 +4,385 @@ import { Auth, Hub } from "aws-amplify";
 import $ from "jquery";
 import intlTelInput from "intl-tel-input/build/js/intlTelInput";
 import utils from "intl-tel-input/build/js/utils";
-var that;
+import { withFederated } from "aws-amplify-react";
+function validate(username, password, name, email) {
+  return {
+    username: username.length === 0,
+    password: password.length === 0,
+    name: name.length === 0,
+    email: email.length === 0,
+  };
+}
+const Buttons = (props) => (
+  <div>
+    <button className="social-btn">
+      <div>
+        <img src="//d35aaqx5ub95lt.cloudfront.net/images/google-color.svg"></img>
+        <span className="google-btn">Google</span>
+      </div>
+    </button>
+    <button className="social-btn">
+      <div>
+        <img src="//d35aaqx5ub95lt.cloudfront.net/images/facebook-blue.svg"></img>
+        <span className="fb-btn">Facebook</span>
+      </div>
+    </button>
+  </div>
+);
+
+const Federated = withFederated(Buttons);
+
+const federated = {
+  google_client_id:
+    "216481722641-n8cdp068qrd3ebpi70l2recq8rkj3430.apps.googleusercontent.com", // Enter your google_client_id here
+  facebook_app_id: "2711841088850140", // Enter your facebook_app_id here
+};
 class Registration extends Component {
-  componentWillMount() {
-    that = this;
-    Auth.currentAuthenticatedUser({
-      bypassCache: false // Optional, By default is false. If set to true, this call will send a request to Cognito to get the latest user data
-    })
-      .then(function(user) {
-        that.props.history.push("/home")
-      })
-      .catch(function(err){
-        $("input").keyup(function(event) {
-          if (event.keyCode === 13) {
-            $(".login-btn-confirm").click();
-          }
-        });
-        var upperCase = new RegExp("[A-Z]");
-        var lowerCase = new RegExp("[a-z]");
-        var numbers = new RegExp("[0-9]");
-        $("#password").keyup(function() {
-          if ($(this).val().length >= 7) {
-            console.log("works");
-            $(".password-length").addClass("validPassword");
-          } else {
-            $(".password-length").removeClass("validPassword");
-          }
-          if (
-            $(this)
-              .val()
-              .match(upperCase) &&
-            $(this)
-              .val()
-              .match(lowerCase)
-          ) {
-            $(".password-upper").addClass("validPassword");
-          } else {
-            $(".password-upper").removeClass("validPassword");
-          }
-          if (
-            $(this)
-              .val()
-              .match(numbers)
-          ) {
-            $(".password-number").addClass("validPassword");
-          } else {
-            $(".password-number").removeClass("validPassword");
-          }
-          if ($("#password").val() == $("#password-repeat").val()) {
-            $(".password-match").addClass("validPassword");
-          } else {
-            $(".password-match").removeClass("validPassword");
-          }
-        });
-        $("#password-repeat").keyup(function() {
-          if ($("#password").val() == $("#password-repeat").val()) {
-            $(".password-match").addClass("validPassword");
-          } else {
-            $(".password-match").removeClass("validPassword");
-          }
-        });
-        var input = document.querySelector("#phone");
-        intlTelInput(input, {
-          dropdownContainer: document.body,
-          initialCountry: "se",
-          nationalMode: false,
-          formatOnDisplay: false,
-          separateDialCode: true,
-          preferredCountries: ["se", "gb"],
-          utilsScript: utils
-        });
-        $(".icon-wrapper").click(function() {
-          $(this)
-            .find("i")
-            .toggleClass("fa-eye");
-          $(this)
-            .find("i")
-            .toggleClass("fa-eye-slash");
-          var input = $(
-            $(this)
-              .find("i")
-              .attr("toggle")
-          );
-          if (input.attr("type") == "password") {
-            input.attr("type", "text");
-          } else {
-            input.attr("type", "password");
-          }
-        });
-      });
-    
+  constructor() {
+    super();
+    this.state = {
+      username: "",
+      password: "",
+      name: "",
+      email: "",
+      everFocusedUsername: false,
+      everFocusedPassword: false,
+      everFocusedName: false,
+      everFocusedEmail: false,
+      inFocus: "",
+      touched: {
+        username: false,
+        password: false,
+        name: false,
+        email: false,
+      },
+      usernameErrorMessage: "Detta fält kan inte vara tomt",
+      passwordErrorMessage: "Detta fält kan inte vara tomt",
+      addressErrorMessage: "Detta fält kan inte vara tomt",
+      nameErrorMessage: "Detta fält kan inte vara tomt",
+      emailErrorMessage: "Detta fält kan inte vara tomt",
+      usernameError: false,
+      passwordError: false,
+      nameError: false,
+      emailError: false,
+      hidden: true,
+      loading: false,
+      btnDisable: false
+    };
   }
+  componentWillMount() {
+    Auth.currentAuthenticatedUser({
+      bypassCache: false, // Optional, By default is false. If set to true, this call will send a request to Cognito to get the latest user data
+    })
+      .then((user) => {
+        this.props.history.push("/home");
+      })
+      .catch((err) => {});
+  }
+
+  shouldMarkError = (field) => {
+    const hasError = validate(
+      this.state.username,
+      this.state.password,
+      this.state.name,
+      this.state.email
+    )[field];
+    const shouldShow = this.state.touched[field];
+    return hasError ? shouldShow : false;
+  };
+  handleUsernameChange = (evt) => {
+    this.setState({ username: evt.target.value });
+    const format = /[ `!@#$%^&*()+\=\[\]{};':"\\|,.<>\/?~]/;
+    if(format.test(evt.target.value)){
+      this.setState({
+        usernameError: true,
+        usernameErrorMessage: "Användarnamnet får bara ha special tecken - och _",
+        btnDisable: true
+      })
+    }
+    else{
+      this.setState({
+        usernameError: false,
+        usernameErrorMessage: "Detta fält kan inte vara tomt",
+        btnDisable: false
+      })
+    }
+
+  };
+
+  handlePasswordChange = (evt) => {
+    this.setState({ password: evt.target.value });
+    if (this.state.password.length < 8) {
+      this.setState({
+        passwordError: true,
+        passwordErrorMessage: "Lösenordet måste vara minst 8 tecken lång",
+      });
+    } else if (this.state.password.length >= 8) {
+      this.setState({
+        passwordError: false,
+        passwordErrorMessage: "Detta fält kan inte vara tomt",
+      });
+    }
+  };
+
+  handleNameChange = (evt) => {
+    this.setState({ name: evt.target.value });
+  };
+  handleEmailChange = (evt) => {
+    this.setState({ email: evt.target.value });
+    if (!evt.target.value.match(/.+@.+/)) {
+      this.setState({
+        emailError: true,
+        emailErrorMessage: "Skriv in ett giltigt email",
+        btnDisable: true
+      })
+    }
+    else{
+      this.setState({
+        emailError: false,
+        emailErrorMessage: "Detta fält kan inte vara tomt",
+        btnDisable: false
+      })
+    }
+  };
+
+  handleBlur = (field) => (evt) => {
+    this.setState({
+      touched: { ...this.state.touched, [field]: true },
+    });
+  };
+
+  canBeSubmitted = () => {
+    const errors = validate(
+      this.state.username,
+      this.state.password,
+      this.state.name,
+      this.state.email
+    );
+    const isDisabled = Object.keys(errors).some((x) => errors[x]);
+    return !isDisabled;
+  };
+
+  checkForEnter = (e) => {
+    if (e.key === "Enter") {
+      this.manageReg();
+    }
+  };
+
+  toggleHide = () => {
+    if (this.state.hidden === true) {
+      this.setState({
+        hidden: false,
+      });
+    } else if (this.state.hidden === false) {
+      this.setState({
+        hidden: true,
+      });
+    }
+  };
 
   manageReg() {
-    $(".error").css("opacity", "0");
-    $(".error")
-      .find("p")
-      .text();
-    var username = $("#username").val();
-    var given_name = $("#first-name").val();
-    var family_name = $("#last-name").val();
-    var email = $("#email").val();
-    var address = $("#adress").val();
-    var birthdate = $("#date").val();
-    var phone_number = $(".iti__selected-dial-code").text() + $("#phone").val();
-    var password = $("#password").val();
-    var confirmed = $("#password-repeat").val();
-    console.log(given_name);
-    if ($("#password").val() != $("#password-repeat").val()) {
-      $("#password-repeat")
-        .closest(".col-md-6")
-        .find(".error")
-        .find("p")
-        .text("Passwords do not match");
-      $("#password-repeat")
-        .closest(".col-md-6")
-        .find(".error")
-        .css("opacity", "1");
-    } else {
-      Auth.signUp({
-        username: username,
-        password: password,
-        attributes: {
-          given_name: given_name,
-          birthdate: birthdate,
-          address: address,
-          family_name: family_name,
-          email: email,
-          phone_number: phone_number,
-          "custom:firstTime" : "0"
-        }
-      })
-        .then(function(user) {
-          Auth.signIn({
-            username, // Required, the username
-            password // Optional, the password
-          }).then(function() {
-            that.props.history.push("/home");
-          }).catch(err => console.log(err));
-        })
-        .catch(function(err) {
-          console.log(err);
-          if (
-            err.message == "Error creating account" ||
-            err.message == "Username cannot be empty" ||
-            err.message == "PreSignUp failed with error x is not defined."
-          ) {
-            $("input").each(function() {
-              if ($(this).val() == "") {
-                $(this)
-                  .closest(".col-md-6")
-                  .find(".error")
-                  .find("p")
-                  .text("This field cannot be empty");
-                $(this)
-                  .closest(".col-md-6")
-                  .find(".error")
-                  .css("opacity", "1");
-              }
-            });
-          } else if (err.message == "User already exists") {
-            $("#username")
-              .closest(".col-md-6")
-              .find(".error")
-              .find("p")
-              .text("Username already taken");
-            $("#username")
-              .closest(".col-md-6")
-              .find(".error")
-              .css("opacity", "1");
-          } else if (
-            err.message == "PreSignUp failed with error u is not defined."
-          ) {
-            $("#username")
-              .closest(".col-md-6")
-              .find(".error")
-              .find("p")
-              .text(
-                "Username cannot contain special characters besides - or _"
-              );
-            $("#username")
-              .closest(".col-md-6")
-              .find(".error")
-              .css("opacity", "1");
-          } else if (err.message == "Invalid email address format.") {
-            $("#email")
-              .closest(".col-md-6")
-              .find(".error")
-              .find("p")
-              .text("Please enter a valid email");
-            $("#email")
-              .closest(".col-md-6")
-              .find(".error")
-              .css("opacity", "1");
-          } else if (
-            err.message == "PreSignUp failed with error p is not defined."
-          ) {
-            $("#password_repeat")
-              .closest(".col-md-6")
-              .find(".error")
-              .find("p")
-              .text("Passwords do not match");
-            $("#password_repeat")
-              .closest(".col-md-6")
-              .find(".error")
-              .css("opacity", "1");
-          }
+    this.setState({
+      loading: true,
+    });
+    var username = this.state.username;
+    var name = this.state.name;
+    var email = this.state.email;
+    var password = this.state.password;
+    Auth.signUp({
+      username: username,
+      password: password,
+      attributes: {
+        nickname: name,
+        email: email,
+        "custom:firstTime": "0",
+      },
+    })
+      .then((user) => {
+        this.setState({
+          loading: false,
         });
-    }
+        this.props.history.push("/login");
+      })
+      .catch((err) => {
+        this.setState({
+          loading: false,
+        });
+        console.log(err);
+        if (
+          err.message == "Error creating account" ||
+          err.message == "Username cannot be empty" ||
+          err.message == "PreSignUp failed with error x is not defined."
+        ) {
+          this.setState({
+            usernameError: true,
+            usernameErrorMessage: "Detta fält kan inte vara tomt",
+          });
+        } else if (err.message == "User already exists") {
+          this.setState({
+            usernameError: true,
+            usernameErrorMessage:
+              "Ett konto med detta användarnamet existerar redan",
+          });
+        } else if (
+          err.message == "PreSignUp failed with error u is not defined."
+        ) {
+          this.setState({
+            usernameError: true,
+            usernameErrorMessage:
+              "Användarnamnet får bara ha special tecken - och _",
+          });
+        } else if (err.message == "Invalid email address format.") {
+          this.setState({
+            emailError: true,
+            emailErrorMessage: "Skriv in ett giltigt email",
+          });
+        }
+      });
   }
   render() {
+    const errors = validate(
+      this.state.username,
+      this.state.password,
+      this.state.name,
+      this.state.email
+    );
+    const isDisabled = Object.keys(errors).some((x) => errors[x]);
     return (
-      <div className="login-container">
-        <div className="form-container reg">
-          <h2 className="form-title">Sign up</h2>
-          <div className="form">
-            <div className="col-md-6">
-              <div className="label-error-wrapper">
-                <label className="input-label" for="username">
-                  Username*:
-                </label>
-              </div>
-              <div className="field-wrapper">
-                <input
-                  type="text"
-                  id="username"
-                  className="form-input"
-                  name="username"
-                  placeholder="eg. TheTerminator2008"
-                />
-              </div>
-              <div className="error error-msg-pass">
-                <p></p>
-              </div>
+      <div className="login-wrapper">
+        <div className="login-container">
+          <div className="login-header">
+            <h2>Registrera</h2>
+          </div>
+          <div className="form-container">
+            <div className="input-wrappers">
+              <lable for="username">Användarnamn</lable>
+              <input
+                type="text"
+                className={
+                  this.shouldMarkError("username") ||
+                  this.state.usernameError === true
+                    ? "input-error custom-input"
+                    : "custom-input"
+                }
+                id="username"
+                value={this.state.username}
+                onChange={this.handleUsernameChange}
+                onBlur={this.handleBlur("username")}
+                onKeyDown={this.checkForEnter}
+                autoFocus
+              ></input>
+              {this.shouldMarkError("username") || this.state.usernameError ? (
+                <p className="input-error-message">
+                  {this.state.usernameErrorMessage}
+                </p>
+              ) : (
+                ""
+              )}
             </div>
-            <div className="col-md-6">
-              <div className="label-error-wrapper">
-                <label className="input-label" for="first-name">
-                  Given name*:
-                </label>
-              </div>
-              <div className="field-wrapper">
-                <input
-                  type="text"
-                  id="first-name"
-                  className="form-input"
-                  name="first-name"
-                  placeholder="eg. John"
-                />
-              </div>
-              <div className="error error-msg-pass">
-                <p></p>
-              </div>
+            <div className="input-wrappers">
+              <lable for="name">Namn</lable>
+              <input
+                type="text"
+                className={
+                  this.shouldMarkError("name") || this.state.nameError === true
+                    ? "input-error custom-input"
+                    : "custom-input"
+                }
+                id="name"
+                value={this.state.name}
+                onChange={this.handleNameChange}
+                onBlur={this.handleBlur("name")}
+                onKeyDown={this.checkForEnter}
+              ></input>
+              {this.state.nameError ||
+                (this.shouldMarkError("name") && (
+                  <p className="input-error-message">
+                    {this.state.nameErrorMessage}
+                  </p>
+                ))}
             </div>
-            <div className="col-md-6">
-              <div className="label-error-wrapper">
-                <label className="input-label" for="last-name">
-                  Family name*:
-                </label>
-              </div>
-              <div className="field-wrapper">
-                <input
-                  type="text"
-                  id="last-name"
-                  className="form-input"
-                  name="last-name"
-                  placeholder="eg. Connor"
-                />
-              </div>
-              <div className="error error-msg-pass">
-                <p></p>
-              </div>
+            <div className="input-wrappers">
+              <lable for="email">Email</lable>
+              <input
+                type="email"
+                className={
+                  this.shouldMarkError("email") ||
+                  this.state.emailError === true
+                    ? "input-error custom-input"
+                    : "custom-input"
+                }
+                id="email"
+                value={this.state.email}
+                onChange={this.handleEmailChange}
+                onBlur={this.handleBlur("email")}
+                onKeyDown={this.checkForEnter}
+              ></input>
+              {this.shouldMarkError("email") || this.state.emailError ? (
+                <p className="input-error-message">
+                  {this.state.emailErrorMessage}
+                </p>
+              ) : (
+                ""
+              )}
             </div>
-            <div className="col-md-6">
-              <div className="label-error-wrapper">
-                <label className="input-label" for="email">
-                  Email*:
-                </label>
-              </div>
-              <div className="field-wrapper">
+            <div className="input-wrappers">
+              <lable for="password">Lösenord</lable>
+              <div
+                className={`input-icon ${
+                  this.shouldMarkError("password") ||
+                  this.state.passwordError === true
+                    ? "input-error"
+                    : ""
+                }`}
+              >
                 <input
-                  type="email"
-                  id="email"
-                  className="form-input"
-                  name="email"
-                  placeholder="eg. john.connor@gmail.com"
-                />
-              </div>
-              <div className="error error-msg-pass">
-                <p></p>
-              </div>
-            </div>
-            <div className="col-md-6">
-              <div className="label-error-wrapper">
-                <label className="input-label" for="adress">
-                  Adress*:
-                </label>
-              </div>
-              <div className="field-wrapper">
-                <input
-                  type="text"
-                  id="adress"
-                  className="form-input"
-                  name="adress"
-                  placeholder="eg. Musikalvägen 1"
-                />
-              </div>
-              <div className="error error-msg-pass">
-                <p></p>
-              </div>
-            </div>
-            <div className="col-md-6">
-              <div className="label-error-wrapper">
-                <label className="input-label" for="date">
-                  Date of birth*:
-                </label>
-              </div>
-              <div className="field-wrapper">
-                <input
-                  type="date"
-                  id="date"
-                  className="form-input"
-                  name="date"
-                />
-              </div>
-              <div className="error error-msg-pass">
-                <p></p>
-              </div>
-            </div>
-
-            <div id="tel-container" className="col-md-6">
-              <div className="label-error-wrapper">
-                <label className="input-label" for="telephone">
-                  Telephone*:
-                </label>
-              </div>
-              <div className="field-wrapper">
-                <input
-                  type="tel"
-                  id="phone"
-                  className="form-input"
-                  name="telephone"
-                />
-              </div>
-              <div className="error error-msg-pass">
-                <p></p>
-              </div>
-            </div>
-            <div className="col-md-6">
-              <div className="label-error-wrapper">
-                <label className="input-label" for="password">
-                  Password*:
-                </label>
-              </div>
-              <div className="field-wrapper">
-                <input
+                  type={this.state.hidden === true ? "password" : "text"}
+                  className="custom-input"
                   id="password"
-                  type="password"
-                  className="form-input password-wrap"
-                  name="password"
-                />
-                <div className="icon-wrapper">
+                  value={this.state.password}
+                  onChange={this.handlePasswordChange}
+                  onBlur={this.handleBlur("password")}
+                  onKeyDown={this.checkForEnter}
+                ></input>
+                <button
+                  onClick={() => this.toggleHide()}
+                  className="confirmPassword"
+                >
                   <i
-                    toggle="#password"
-                    className="fas fa-eye toggle-password"
+                    className={
+                      this.state.hidden === true
+                        ? "fas fa-eye"
+                        : "fas fa-eye-slash"
+                    }
                   ></i>
-                </div>
+                </button>
               </div>
-              <div className="error error-msg-pass">
-                <p></p>
-              </div>
+              {this.shouldMarkError("password") || this.state.passwordError ? (
+                <p className="input-error-message">
+                  {this.state.passwordErrorMessage}
+                </p>
+              ) : (
+                ""
+              )}
             </div>
-            <div className="col-md-6">
-              <div className="label-error-wrapper">
-                <label className="input-label" for="password-repeat">
-                  Confirm*:
-                </label>
-              </div>
-              <div className="field-wrapper">
-                <input
-                  id="password-repeat"
-                  type="password"
-                  className="form-input password-wrap"
-                  name="password-repeat"
-                />
-                <div className="icon-wrapper">
-                  <i
-                    toggle="#password-repeat"
-                    className="fas fa-eye toggle-password"
-                  ></i>
-                </div>
-              </div>
-              <div className="error error-msg-pass">
-                <p></p>
-              </div>
-            </div>
-            <div className="col-md-6">
-              <ul className="password-req">
-                <li className="password-desc">Password requirements:</li>
-                <li className="password-length">
-                  Must be atleast 8 characters long
-                </li>
-                <li className="password-upper">
-                  Must contain an uppercase and lowercase character
-                </li>
-                <li className="password-number">Must contain a number</li>
-                <li className="password-match">Password must match</li>
-              </ul>
-            </div>
-            <button className="login-btn-confirm" onClick={this.manageReg}>
-              Register
+            <button
+              disabled={isDisabled || this.state.loading || this.state.btnDisable}
+              type="submit"
+              className="login-button"
+              onClick={() => this.manageReg()}
+            >
+              {this.state.loading === true ? (
+                <i class="fas fa-sync fa-spin"></i>
+              ) : (
+                "Registrera"
+              )}
             </button>
-            <hr className="hr-text" data-content="or sign in with" />
-            <div className="reg-links">
-              Have an account already? <Link to="/login">Sign in here</Link>
-            </div>
+            <div class="separator">eller</div>
+            <Federated federated={federated} />
+          </div>
+          <div className="login-link">
+            Har redan ett konto? <Link to="login">Logga in här</Link>
           </div>
         </div>
       </div>

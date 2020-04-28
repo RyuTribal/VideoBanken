@@ -15,11 +15,9 @@ class Start extends Component {
       .then(function(user) {
         that.props.history.push("/home")
       })
-      .catch(err => console.log(err));
-  }
-
-  componentDidUpdate(prevState){
-
+      .catch(err => {
+        this.props.history.push("/login")
+      });
   }
   render() {
     return (
