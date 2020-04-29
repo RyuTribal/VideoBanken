@@ -11,63 +11,59 @@ const formatter = buildFormatter(swedishStrings);
 class HomeFeed extends Component {
   constructor() {
     super();
-    this.state = { details: [], rows: [], offset: 0};
+    this.state = { details: [], rows: [], offset: 0 };
   }
   componentDidMount = async () => {
     let videos = "";
     let rows = [];
-    await Auth.currentAuthenticatedUser({
-      bypassCache: true // Optional, By default is false. If set to true, this call will send a request to Cognito to get the latest user data
-    })
-      .then(user => {
-        console.log(user);
-        if (user.attributes["custom:firstTime"] == "0" || user.attributes["custom:firstTime"] == undefined) {
-          console.log("yeah here");
-          API.graphql(
-            graphqlOperation(mutations.addUser, {
-              input: {
-                username: user.username
-              }
-            })
-          )
-            .then(result => {
-              Auth.updateUserAttributes(user, {
-                "custom:firstTime": "1"
-              }).catch(err => console.log(err));
-            })
-            .catch(err => console.log(err));
-        }
-      })
-      .catch(err => {
-        console.log(err);
-        this.props.history.push("/login");
-      });
-    await API.graphql(graphqlOperation(queries.getVideos, {offset: this.state.offset})).then(
-      function(result) {
-        console.log(result);
-        videos = result.data.getVideos;
-        let ammountRows = 1;
-        for (let i = 0; i < videos.length; i++) {
-          if (i == 0) {
-            rows.push(0);
-          } else if (i > 5 || i > 5 * ammountRows) {
-            ammountRows++;
-            rows.push(ammountRows);
-          }
+    console.log(this.props);
+    if (this.props.user.attributes["custom:firstTime"]) {
+      console.log(this.props);
+      if (
+        this.props.user.attributes["custom:firstTime"] == "0" ||
+        this.props.user.attributes["custom:firstTime"] == undefined
+      ) {
+        console.log("yeah here");
+        API.graphql(
+          graphqlOperation(mutations.addUser, {
+            input: {
+              username: this.props.user.username,
+            },
+          })
+        )
+          .then((result) => {
+            Auth.updateUserAttributes(this.props.user, {
+              "custom:firstTime": "1",
+            }).catch((err) => console.log(err));
+          })
+          .catch((err) => console.log(err));
+      }
+    }
+    await API.graphql(
+      graphqlOperation(queries.getVideos, { offset: this.state.offset })
+    ).then(function (result) {
+      console.log(result);
+      videos = result.data.getVideos;
+      let ammountRows = 1;
+      for (let i = 0; i < videos.length; i++) {
+        if (i == 0) {
+          rows.push(0);
+        } else if (i > 5 || i > 5 * ammountRows) {
+          ammountRows++;
+          rows.push(ammountRows);
         }
       }
-    );
+    });
     for (let i = 0; i < videos.length; i++) {
-    await Storage.get(`uploads/${videos[i].thumbnail}.png`)
-        .then(function(result) {
+      await Storage.get(`uploads/${videos[i].thumbnail}.png`)
+        .then(function (result) {
           videos[i].thumbnail = result;
           if (videos[i].views == null) {
             videos[i].views = "0";
           }
 
           if (videos[i].title.length > 50) {
-            videos[i].title =
-              videos[i].title.substring(0, 47) + "...";
+            videos[i].title = videos[i].title.substring(0, 47) + "...";
           }
           const ammountViews = JSON.parse(videos[i].views);
           console.log(ammountViews);
@@ -83,14 +79,14 @@ class HomeFeed extends Component {
             videos[i].views = ammountViews;
           }
         })
-        .catch(err => console.log(err));
+        .catch((err) => console.log(err));
     }
     this.setState({ details: videos, rows: rows });
-  }
+  };
   redirectToVideo(videoID) {
     this.props.history.push({
       pathname: `${this.props.match.path}/watch`,
-      search: `?key=${videoID}`
+      search: `?key=${videoID}`,
     });
   }
   render() {
