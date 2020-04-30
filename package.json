@@ -9,7 +9,7 @@
     "aws-amplify": "^1.1.38",
     "aws-amplify-react": "^2.4.2",
     "intl-tel-input": "^16.0.3",
-    "jquery": "^3.4.1",
+    "jquery": "^3.5.0",
     "markdown-react-js": "^1.0.2",
     "moment": "^2.24.0",
     "node-sass": "^4.12.0",
