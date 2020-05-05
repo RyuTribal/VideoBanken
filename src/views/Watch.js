@@ -5,9 +5,8 @@ import { Auth, Hub, Storage, API, graphqlOperation } from "aws-amplify";
 import $ from "jquery";
 import * as queries from "../graphql/queries";
 import * as mutations from "../graphql/mutations";
-import ReactPlayer from "react-player";
-import { Slider, Direction, PlayerIcon, Button } from "react-player-controls";
 import Plyr from "plyr";
+import Player from "./components/player/Player";
 import NumberFormat from "react-number-format";
 import Moment from "react-moment";
 import ShowMore from "react-show-more";
@@ -15,7 +14,7 @@ import TimeAgo from "react-timeago";
 import swedishStrings from "react-timeago/lib/language-strings/sv";
 import buildFormatter from "react-timeago/lib/formatters/buildFormatter";
 import MDReactComponent from "markdown-react-js";
-import { isMobile } from "react-device-detect";
+import { isMobile, browserName } from "react-device-detect";
 const formatter = buildFormatter(swedishStrings);
 
 let that;
@@ -24,6 +23,7 @@ class Watch extends Component {
     super();
     this.state = {
       video: "",
+      key: "",
       videoDetails: {},
       tags: {},
       videoID: "",
@@ -35,27 +35,30 @@ class Watch extends Component {
       dislikes: "",
       offset: 0,
     };
+    this._isMounted = false;
+    this.playerRef = React.createRef();
   }
   async componentDidMount() {
+    this._isMounted = true;
     that = this;
     let videoID;
     const username = "";
     let userInformation;
-    console.log(this.props.history.location.search);
     await Auth.currentAuthenticatedUser({
       bypassCache: true, // Optional, By default is false. If set to true, this call will send a request to Cognito to get the latest user data
     })
       .then((user) => {
         this.username = user.username;
-        this.setState({
-          username: user.username,
-        });
-        console.log(user);
+        if (this._isMounted) {
+          this.setState({
+            username: user.username,
+          });
+        }
+
         if (
           user.attributes["custom:firstTime"] == "0" ||
           user.attributes["custom:firstTime"] == undefined
         ) {
-          console.log("yeah here");
           API.graphql(
             graphqlOperation(mutations.addUser, {
               input: {
@@ -68,13 +71,10 @@ class Watch extends Component {
                 "custom:firstTime": "1",
               })
                 .then((res) => {})
-                .catch((err) => console.log(err));
             })
-            .catch((err) => console.log(err));
         }
       })
       .catch((err) => {
-        console.log(err);
         this.props.history.push("/login");
       });
     if (this.props.history.location.search == "") {
@@ -90,9 +90,12 @@ class Watch extends Component {
     let videoDetails = {};
     let videoUrl = "";
     let videoTags = {};
-    this.setState({
-      key: videoID,
-    });
+    if (this._isMounted) {
+      this.setState({
+        key: videoID,
+      });
+    }
+
     await API.graphql(
       graphqlOperation(queries.getVideo, {
         input: {
@@ -101,10 +104,8 @@ class Watch extends Component {
       })
     )
       .then(function (result) {
-        console.log(result);
         videoDetails = result.data.getVideo;
       })
-      .catch((err) => console.log(err));
     await API.graphql(
       graphqlOperation(queries.getTags, {
         input: {
@@ -123,42 +124,49 @@ class Watch extends Component {
     if (videoDetails.comments == null) {
       videoDetails.comments = "[]";
     }
-    console.log(this.username);
     await API.graphql(
       graphqlOperation(queries.getLikes, {
         videoID: videoID,
       })
     ).then((result) => {
-      console.log(username);
       for (let i = 0; i < result.data.getLikes.length; i++) {
-        if (result.data.getLikes[i].username === this.state.username) {
+        if (
+          result.data.getLikes[i].username === this.state.username &&
+          this._isMounted
+        ) {
           this.setState({
             liked: true,
             likeColor: "#24a0ed",
           });
         }
       }
-      this.setState({
-        likes: result.data.getLikes.length,
-      });
+      if (this._isMounted) {
+        this.setState({
+          likes: result.data.getLikes.length,
+        });
+      }
     });
     await API.graphql(
       graphqlOperation(queries.getDislikes, {
         videoID: videoID,
       })
     ).then((result) => {
-      console.log(result);
       for (let i = 0; i < result.data.getDislikes.length; i++) {
-        if (result.data.getDislikes[i].username === this.state.username) {
+        if (
+          result.data.getDislikes[i].username === this.state.username &&
+          this._isMounted
+        ) {
           this.setState({
             disliked: true,
             dislikeColor: "#d8000c",
           });
         }
       }
-      this.setState({
-        dislikes: result.data.getDislikes.length,
-      });
+      if (this._isMounted) {
+        this.setState({
+          dislikes: result.data.getDislikes.length,
+        });
+      }
     });
     let comments;
     let nextToken;
@@ -170,49 +178,43 @@ class Watch extends Component {
         },
       })
     ).then((res) => {
-      console.log(res);
       comments = res.data.getComments;
     });
-    console.log(comments.length);
-    this.setState({
-      video: videoUrl,
-      videoDetails: videoDetails,
-      tags: videoTags,
-      comments: comments,
-      ammountComments: videoDetails.ammountComments,
-      offset: this.state.offset + 20,
-    });
-    console.log(this.state.ammountComments);
-    if (this.state.ammountComments > 20) {
-      console.log("It's more than 20");
-      document.addEventListener("scroll", this.trackScrolling);
+    if (this._isMounted) {
+      this.setState({
+        video: videoUrl,
+        videoDetails: videoDetails,
+        tags: videoTags,
+        comments: comments,
+        ammountComments: videoDetails.ammountComments,
+        offset: this.state.offset + 20,
+      });
     }
-    const player = new Plyr("#player", {
-      title: this.state.videoDetails.title,
-    });
-    let secondsVideoPlayed = 0;
-    window.setInterval(function () {
-      if (player.playing) {
-        if (Math.round(player.currentTime) < secondsVideoPlayed) {
-        } else if (Math.round(player.currentTime) > secondsVideoPlayed) {
-          secondsVideoPlayed++;
-          that.sendView(secondsVideoPlayed, player);
-        }
-      } else {
-      }
-    }, 1000);
+
+    if (this.state.ammountComments > 20) {
+      document.getElementsByClassName("content_1hrfb9k")[0].addEventListener("scroll", this.trackScrolling);
+    }
     const likeButton = document.getElementById("like-button");
     const dislikeButton = document.getElementById("dislike-button");
-    likeButton.addEventListener("click", function () {
-      that.handleLikes(that.username, videoID);
-    });
-    dislikeButton.addEventListener("click", function () {
-      that.handleDisLikes(that.username, videoID, userInformation);
-    });
+    if (likeButton) {
+      likeButton.addEventListener("click", function () {
+        that.handleLikes(that.username, videoID);
+      });
+    }
+    if (dislikeButton) {
+      dislikeButton.addEventListener("click", function () {
+        that.handleDisLikes(that.username, videoID, userInformation);
+      });
+    }
   }
 
+  componentWillUnmount = () => {
+    this._isMounted = false;
+    document.getElementsByClassName("content_1hrfb9k")[0].removeEventListener("scroll", this.trackScrolling);
+    clearInterval();
+  };
+
   handleLikes = async (username, videoID) => {
-    console.log(username);
     if (this.state.disliked === true) {
       this.setState({
         liked: true,
@@ -275,10 +277,8 @@ class Watch extends Component {
 
   trackScrolling = (e) => {
     const wrappedElement = document.getElementById("comments-wrapper");
-    console.log("scrolling...");
     if (this.isBottom(wrappedElement)) {
-      console.log("comment bottom reached");
-      document.removeEventListener("scroll", this.trackScrolling);
+      document.getElementsByClassName("content_1hrfb9k")[0].removeEventListener("scroll", this.trackScrolling);
       this.getMoreComments();
     }
   };
@@ -296,17 +296,15 @@ class Watch extends Component {
         offset: this.state.offset,
       })
     ).then((res) => {
-      console.log(res);
       let comments = this.state.comments;
       for (let i = 0; i < res.data.getComments.length; i++) {
         comments.push(res.data.getComments[i]);
       }
-      console.log(comments);
       this.setState({
         offset: this.state.offset + 20,
         comments: comments,
       });
-      document.addEventListener("scroll", this.trackScrolling);
+      document.getElementsByClassName("content_1hrfb9k")[0].addEventListener("scroll", this.trackScrolling);
     });
   };
 
@@ -371,25 +369,6 @@ class Watch extends Component {
     }
   }
 
-  async sendView(seconds, player) {
-    let watchTimeLimit = 0;
-    if (player.duration < 30) {
-      watchTimeLimit = Math.floor(player.duration);
-    } else {
-      watchTimeLimit = 30;
-    }
-    if (seconds == watchTimeLimit) {
-      clearInterval();
-      await API.graphql(
-        graphqlOperation(mutations.sendView, {
-          id: this.state.key,
-        })
-      )
-        .then((result) => console.log(result))
-        .catch((err) => console.log(err));
-    }
-  }
-
   downloadVideo() {
     const videoURL = $("source").attr("src");
     window.location.href = videoURL;
@@ -419,16 +398,13 @@ class Watch extends Component {
         })
       )
         .then((result) => {
-          console.log(result.data.addComment);
           let newComment = result.data.addComment;
           commentArray.push(newComment);
-          console.log(commentArray);
           this.setState({
             comments: commentArray,
             ammountComments: this.state.ammountComments + 1,
           });
         })
-        .catch((err) => console.log(err));
     }
   };
 
@@ -446,10 +422,8 @@ class Watch extends Component {
 
   removeComment = (commentID) => {
     let previousComments = this.state.comments;
-    console.log(commentID);
     for (let i = 0; i < previousComments.length; i++) {
       if (previousComments[i].id === commentID) {
-        console.log("we here");
         previousComments.splice(i, 1);
       }
     }
@@ -459,13 +433,15 @@ class Watch extends Component {
     });
   };
 
-  componentWillUnmount() {
-    document.removeEventListener("scroll", this.trackScrolling);
-    clearInterval();
-  }
+  addEvents = () => {
+    this.playerRef.current.addEvents();
+  };
+
+  removeEvents = () => {
+    this.playerRef.current.removeEvents();
+  };
 
   render() {
-    console.log(this.state.likes);
     let numberLikes = 0;
     let numberDislikes = 0;
     if (this.state.likes == null) {
@@ -509,12 +485,13 @@ class Watch extends Component {
       tags = [];
     }
     let comments = this.state.comments;
-    console.log(this.state.videoDetails);
     return (
       <div className="video-container">
-        <video id="player" playsInline controls preload autoPlay>
-          <source src={this.state.video} type={this.state.mime} />
-        </video>
+        <Player
+          ref={this.playerRef}
+          video={this.state.video}
+          videoID={this.state.key}
+        />
         <div className="details-comments-wrapper">
           <div className="details-wrapper">
             <div className="title-wrapper">
@@ -610,6 +587,8 @@ class Watch extends Component {
               <div className="post-comment-wrapper">
                 <div className="error">Kommentaren kan inte vara tom</div>
                 <div
+                  onFocus={this.removeEvents}
+                  onBlur={this.addEvents}
                   contenteditable="true"
                   className="comment-field"
                   id="new-comment"
@@ -627,7 +606,6 @@ class Watch extends Component {
               <div
                 id="posted-comments"
                 className="posted-comments"
-                onScroll={this.trackScrolling}
               >
                 {comments.map((comment, i) => (
                   <CommentBox
@@ -637,6 +615,8 @@ class Watch extends Component {
                     username={this.username}
                     updateComments={this.updateComments}
                     removeComment={this.removeComment}
+                    addEvents={this.addEvents}
+                    removeEvents={this.removeEvents}
                   />
                 ))}
               </div>
@@ -670,8 +650,10 @@ class CommentBox extends Component {
       offset: 0,
       replyFieldOpen: false,
     };
+    this._isMounted = false;
   }
   async componentDidMount() {
+    this._isMounted = true;
     commentClass = this;
     let commentLikes = await API.graphql(
       graphqlOperation(queries.getCommentLikes, {
@@ -687,7 +669,6 @@ class CommentBox extends Component {
     ).then((result) => {
       return result.data.getCommentDislikes;
     });
-    console.log(commentLikes);
     this.setState({
       isEdited: this.props.comment.isEdited,
       likes: commentLikes.length,
@@ -723,10 +704,10 @@ class CommentBox extends Component {
   }
 
   componentWillUnmount = (async) => {
+    this._isMounted = false;
     document.removeEventListener("click", this.checkOutsideClick, false);
   };
   handleReplies = async (id, el) => {
-    console.log(el.currentTarget);
     let replyField = el.currentTarget.parentNode.getElementsByTagName("div")[1];
     let replyArray;
     if (replyField.innerHTML == "" || !/\S/.test($(replyField).text())) {
@@ -884,7 +865,6 @@ class CommentBox extends Component {
   };
 
   loadMoreReplies = async () => {
-    console.log("here");
     let commentReplies = await API.graphql(
       graphqlOperation(queries.getReplies, {
         offset: this.state.offset,
@@ -893,7 +873,6 @@ class CommentBox extends Component {
         },
       })
     ).then((res) => {
-      console.log(res);
       return res.data.getReplies;
     });
     let currentReplies = this.state.replies;
@@ -976,10 +955,8 @@ class CommentBox extends Component {
     const errorNode = e.currentTarget.parentNode.children[0];
     const editedText = e.currentTarget.parentNode.children[1].innerHTML;
     if (editedText == "" || !/\S/.test(editedText)) {
-      console.log(editedText);
       errorNode.classList.add("error-visible");
     } else {
-      console.log(this.props);
       let editedComment = await API.graphql(
         graphqlOperation(mutations.editComment, {
           input: {
@@ -1074,13 +1051,11 @@ class CommentBox extends Component {
       let commentReplies = await API.graphql(
         graphqlOperation(queries.getReplies, {
           offset: this.state.offset,
-          input:{
+          input: {
             commentID: this.props.comment.id,
-          }
-          
+          },
         })
       ).then((res) => {
-        console.log(res);
         return res.data.getReplies;
       });
       this.setState({
@@ -1233,6 +1208,8 @@ class CommentBox extends Component {
           <div className="reply-field-container">
             <div className="error">Kommentaren kan inte vara tom</div>
             <div
+              onFocus={this.props.removeEvents}
+              onBlur={this.props.addEvents}
               contenteditable="true"
               className="comment-field"
               id="new-reply"
@@ -1303,9 +1280,11 @@ class ReplyBox extends Component {
       editable: false,
       isEdited: false,
     };
+    this._isMounted = false;
   }
 
   async componentDidMount() {
+    this._isMounted = true;
     if (this.props.reply.isEdited === true) {
       this.setState({
         isEdited: true,
@@ -1346,6 +1325,10 @@ class ReplyBox extends Component {
       }
     }
   }
+
+  componentWillUnmount = () => {
+    this._isMounted = false;
+  };
 
   handleReplyLikes = async (replyID, id) => {
     let username = this.props.username;
@@ -1522,10 +1505,8 @@ class ReplyBox extends Component {
     const errorNode = e.currentTarget.parentNode.children[0];
     const editedText = e.currentTarget.parentNode.children[1].innerHTML;
     if (editedText == "" || !/\S/.test(editedText)) {
-      console.log(editedText);
       errorNode.classList.add("error-visible");
     } else {
-      console.log(this.props);
       let editedReply = await API.graphql(
         graphqlOperation(mutations.editReply, {
           input: {
@@ -1554,11 +1535,9 @@ class ReplyBox extends Component {
       })
     )
       .then((res) => {
-        console.log(res);
         this.props.removeReply(replyID);
       })
       .catch((err) => {
-        console.log(err);
       });
   };
   render() {

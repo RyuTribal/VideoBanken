@@ -32,7 +32,7 @@ function LogoComponent() {
       horizontal="center"
       vertical="center"
     >
-      <Logo className={css(styles.logo)}/>
+      <Logo className={`sidebar-logo ${css(styles.logo)}`}/>
     </Row>
   );
 }

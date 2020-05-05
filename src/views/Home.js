@@ -28,9 +28,9 @@ const styles = StyleSheet.create({
   },
   padded: {
     padding: 30,
-    '@media (max-width: 768px)': {
-      padding: 0
-  }
+    "@media (max-width: 768px)": {
+      padding: 0,
+    },
   },
 });
 
@@ -49,7 +49,7 @@ class Home extends Component {
   }
   state = { selectedItem: "Feed" };
   componentDidMount = async () => {
-    window.addEventListener('resize', this.resize);
+    window.addEventListener("resize", this.resize);
     await Auth.currentAuthenticatedUser({
       bypassCache: true, // Optional, By default is false. If set to true, this call will send a request to Cognito to get the latest user data
     })
@@ -71,7 +71,7 @@ class Home extends Component {
     this.props.history.push(`${this.props.match.path}/video-upload`);
   };
   componentWillUnmount() {
-    window.removeEventListener('resize', this.resize);
+    window.removeEventListener("resize", this.resize);
   }
   logout = () => {
     Auth.signOut()

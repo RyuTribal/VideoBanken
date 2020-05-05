@@ -1,7 +1,8 @@
 import React from "react";
-import { bool, func, string } from "prop-types";
+import { bool, func, string, nominalTypeHack } from "prop-types";
 import { Row } from "simple-flexbox";
 import { StyleSheet, css } from "aphrodite";
+import { Link } from "react-router-dom";
 
 const styles = StyleSheet.create({
   activeBar: {
@@ -10,12 +11,16 @@ const styles = StyleSheet.create({
     position: "absolute",
     left: 0,
   },
-  activeContainer: {
-    
+  activeTarget: {
+    right: -2,
+    color: "#fbf9f9",
+    position: "absolute",
+    fontSize: 40,
+    border: "none",
   },
   activeTitle: {
     color: "#ea3a3a",
-    opacity: 1
+    opacity: 1,
   },
   container: {
     height: 56,
@@ -37,28 +42,36 @@ const styles = StyleSheet.create({
     opacity: "0.7",
     marginLeft: 24,
     transition: "0.4s",
-    textTransform: "uppercase"
+    textTransform: "uppercase",
   },
-  icon:{
+  icon: {
     color: "#fbf9f9",
     opacity: "0.7",
-    transition: "0.4s"
-  }
+    transition: "0.4s",
+  },
 });
 
 function MenuItemComponent(props) {
-  const { active, icon, title, ...otherProps } = props;
+  const { active, icon, title, link, ...otherProps } = props;
   return (
-    <Row
-      className={css(styles.container, active && styles.activeContainer)}
-      vertical="center"
-      {...otherProps}
-    >
-      {active && <div className={css(styles.activeBar)}></div>}
-      <i className={`${css(styles.icon, active && styles.activeTitle)} ${icon}`} fill={active && "#DDE2FF"} opacity={!active && "0.4"} ></i>
-      <span className={css(styles.title, active && styles.activeTitle)}>
-        {title}
-      </span>
+    <Row className={css(styles.container)} vertical="center" {...otherProps}>
+      <Link to={link}>
+        {active && <div className={css(styles.activeBar)}></div>}
+        <i
+          className={`${css(
+            styles.icon,
+            active && styles.activeTitle
+          )} ${icon}`}
+          fill={active && "#DDE2FF"}
+          opacity={!active && "0.4"}
+        ></i>
+        <span className={css(styles.title, active && styles.activeTitle)}>
+          {title}
+        </span>
+        {active && (
+          <i className={`fas fa-caret-left ${css(styles.activeTarget)}`}></i>
+        )}
+      </Link>
     </Row>
   );
 }

@@ -110,6 +110,7 @@ class SidebarComponent extends React.Component {
                 icon="fas fa-tv"
                 onClick={() => this.onItemClicked("Feed")}
                 active={this.props.selectedItem === "Feed"}
+                link="/home"
               />
               <MenuItemsComponent
                 title="Tickets"

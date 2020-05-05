@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import { BrowserRouter, Switch, Route } from "react-router-dom";
+import { BrowserRouter, Switch, Route, Link } from "react-router-dom";
 import { Auth, Hub, Storage, API, graphqlOperation } from "aws-amplify";
 import $ from "jquery";
 import * as queries from "../graphql/queries";
@@ -83,7 +83,8 @@ class HomeFeed extends Component {
     }
     this.setState({ details: videos, rows: rows });
   };
-  redirectToVideo(videoID) {
+  redirectToVideo = (videoID) => {
+    console.log(this)
     this.props.history.push({
       pathname: `${this.props.match.path}/watch`,
       search: `?key=${videoID}`,
@@ -94,8 +95,8 @@ class HomeFeed extends Component {
     return (
       <section className="feed-container">
         {this.state.details.map((details, i) => (
-          <div
-            onClick={() => this.redirectToVideo(details.id)}
+          <Link
+            to={`home/watch?key=${details.id}`}
             key={i}
             className="video-preview"
           >
@@ -118,7 +119,7 @@ class HomeFeed extends Component {
                 </p>
               </div>
             </div>
-          </div>
+          </Link>
         ))}
       </section>
     );
