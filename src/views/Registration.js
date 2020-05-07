@@ -1,6 +1,7 @@
 import React, { Component } from "react";
 import { Link } from "react-router-dom";
-import { Auth, Hub } from "aws-amplify";
+import { Auth, API, graphqlOperation } from "aws-amplify";
+import * as mutations from "../graphql/mutations";
 import $ from "jquery";
 import intlTelInput from "intl-tel-input/build/js/intlTelInput";
 import utils from "intl-tel-input/build/js/utils";
@@ -67,7 +68,8 @@ class Registration extends Component {
       emailError: false,
       hidden: true,
       loading: false,
-      btnDisable: false
+      btnDisable: false,
+      userCreated: false,
     };
   }
   componentWillMount() {
@@ -93,21 +95,20 @@ class Registration extends Component {
   handleUsernameChange = (evt) => {
     this.setState({ username: evt.target.value });
     const format = /[ `!@#$%^&*()+\=\[\]{};':"\\|,.<>\/?~]/;
-    if(format.test(evt.target.value)){
+    if (format.test(evt.target.value)) {
       this.setState({
         usernameError: true,
-        usernameErrorMessage: "Användarnamnet får bara ha special tecken - och _",
-        btnDisable: true
-      })
-    }
-    else{
+        usernameErrorMessage:
+          "Användarnamnet får bara ha special tecken - och _",
+        btnDisable: true,
+      });
+    } else {
       this.setState({
         usernameError: false,
         usernameErrorMessage: "Detta fält kan inte vara tomt",
-        btnDisable: false
-      })
+        btnDisable: false,
+      });
     }
-
   };
 
   handlePasswordChange = (evt) => {
@@ -134,15 +135,14 @@ class Registration extends Component {
       this.setState({
         emailError: true,
         emailErrorMessage: "Skriv in ett giltigt email",
-        btnDisable: true
-      })
-    }
-    else{
+        btnDisable: true,
+      });
+    } else {
       this.setState({
         emailError: false,
         emailErrorMessage: "Detta fält kan inte vara tomt",
-        btnDisable: false
-      })
+        btnDisable: false,
+      });
     }
   };
 
@@ -181,7 +181,7 @@ class Registration extends Component {
     }
   };
 
-  manageReg() {
+  manageReg = async () => {
     this.setState({
       loading: true,
     });
@@ -189,20 +189,16 @@ class Registration extends Component {
     var name = this.state.name;
     var email = this.state.email;
     var password = this.state.password;
-    Auth.signUp({
+    await Auth.signUp({
       username: username,
       password: password,
       attributes: {
         nickname: name,
         email: email,
-        "custom:firstTime": "0",
       },
     })
       .then((user) => {
-        this.setState({
-          loading: false,
-        });
-        this.props.history.push("/login");
+        this.props.history.push("login")
       })
       .catch((err) => {
         this.setState({
@@ -239,7 +235,7 @@ class Registration extends Component {
           });
         }
       });
-  }
+  };
   render() {
     const errors = validate(
       this.state.username,
@@ -367,7 +363,9 @@ class Registration extends Component {
               )}
             </div>
             <button
-              disabled={isDisabled || this.state.loading || this.state.btnDisable}
+              disabled={
+                isDisabled || this.state.loading || this.state.btnDisable
+              }
               type="submit"
               className="login-button"
               onClick={() => this.manageReg()}

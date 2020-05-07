@@ -199,27 +199,33 @@ export const dislikeReply = `mutation DislikeReply($input: ReplyDislikeInput!) {
 export const addUser = `mutation AddUser($input: UserInput!) {
   addUser(input: $input) {
     username
-    likes
-    dislikes
-    videos
+    fullName
+    email
+    profileImg
+    coverImg
+    date_of_birth
   }
 }
 `;
 export const editUser = `mutation EditUser($input: UserInput!) {
   editUser(input: $input) {
     username
-    likes
-    dislikes
-    videos
+    fullName
+    email
+    profileImg
+    coverImg
+    date_of_birth
   }
 }
 `;
 export const deleteUser = `mutation DeleteUser($input: UserInput!) {
   deleteUser(input: $input) {
     username
-    likes
-    dislikes
-    videos
+    fullName
+    email
+    profileImg
+    coverImg
+    date_of_birth
   }
 }
 `;

@@ -1,10 +1,19 @@
 import React, { Component } from "react";
-import { BrowserRouter, Switch, Route, Link } from "react-router-dom";
-import { Auth } from "aws-amplify";
+import {
+  BrowserRouter,
+  Switch,
+  Route,
+  Link,
+  withRouter,
+} from "react-router-dom";
+import { Auth, API, graphqlOperation } from "aws-amplify";
 import $ from "jquery";
+import * as queries from "../graphql/queries";
+import * as mutations from "../graphql/mutations";
 import VideoUpload from "./VideoUpload";
 import HomeFeed from "./HomeFeed";
 import Watch from "./Watch";
+import Profile from "./Profile";
 import { isMobile } from "react-device-detect";
 import { Column, Row } from "simple-flexbox";
 import { StyleSheet, css } from "aphrodite";
@@ -44,10 +53,9 @@ class Home extends Component {
           nickname: "",
         },
       },
-      selectedItem: "Feed",
+      selectedItem: "",
     };
   }
-  state = { selectedItem: "Feed" };
   componentDidMount = async () => {
     window.addEventListener("resize", this.resize);
     await Auth.currentAuthenticatedUser({
@@ -62,6 +70,33 @@ class Home extends Component {
       .catch((err) => {
         console.log(err);
         this.props.history.push("/login");
+      });
+    await API.graphql(
+      graphqlOperation(queries.getUser, {
+        username: this.state.user.username,
+      })
+    )
+      .then((res) => console.log(res))
+      .catch((err) => {
+        console.log(err);
+        if (
+          err.errors[0].path[0] === "getUser" &&
+          err.errors[0].path[1] === "username" &&
+          err.errors[0].message ===
+            "Cannot return null for non-nullable type: 'String' within parent 'User' (/getUser/username)"
+        ) {
+          API.graphql(
+            graphqlOperation(mutations.addUser, {
+              input: {
+                username: this.state.user.username,
+                fullName: this.state.user.attributes.nickname,
+                email: this.state.user.attributes.email,
+              },
+            })
+          )
+            .then((res) => console.log(res))
+            .catch((err) => console.log(err));
+        }
       });
   };
 
@@ -79,19 +114,23 @@ class Home extends Component {
       .catch((err) => console.log(err));
   };
   render() {
-    const { selectedItem } = this.state;
     return (
       <BrowserRouter>
         <Row id="wrapper" className={css(styles.container)}>
           <SidebarComponent
             isMobile={isMobile}
-            selectedItem={selectedItem}
-            onChange={(selectedItem) => this.setState({ selectedItem })}
+            selectedItem={this.state.selectedItem}
+            username={this.state.user.username}
+            logout={this.logout}
           />
           <Column flexGrow={1} className={css(styles.mainBlock)}>
             <HeaderComponent
               usernickname={this.state.user.attributes.nickname}
-              title={selectedItem}
+              username={this.state.user.username}
+              title={this.state.selectedItem}
+              onChange={(selectedItem) =>
+                this.setState({ selectedItem: selectedItem })
+              }
             />
             <div className={css(styles.content)}>
               <div className={css(styles.padded)}>
@@ -102,15 +141,44 @@ class Home extends Component {
                         <Route
                           exact
                           path={this.props.match.path}
-                          render={() => <HomeFeed user={this.state.user} />}
+                          render={() => (
+                            <HomeFeed
+                              user={this.state.user}
+                              onChange={(selectedItem) =>
+                                this.setState({ selectedItem: selectedItem })
+                              }
+                            />
+                          )}
                         />
                         <Route
                           path={`${this.props.match.path}/video-upload`}
-                          component={VideoUpload}
+                          render={() => (
+                            <VideoUpload
+                              onChange={(selectedItem) =>
+                                this.setState({ selectedItem: selectedItem })
+                              }
+                            />
+                          )}
                         />
                         <Route
                           path={`${this.props.match.path}/watch`}
-                          component={Watch}
+                          render={() => (
+                            <Watch
+                              onChange={(selectedItem) =>
+                                this.setState({ selectedItem: selectedItem })
+                              }
+                            />
+                          )}
+                        />
+                        <Route
+                          path={`${this.props.match.path}/users/:user`}
+                          render={() => (
+                            <Profile
+                              onChange={(selectedItem) =>
+                                this.setState({ selectedItem })
+                              }
+                            />
+                          )}
                         />
                       </Switch>
                     );
@@ -125,4 +193,4 @@ class Home extends Component {
   }
 }
 
-export default Home;
+export default withRouter(Home);

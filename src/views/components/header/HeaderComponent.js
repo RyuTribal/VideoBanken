@@ -2,6 +2,9 @@ import React from "react";
 import { string } from "prop-types";
 import { Row } from "simple-flexbox";
 import { StyleSheet, css } from "aphrodite";
+import { BrowserRouter, Switch, Route, Link } from "react-router-dom";
+import blankProfile from "../../../img/blank-profile.png";
+import { Auth } from "aws-amplify";
 
 const styles = StyleSheet.create({
   avatar: {
@@ -15,7 +18,7 @@ const styles = StyleSheet.create({
     height: 40,
     padding: 30,
     paddingTop: 30,
-    color: "#263040"
+    color: "#263040",
   },
   cursorPointer: {
     cursor: "pointer",
@@ -28,9 +31,9 @@ const styles = StyleSheet.create({
     lineHeight: "20px",
     textAlign: "right",
     letterSpacing: 0.2,
-    '@media (max-width: 768px)': {
-        display: 'none'
-    }
+    "@media (max-width: 768px)": {
+      display: "none",
+    },
   },
   separator: {
     borderLeft: "1px solid #bf9c96",
@@ -45,24 +48,42 @@ const styles = StyleSheet.create({
     fontSize: 24,
     lineHeight: "30px",
     letterSpacing: 0.3,
-    '@media (max-width: 768px)': {
-        marginLeft: 36
+    "@media (max-width: 768px)": {
+      marginLeft: 36,
     },
-    '@media (max-width: 468px)': {
-        fontSize: 20
-    }
+    "@media (max-width: 468px)": {
+      fontSize: 20,
+    },
   },
   iconStyles: {
-    cursor: 'pointer',
+    cursor: "pointer",
     marginLeft: 25,
-    '@media (max-width: 768px)': {
-        marginLeft: 12
-    }
-}
+    "@media (max-width: 768px)": {
+      marginLeft: 12,
+    },
+  },
+  link: {
+    color: "#263040",
+    ":hover": {
+      textDecoration: "none",
+      color: "#263040",
+    },
+  },
 });
 
 function HeaderComponent(props) {
-  const { icon, title, usernickname,  ...otherProps } = props;
+  const {
+    icon,
+    title,
+    usernickname,
+    username,
+    onChange,
+    selectedItem,
+    ...otherProps
+  } = props;
+  function onItemClick(item) {
+    return onChange(item);
+  }
   return (
     <Row
       className={css(styles.container)}
@@ -76,18 +97,24 @@ function HeaderComponent(props) {
           <i className="fas fa-search"></i>
         </div>
         <div className={css(styles.iconStyles)}>
-        <i className="fas fa-bell"></i>
+          <i className="fas fa-bell"></i>
         </div>
         <div className={css(styles.separator)}></div>
-        <Row vertical="center">
-          <span className={css(styles.name, styles.cursorPointer)}>
-            {usernickname}
-          </span>
-          <img
-            src="https://avatars3.githubusercontent.com/u/21162888?s=460&v=4"
-            alt="avatar"
-            className={css(styles.avatar, styles.cursorPointer)}
-          />
+        <Row
+          active={selectedItem === "Profil"}
+          onClick={() => onItemClick("Profil")}
+          vertical="center"
+        >
+          <Link className={css(styles.link)} to={`/home/users/${username}`}>
+            <span className={css(styles.name, styles.cursorPointer)}>
+              {usernickname}
+            </span>
+            <img
+              src={blankProfile}
+              alt="avatar"
+              className={css(styles.avatar, styles.cursorPointer)}
+            />
+          </Link>
         </Row>
       </Row>
     </Row>

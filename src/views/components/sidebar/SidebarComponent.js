@@ -26,7 +26,7 @@ const styles = StyleSheet.create({
     position: "absolute",
     left: 24,
     top: 17,
-    fontSize: 20
+    fontSize: 20,
   },
   containerMobile: {
     transition: "left 0.5s, right 0.5s",
@@ -61,6 +61,33 @@ const styles = StyleSheet.create({
   show: {
     left: 0,
   },
+  logout: {
+    height: 56,
+    cursor: "pointer",
+    ":hover i": {
+      opacity: "1",
+    },
+    ":hover span": {
+      opacity: "1",
+    },
+    paddingLeft: 32,
+    paddingRight: 32,
+  },
+  logoutTitle: {
+    fontSize: 16,
+    lineHeight: "20px",
+    letterSpacing: "0.2px",
+    color: "#fbf9f9",
+    opacity: "0.7",
+    marginLeft: 24,
+    transition: "0.4s",
+    textTransform: "uppercase",
+  },
+  logoutIcon:{
+    color: "#fbf9f9",
+    opacity: "0.7",
+    transition: "0.4s",
+  }
 });
 
 class SidebarComponent extends React.Component {
@@ -68,7 +95,6 @@ class SidebarComponent extends React.Component {
 
   onItemClicked = (item) => {
     this.setState({ expanded: false });
-    return this.props.onChange(item);
   };
 
   isMobile = () => window.innerWidth <= 768;
@@ -110,9 +136,9 @@ class SidebarComponent extends React.Component {
                 icon="fas fa-tv"
                 onClick={() => this.onItemClicked("Feed")}
                 active={this.props.selectedItem === "Feed"}
-                link="/home"
+                link="/home/"
               />
-              <MenuItemsComponent
+              {/* <MenuItemsComponent
                 title="Tickets"
                 icon="fas fa-user"
                 onClick={() => this.onItemClicked("Tickets")}
@@ -141,20 +167,19 @@ class SidebarComponent extends React.Component {
                 icon="fas fa-user"
                 onClick={() => this.onItemClicked("Articles")}
                 active={this.props.selectedItem === "Articles"}
-              />
+              /> */}
               <div className={css(styles.separator)}></div>
               <MenuItemsComponent
-                title="Settings"
+                title="Profil"
                 icon="fas fa-user"
-                onClick={() => this.onItemClicked("Settings")}
-                active={this.props.selectedItem === "Settings"}
+                onClick={() => this.onItemClicked("Profil")}
+                active={this.props.selectedItem === "Profil"}
+                link={`/home/users/${this.props.username}`}
               />
-              <MenuItemsComponent
-                title="Subscription"
-                icon="fas fa-user"
-                onClick={() => this.onItemClicked("Subscription")}
-                active={this.props.selectedItem === "Subscription"}
-              />
+              <Row onClick={this.props.logout} className={css(styles.logout)} vertical="center">
+                <i className={`${css(styles.logoutIcon)} fas fa-sign-out-alt`}></i>
+                <span className={css(styles.logoutTitle)}>Logga ut</span>
+              </Row>
             </Column>
           </Column>
           {isMobile && expanded && (

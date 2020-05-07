@@ -49,13 +49,21 @@ const styles = StyleSheet.create({
     opacity: "0.7",
     transition: "0.4s",
   },
+  link: {
+    ":hover": {
+      textDecoration: "none",
+    },
+    ":focus": {
+      textDecoration: "none",
+    }
+  },
 });
 
 function MenuItemComponent(props) {
   const { active, icon, title, link, ...otherProps } = props;
   return (
-    <Row className={css(styles.container)} vertical="center" {...otherProps}>
-      <Link to={link}>
+    <Link className={css(styles.link)} to={link}>
+      <Row className={css(styles.container)} vertical="center" {...otherProps}>
         {active && <div className={css(styles.activeBar)}></div>}
         <i
           className={`${css(
@@ -71,14 +79,14 @@ function MenuItemComponent(props) {
         {active && (
           <i className={`fas fa-caret-left ${css(styles.activeTarget)}`}></i>
         )}
-      </Link>
-    </Row>
+      </Row>
+    </Link>
   );
 }
 
 MenuItemComponent.propTypes = {
   active: bool,
-  icon: func,
+  icon: string,
   title: string,
 };
 

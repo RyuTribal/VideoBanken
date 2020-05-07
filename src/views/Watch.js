@@ -85,6 +85,7 @@ class Watch extends Component {
     ) {
       this.props.history.push(`/home`);
     } else {
+      this.props.onChange("None");
       videoID = this.props.history.location.search.split("?")[1].split("=")[1];
     }
     let videoDetails = {};

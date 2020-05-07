@@ -2,18 +2,16 @@ import React, { Component } from "react";
 import { Link } from "react-router-dom";
 import { Auth, Hub } from "aws-amplify";
 import $ from "jquery";
-var that;
 class Start extends Component {
   constructor(props){
     super(props);
   }
   componentWillMount(){
-    that = this;
     Auth.currentAuthenticatedUser({
       bypassCache: false // Optional, By default is false. If set to true, this call will send a request to Cognito to get the latest user data
     })
-      .then(function(user) {
-        that.props.history.push("/home")
+      .then(user => {
+        this.props.history.push("/home")
       })
       .catch(err => {
         this.props.history.push("/login")

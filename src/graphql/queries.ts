@@ -138,12 +138,14 @@ export const getReplyDislikes = `query GetReplyDislikes($replyID: ID!) {
   }
 }
 `;
-export const getUser = `query GetUser($input: UserInput!) {
-  getUser(input: $input) {
+export const getUser = `query GetUser($username: String) {
+  getUser(username: $username) {
     username
-    likes
-    dislikes
-    videos
+    fullName
+    email
+    profileImg
+    coverImg
+    date_of_birth
   }
 }
 `;

@@ -17,28 +17,7 @@ class HomeFeed extends Component {
     let videos = "";
     let rows = [];
     console.log(this.props);
-    if (this.props.user.attributes["custom:firstTime"]) {
-      console.log(this.props);
-      if (
-        this.props.user.attributes["custom:firstTime"] == "0" ||
-        this.props.user.attributes["custom:firstTime"] == undefined
-      ) {
-        console.log("yeah here");
-        API.graphql(
-          graphqlOperation(mutations.addUser, {
-            input: {
-              username: this.props.user.username,
-            },
-          })
-        )
-          .then((result) => {
-            Auth.updateUserAttributes(this.props.user, {
-              "custom:firstTime": "1",
-            }).catch((err) => console.log(err));
-          })
-          .catch((err) => console.log(err));
-      }
-    }
+    this.props.onChange("Feed");
     await API.graphql(
       graphqlOperation(queries.getVideos, { offset: this.state.offset })
     ).then(function (result) {
@@ -84,19 +63,21 @@ class HomeFeed extends Component {
     this.setState({ details: videos, rows: rows });
   };
   redirectToVideo = (videoID) => {
-    console.log(this)
+    console.log(this);
     this.props.history.push({
       pathname: `${this.props.match.path}/watch`,
       search: `?key=${videoID}`,
     });
-  }
+  };
   render() {
     console.log(this.state.details);
     return (
       <section className="feed-container">
         {this.state.details.map((details, i) => (
-          <Link
-            to={`home/watch?key=${details.id}`}
+          <div
+            onClick={() =>
+              this.props.history.push(`home/watch?key=${details.id}`)
+            }
             key={i}
             className="video-preview"
           >
@@ -119,7 +100,7 @@ class HomeFeed extends Component {
                 </p>
               </div>
             </div>
-          </Link>
+          </div>
         ))}
       </section>
     );
