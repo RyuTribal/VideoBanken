@@ -71,6 +71,9 @@ class CoverPhoto extends Component {
       this.componentDidMount();
     }
   }
+  changeCover = async () =>{
+    
+  }
   render() {
     return (
       <div className={css(styles.container)}>

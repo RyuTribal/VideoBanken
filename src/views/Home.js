@@ -19,6 +19,7 @@ import { Column, Row } from "simple-flexbox";
 import { StyleSheet, css } from "aphrodite";
 import SidebarComponent from "./components/sidebar/SidebarComponent";
 import HeaderComponent from "./components/header/HeaderComponent";
+import Modal from "./components/modal/Modal";
 
 const styles = StyleSheet.create({
   container: {
@@ -53,7 +54,10 @@ class Home extends Component {
           nickname: "",
         },
       },
+      videoModal: false,
       selectedItem: "",
+      playerRef: null,
+      playing: false,
     };
   }
   componentDidMount = async () => {
@@ -101,10 +105,6 @@ class Home extends Component {
   };
 
   resize = () => this.forceUpdate();
-
-  redirectToVideo = () => {
-    this.props.history.push(`${this.props.match.path}/video-upload`);
-  };
   componentWillUnmount() {
     window.removeEventListener("resize", this.resize);
   }
@@ -113,9 +113,18 @@ class Home extends Component {
       .then((data) => this.props.history.push("/login"))
       .catch((err) => console.log(err));
   };
+  closeModal = () => {
+    if (this.state.playing === true) {
+      this.state.playerRef.getInternalPlayer().play();
+    }
+    this.setState({ videoModal: false, playing: false });
+  };
   render() {
     return (
       <BrowserRouter>
+        {this.state.videoModal === true && isMobile === false && (
+          <Modal closeModal={this.closeModal} />
+        )}
         <Row id="wrapper" className={css(styles.container)}>
           <SidebarComponent
             isMobile={isMobile}
@@ -131,6 +140,15 @@ class Home extends Component {
               onChange={(selectedItem) =>
                 this.setState({ selectedItem: selectedItem })
               }
+              videoModal={() => {
+                if (this.state.playerRef !== null) {
+                  if (this.state.playerRef.player.props.playing === true) {
+                    this.setState({ playing: true });
+                    this.state.playerRef.getInternalPlayer().pause();
+                  }
+                }
+                this.setState({ videoModal: true });
+              }}
             />
             <div className={css(styles.content)}>
               <div className={css(styles.padded)}>
@@ -161,11 +179,14 @@ class Home extends Component {
                           )}
                         />
                         <Route
-                          path={`${this.props.match.path}/watch`}
+                          path={`${this.props.match.path}/watch/:video`}
                           render={() => (
                             <Watch
                               onChange={(selectedItem) =>
                                 this.setState({ selectedItem: selectedItem })
+                              }
+                              playerRef={(playerRef) =>
+                                this.setState({ playerRef: playerRef })
                               }
                             />
                           )}

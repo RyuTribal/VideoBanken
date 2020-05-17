@@ -1,8 +1,14 @@
-import React from "react";
+import React, { Component } from "react";
 import { string } from "prop-types";
 import { Row } from "simple-flexbox";
 import { StyleSheet, css } from "aphrodite";
-import { BrowserRouter, Switch, Route, Link } from "react-router-dom";
+import {
+  BrowserRouter,
+  Switch,
+  Route,
+  Link,
+  withRouter,
+} from "react-router-dom";
 import blankProfile from "../../../img/blank-profile.png";
 import { Auth } from "aws-amplify";
 
@@ -41,6 +47,10 @@ const styles = StyleSheet.create({
     marginRight: 32,
     height: 32,
     width: 2,
+    "@media (max-width: 321px)": {
+      marginLeft: 15,
+      marginRight: 10,
+    },
   },
   title: {
     fontStyle: "normal",
@@ -71,58 +81,55 @@ const styles = StyleSheet.create({
   },
 });
 
-function HeaderComponent(props) {
-  const {
-    icon,
-    title,
-    usernickname,
-    username,
-    onChange,
-    selectedItem,
-    ...otherProps
-  } = props;
-  function onItemClick(item) {
-    return onChange(item);
-  }
-  return (
-    <Row
-      className={css(styles.container)}
-      vertical="center"
-      horizontal="space-between"
-      {...otherProps}
-    >
-      <span className={css(styles.title)}>{title}</span>
-      <Row vertical="center">
-        <div className={css(styles.iconStyles)}>
-          <i className="fas fa-search"></i>
-        </div>
-        <div className={css(styles.iconStyles)}>
-          <i className="fas fa-bell"></i>
-        </div>
-        <div className={css(styles.separator)}></div>
-        <Row
-          active={selectedItem === "Profil"}
-          onClick={() => onItemClick("Profil")}
-          vertical="center"
-        >
-          <Link className={css(styles.link)} to={`/home/users/${username}`}>
-            <span className={css(styles.name, styles.cursorPointer)}>
-              {usernickname}
-            </span>
-            <img
-              src={blankProfile}
-              alt="avatar"
-              className={css(styles.avatar, styles.cursorPointer)}
-            />
-          </Link>
+class HeaderComponent extends Component {
+  onItemClick = (item) => {
+    return this.props.onChange(item);
+  };
+  render() {
+    return (
+      <Row
+        className={css(styles.container)}
+        vertical="center"
+        horizontal="space-between"
+      >
+        <span className={css(styles.title)}>{this.props.title}</span>
+        <Row vertical="center">
+          <div className={css(styles.iconStyles)}>
+            <i className="fas fa-search"></i>
+          </div>
+          <div className={css(styles.iconStyles)}>
+            <i className="fas fa-bell"></i>
+          </div>
+          <div
+            onClick={this.props.videoModal}
+            className={css(styles.iconStyles)}
+          >
+            <i className="fas fa-video"></i>
+          </div>
+          <div className={css(styles.separator)}></div>
+          <Row
+            active={this.props.selectedItem === "Profil"}
+            onClick={() => this.onItemClick("Profil")}
+            vertical="center"
+          >
+            <Link
+              className={css(styles.link)}
+              to={`/home/users/${this.props.username}`}
+            >
+              <span className={css(styles.name, styles.cursorPointer)}>
+                {this.props.usernickname}
+              </span>
+              <img
+                src={blankProfile}
+                alt="avatar"
+                className={css(styles.avatar, styles.cursorPointer)}
+              />
+            </Link>
+          </Row>
         </Row>
       </Row>
-    </Row>
-  );
+    );
+  }
 }
 
-HeaderComponent.propTypes = {
-  title: string,
-};
-
-export default HeaderComponent;
+export default withRouter(HeaderComponent);

@@ -1,6 +1,6 @@
 import React, { Component } from "react";
 import ReactDOM from "react-dom";
-import { BrowserRouter, Switch, Route, Link } from "react-router-dom";
+import { BrowserRouter, Switch, Route, Link, withRouter } from "react-router-dom";
 import { Auth, Hub, Storage, API, graphqlOperation } from "aws-amplify";
 import $ from "jquery";
 import * as queries from "../graphql/queries";
@@ -38,56 +38,15 @@ class Watch extends Component {
     this._isMounted = false;
     this.playerRef = React.createRef();
   }
-  async componentDidMount() {
+  componentDidMount = async () => {
     this._isMounted = true;
     that = this;
     let videoID;
     const username = "";
     let userInformation;
-    await Auth.currentAuthenticatedUser({
-      bypassCache: true, // Optional, By default is false. If set to true, this call will send a request to Cognito to get the latest user data
-    })
-      .then((user) => {
-        this.username = user.username;
-        if (this._isMounted) {
-          this.setState({
-            username: user.username,
-          });
-        }
-
-        if (
-          user.attributes["custom:firstTime"] == "0" ||
-          user.attributes["custom:firstTime"] == undefined
-        ) {
-          API.graphql(
-            graphqlOperation(mutations.addUser, {
-              input: {
-                username: user.username,
-              },
-            })
-          )
-            .then((result) => {
-              Auth.updateUserAttributes(user, {
-                "custom:firstTime": "1",
-              })
-                .then((res) => {})
-            })
-        }
-      })
-      .catch((err) => {
-        this.props.history.push("/login");
-      });
-    if (this.props.history.location.search == "") {
-      this.props.history.push(`/home`);
-    } else if (
-      this.props.history.location.search.split("?")[1] == undefined ||
-      this.props.history.location.search.split("?")[1].split("=")[0] != "key"
-    ) {
-      this.props.history.push(`/home`);
-    } else {
-      this.props.onChange("None");
-      videoID = this.props.history.location.search.split("?")[1].split("=")[1];
-    }
+    this.props.onChange("None");
+    console.log(this.props)
+    videoID = this.props.match.params.video;
     let videoDetails = {};
     let videoUrl = "";
     let videoTags = {};
@@ -103,10 +62,9 @@ class Watch extends Component {
           id: videoID,
         },
       })
-    )
-      .then(function (result) {
-        videoDetails = result.data.getVideo;
-      })
+    ).then(function (result) {
+      videoDetails = result.data.getVideo;
+    });
     await API.graphql(
       graphqlOperation(queries.getTags, {
         input: {
@@ -193,7 +151,9 @@ class Watch extends Component {
     }
 
     if (this.state.ammountComments > 20) {
-      document.getElementsByClassName("content_1hrfb9k")[0].addEventListener("scroll", this.trackScrolling);
+      document
+        .getElementsByClassName("content_1hrfb9k")[0]
+        .addEventListener("scroll", this.trackScrolling);
     }
     const likeButton = document.getElementById("like-button");
     const dislikeButton = document.getElementById("dislike-button");
@@ -211,7 +171,9 @@ class Watch extends Component {
 
   componentWillUnmount = () => {
     this._isMounted = false;
-    document.getElementsByClassName("content_1hrfb9k")[0].removeEventListener("scroll", this.trackScrolling);
+    document
+      .getElementsByClassName("content_1hrfb9k")[0]
+      .removeEventListener("scroll", this.trackScrolling);
     clearInterval();
   };
 
@@ -279,7 +241,9 @@ class Watch extends Component {
   trackScrolling = (e) => {
     const wrappedElement = document.getElementById("comments-wrapper");
     if (this.isBottom(wrappedElement)) {
-      document.getElementsByClassName("content_1hrfb9k")[0].removeEventListener("scroll", this.trackScrolling);
+      document
+        .getElementsByClassName("content_1hrfb9k")[0]
+        .removeEventListener("scroll", this.trackScrolling);
       this.getMoreComments();
     }
   };
@@ -305,7 +269,9 @@ class Watch extends Component {
         offset: this.state.offset + 20,
         comments: comments,
       });
-      document.getElementsByClassName("content_1hrfb9k")[0].addEventListener("scroll", this.trackScrolling);
+      document
+        .getElementsByClassName("content_1hrfb9k")[0]
+        .addEventListener("scroll", this.trackScrolling);
     });
   };
 
@@ -397,15 +363,14 @@ class Watch extends Component {
             comment: comment,
           },
         })
-      )
-        .then((result) => {
-          let newComment = result.data.addComment;
-          commentArray.push(newComment);
-          this.setState({
-            comments: commentArray,
-            ammountComments: this.state.ammountComments + 1,
-          });
-        })
+      ).then((result) => {
+        let newComment = result.data.addComment;
+        commentArray.push(newComment);
+        this.setState({
+          comments: commentArray,
+          ammountComments: this.state.ammountComments + 1,
+        });
+      });
     }
   };
 
@@ -492,6 +457,7 @@ class Watch extends Component {
           ref={this.playerRef}
           video={this.state.video}
           videoID={this.state.key}
+          playerRef={this.props.playerRef}
         />
         <div className="details-comments-wrapper">
           <div className="details-wrapper">
@@ -604,10 +570,7 @@ class Watch extends Component {
                   Kommentera
                 </button>
               </div>
-              <div
-                id="posted-comments"
-                className="posted-comments"
-              >
+              <div id="posted-comments" className="posted-comments">
                 {comments.map((comment, i) => (
                   <CommentBox
                     key={i}
@@ -1538,8 +1501,7 @@ class ReplyBox extends Component {
       .then((res) => {
         this.props.removeReply(replyID);
       })
-      .catch((err) => {
-      });
+      .catch((err) => {});
   };
   render() {
     return (
@@ -1681,4 +1643,4 @@ class ReplyBox extends Component {
   }
 }
 
-export default Watch;
+export default withRouter(Watch);

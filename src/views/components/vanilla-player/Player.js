@@ -1,9 +1,6 @@
 import React, { Component } from "react";
 import ReactDOM from "react-dom";
 import { BrowserRouter, Switch, Route, Link } from "react-router-dom";
-import { Auth, Hub, Storage, API, graphqlOperation } from "aws-amplify";
-import * as queries from "../../../graphql/queries";
-import * as mutations from "../../../graphql/mutations";
 import ReactPlayer from "react-player";
 import {
   Slider,
@@ -19,8 +16,8 @@ class Player extends Component {
     super();
     this._isMounted = false;
     this.state = {
-      play: true,
-      pause: false,
+      play: false,
+      pause: true,
       videoDuration: 0,
       videoWatched: 0,
       videoLoaded: 0,
@@ -30,8 +27,8 @@ class Player extends Component {
       hoveredPos: 97,
       showTime: false,
       muted: JSON.parse(localStorage.getItem("muted")) || false,
-      volumeLevel: localStorage.getItem("volumeLevel") || 1,
-      prevVolumeLevel: localStorage.getItem("prevVolumeLevel") || 1,
+      volumeLevel: JSON.parse(localStorage.getItem("volumeLevel")) || 1,
+      prevVolumeLevel: JSON.parse(localStorage.getItem("prevVolumeLevel")) || 1,
       fullScreen: false,
       playBackRate: 1,
       pip: false,
@@ -44,85 +41,98 @@ class Player extends Component {
       replay: false,
     };
     this.idleTimer = null;
-    this.wrapperRef = React.createRef();
+    this.canvasRef = React.createRef();
   }
   componentDidMount = () => {
+    console.log(this.state.volumeLevel);
     this._isMounted = true;
-    document.addEventListener("fullscreenchange", (event) => {
-      if (document.fullscreenElement && this._isMounted) {
-        this.setState({ fullScreen: true });
-      } else if (!document.fullscreenElement && this._isMounted) {
-        this.setState({ fullScreen: false });
-      }
-    });
-
-    /* Firefox */
-    document.addEventListener("mozfullscreenchange", (event) => {
-      if (document.fullscreenElement && this._isMounted) {
-        this.setState({ fullScreen: true });
-      } else {
-        if (this._isMounted) {
+    if (this.props.fullscreen) {
+      document.addEventListener("fullscreenchange", (event) => {
+        if (document.fullscreenElement && this._isMounted) {
+          this.setState({ fullScreen: true });
+        } else if (!document.fullscreenElement && this._isMounted) {
           this.setState({ fullScreen: false });
         }
-      }
-    });
+      });
 
-    /* Chrome, Safari and Opera */
-    document.addEventListener("webkitfullscreenchange", (event) => {
-      if (document.fullscreenElement && this._isMounted) {
-        this.setState({ fullScreen: true });
-      } else {
-        if (this._isMounted) {
-          this.setState({ fullScreen: false });
+      /* Firefox */
+      document.addEventListener("mozfullscreenchange", (event) => {
+        if (document.fullscreenElement && this._isMounted) {
+          this.setState({ fullScreen: true });
+        } else {
+          if (this._isMounted) {
+            this.setState({ fullScreen: false });
+          }
         }
-      }
-    });
+      });
 
-    /* IE / Edge */
-    document.addEventListener("msfullscreenchange", (event) => {
-      if (document.fullscreenElement && this._isMounted) {
-        this.setState({ fullScreen: true });
-      } else {
-        if (this._isMounted) {
-          this.setState({ fullScreen: false });
+      /* Chrome, Safari and Opera */
+      document.addEventListener("webkitfullscreenchange", (event) => {
+        if (document.fullscreenElement && this._isMounted) {
+          this.setState({ fullScreen: true });
+        } else {
+          if (this._isMounted) {
+            this.setState({ fullScreen: false });
+          }
         }
-      }
-    });
-    document.addEventListener("mousedown", this.handleClickOutside);
-    this.wrapperRef.current.addEventListener("keydown", this.handleVideoShortcuts);
+      });
+
+      /* IE / Edge */
+      document.addEventListener("msfullscreenchange", (event) => {
+        if (document.fullscreenElement && this._isMounted) {
+          this.setState({ fullScreen: true });
+        } else {
+          if (this._isMounted) {
+            this.setState({ fullScreen: false });
+          }
+        }
+      });
+    }
+    if (this.props.settings === true) {
+      document.addEventListener("mousedown", this.handleClickOutside);
+    }
+    if (this.props.shortcuts) {
+      document.addEventListener("keydown", this.handleVideoShortcuts);
+    }
   };
   componentWillUnmount = () => {
     this._isMounted = false;
-    document.removeEventListener("fullscreenchange", (event) => {
-      if (document.fullscreenElement) {
-        this.setState({ fullScreen: true });
-      } else {
-        this.setState({ fullScreen: false });
-      }
-    });
-    document.removeEventListener("mozfullscreenchange", (event) => {
-      if (document.fullscreenElement) {
-        this.setState({ fullScreen: true });
-      } else {
-        this.setState({ fullScreen: false });
-      }
-    });
-    document.removeEventListener("webkitfullscreenchange", (event) => {
-      if (document.fullscreenElement) {
-        this.setState({ fullScreen: true });
-      } else {
-        this.setState({ fullScreen: false });
-      }
-    });
-    document.removeEventListener("msfullscreenchange", (event) => {
-      if (document.fullscreenElement) {
-        this.setState({ fullScreen: true });
-      } else {
-        this.setState({ fullScreen: false });
-      }
-    });
-    document.removeEventListener("mousedown", this.handleClickOutside);
-    this.wrapperRef.current.removeEventListener("keydown", this.handleVideoShortcuts);
+    if (this.props.fullscreen) {
+      document.removeEventListener("fullscreenchange", (event) => {
+        if (document.fullscreenElement) {
+          this.setState({ fullScreen: true });
+        } else {
+          this.setState({ fullScreen: false });
+        }
+      });
+      document.removeEventListener("mozfullscreenchange", (event) => {
+        if (document.fullscreenElement) {
+          this.setState({ fullScreen: true });
+        } else {
+          this.setState({ fullScreen: false });
+        }
+      });
+      document.removeEventListener("webkitfullscreenchange", (event) => {
+        if (document.fullscreenElement) {
+          this.setState({ fullScreen: true });
+        } else {
+          this.setState({ fullScreen: false });
+        }
+      });
+      document.removeEventListener("msfullscreenchange", (event) => {
+        if (document.fullscreenElement) {
+          this.setState({ fullScreen: true });
+        } else {
+          this.setState({ fullScreen: false });
+        }
+      });
+    }
+    if (this.props.settings) {
+      document.removeEventListener("mousedown", this.handleClickOutside);
+    }
+    if (this.props.shortcuts) {
+      document.removeEventListener("keydown", this.handleVideoShortcuts);
+    }
     clearInterval();
   };
   handleVideoShortcuts = (event) => {
@@ -668,24 +678,6 @@ class Player extends Component {
         break;
     }
   };
-  handleReadyPlayer = () => {
-    let player = this.player.getInternalPlayer();
-    window.setInterval(() => {
-      if (!player.paused) {
-        if (Math.round(player.currentTime) < this.state.videoWatched) {
-        } else if (Math.round(player.currentTime) > this.state.videoWatched) {
-          if (this._isMounted) {
-            this.setState({ videoWatched: this.state.videoWatched + 1 });
-            this.sendView(player);
-          }
-        }
-      } else if (!player.paused && this._isMounted) {
-        if (this.state.replay === false && this._isMounted) {
-          this.setState({ pause: true, play: false });
-        }
-      }
-    }, 1000);
-  };
   startVideo = () => {
     if (
       this.state.pause === true &&
@@ -752,23 +744,6 @@ class Player extends Component {
       });
     }
   };
-
-  async sendView(player) {
-    let watchTimeLimit = 0;
-    if (this.state.videoDuration < 30) {
-      watchTimeLimit = Math.floor(this.state.videoDuration);
-    } else {
-      watchTimeLimit = 30;
-    }
-    if (this.state.videoWatched == watchTimeLimit && this._isMounted) {
-      clearInterval();
-      await API.graphql(
-        graphqlOperation(mutations.sendView, {
-          id: this.props.videoID,
-        })
-      );
-    }
-  }
 
   handleSliderClick = (newValue) => {
     let player = this.player.getInternalPlayer();
@@ -844,7 +819,6 @@ class Player extends Component {
 
   ref = (player) => {
     this.player = player;
-    this.props.playerRef(this.player);
   };
 
   handleSound = () => {
@@ -971,11 +945,11 @@ class Player extends Component {
     }
   };
   addEvents() {
-    this.wrapperRef.current.addEventListener("keydown", this.handleVideoShortcuts);
+    document.addEventListener("keydown", this.handleVideoShortcuts);
   }
 
   removeEvents() {
-    this.wrapperRef.current.removeEventListener("keydown", this.handleVideoShortcuts);
+    document.removeEventListener("keydown", this.handleVideoShortcuts);
   }
 
   handleMouseMoving = (e) => {
@@ -1005,20 +979,42 @@ class Player extends Component {
       })();
     }
   };
+  sendThumbnail = () => {
+    this.setState({ pause: true, play: false });
+    let context = this.canvasRef.current.getContext("2d");
+    this.canvasRef.current.width = this.player.getInternalPlayer().videoWidth;
+    this.canvasRef.current.height = this.player.getInternalPlayer().videoHeight;
+    context.drawImage(
+      this.player.getInternalPlayer(),
+      0,
+      0,
+      this.canvasRef.current.width,
+      this.canvasRef.current.height
+    );
+    let dataURL = this.canvasRef.current.toDataURL();
+    if (this.props.thumbnailCreator) {
+      this.props.sendThumbnail(dataURL);
+    }
+  };
   render() {
     return (
       <div
-        ref={this.wrapperRef}
         className="player-wrapper"
-        style={{ cursor: this.state.isTimedOut === true ? "none" : "" }}
+        style={{
+          // height: "100%",
+          // width: "100%",
+          cursor: this.state.isTimedOut === true ? "none" : "",
+        }}
         onClick={() => this.setState({ isTimedOut: false })}
       >
+        <canvas ref={this.canvasRef} style={{ display: "none" }}></canvas>
         {this.state.showTime && (
           <div
             className="video-time"
             style={{ right: `${this.state.hoveredPos}%` }}
           >
-            <div className="frame-image"></div>
+            {this.state.timeThumb && <div className="frame-image"></div>}
+
             <FormattedTime numSeconds={this.state.hoveredTime} />
           </div>
         )}
@@ -1029,7 +1025,6 @@ class Player extends Component {
             className="video-player"
             url={this.props.video}
             onClick={() => this.startVideo()}
-            onReady={() => this.handleReadyPlayer()}
             onProgress={this.updateProgress}
             muted={this.state.muted}
             volume={this.state.volumeLevel}
@@ -1139,188 +1134,203 @@ class Player extends Component {
                 <FormattedTime numSeconds={this.state.videoDuration} />
               </div>
               <div className="right-side-wrapper">
-                <div className="settings-wrapper">
-                  {this.state.cogOpen === true && (
-                    <span className="tooltiptext tooltip-cog">
-                      {this.state.speedOpen === false &&
-                        this.state.qualityOpen === false && (
-                          <div className="cog-options-wrapper">
-                            <div
-                              className="cog-options"
-                              onClick={() =>
-                                this.setState({
-                                  speedOpen: true,
-                                  qualityOpen: false,
-                                })
-                              }
-                            >
-                              {`Hastighet`}
-                              <div className="tooltip-prompt">
-                                {this.state.playBackRate === 1
-                                  ? "Normal"
-                                  : this.state.playBackRate}
-                                <i className="fas fa-chevron-right"></i>
+                {this.props.thumbnailCreator === true && (
+                  <div className="thumbnail-wrapper">
+                    <Button onClick={this.sendThumbnail}>
+                      <i className="fas fa-image"></i>
+                    </Button>
+                  </div>
+                )}
+                {this.props.settings && (
+                  <div className="settings-wrapper">
+                    {this.state.cogOpen === true && (
+                      <span className="tooltiptext tooltip-cog">
+                        {this.state.speedOpen === false &&
+                          this.state.qualityOpen === false && (
+                            <div className="cog-options-wrapper">
+                              <div
+                                className="cog-options"
+                                onClick={() =>
+                                  this.setState({
+                                    speedOpen: true,
+                                    qualityOpen: false,
+                                  })
+                                }
+                              >
+                                {`Hastighet`}
+                                <div className="tooltip-prompt">
+                                  {this.state.playBackRate === 1
+                                    ? "Normal"
+                                    : this.state.playBackRate}
+                                  <i className="fas fa-chevron-right"></i>
+                                </div>
+                              </div>
+                              <div className="cog-options">
+                                {`Kvalite`}
+                                <div className="tooltip-prompt">
+                                  {"480p"}
+                                  <i className="fas fa-chevron-right"></i>
+                                </div>
                               </div>
                             </div>
-                            <div className="cog-options">
-                              {`Kvalite`}
-                              <div className="tooltip-prompt">
-                                {"480p"}
-                                <i className="fas fa-chevron-right"></i>
+                          )}
+                        {this.state.speedOpen === true &&
+                          this.state.qualityOpen === false && (
+                            <div className="cog-options-wrapper">
+                              <div
+                                className="cog-options cog-header"
+                                onClick={() =>
+                                  this.setState({ speedOpen: false })
+                                }
+                              >
+                                <i className="fas fa-chevron-left"></i>
+                                <div className="cog-title">{`Hastighet`}</div>
+                              </div>
+                              <div
+                                className="cog-options"
+                                onClick={() =>
+                                  this.setState({
+                                    speedOpen: false,
+                                    playBackRate: 0.25,
+                                  })
+                                }
+                              >
+                                {this.state.playBackRate == 0.25 && (
+                                  <i className="fas fa-check"></i>
+                                )}
+                                <div className="cog-title">{`0.25`}</div>
+                              </div>
+                              <div
+                                className="cog-options"
+                                onClick={() =>
+                                  this.setState({
+                                    speedOpen: false,
+                                    playBackRate: 0.5,
+                                  })
+                                }
+                              >
+                                {this.state.playBackRate == 0.5 && (
+                                  <i className="fas fa-check"></i>
+                                )}
+                                <div className="cog-title">{`0.5`}</div>
+                              </div>
+                              <div
+                                className="cog-options"
+                                onClick={() =>
+                                  this.setState({
+                                    speedOpen: false,
+                                    playBackRate: 0.75,
+                                  })
+                                }
+                              >
+                                {this.state.playBackRate == 0.75 && (
+                                  <i className="fas fa-check"></i>
+                                )}
+                                <div className="cog-title">{`0.75`}</div>
+                              </div>
+                              <div
+                                className="cog-options"
+                                onClick={() =>
+                                  this.setState({
+                                    speedOpen: false,
+                                    playBackRate: 1,
+                                  })
+                                }
+                              >
+                                {this.state.playBackRate == 1 && (
+                                  <i className="fas fa-check"></i>
+                                )}
+                                <div className="cog-title">{`Normal`}</div>
+                              </div>
+                              <div
+                                className="cog-options"
+                                onClick={() =>
+                                  this.setState({
+                                    speedOpen: false,
+                                    playBackRate: 1.25,
+                                  })
+                                }
+                              >
+                                {this.state.playBackRate == 1.25 && (
+                                  <i className="fas fa-check"></i>
+                                )}
+                                <div className="cog-title">{`1.25`}</div>
+                              </div>
+                              <div
+                                className="cog-options"
+                                onClick={() =>
+                                  this.setState({
+                                    speedOpen: false,
+                                    playBackRate: 1.5,
+                                  })
+                                }
+                              >
+                                {this.state.playBackRate == 1.5 && (
+                                  <i className="fas fa-check"></i>
+                                )}
+                                <div className="cog-title">{`1.5`}</div>
+                              </div>
+                              <div
+                                className="cog-options"
+                                onClick={() =>
+                                  this.setState({
+                                    speedOpen: false,
+                                    playBackRate: 1.75,
+                                  })
+                                }
+                              >
+                                {this.state.playBackRate == 1.75 && (
+                                  <i className="fas fa-check"></i>
+                                )}
+                                <div className="cog-title">{`1.75`}</div>
+                              </div>
+                              <div
+                                className="cog-options"
+                                onClick={() =>
+                                  this.setState({
+                                    speedOpen: false,
+                                    playBackRate: 2,
+                                  })
+                                }
+                              >
+                                {this.state.playBackRate == 2 && (
+                                  <i className="fas fa-check"></i>
+                                )}
+                                <div className="cog-title">{`2`}</div>
                               </div>
                             </div>
-                          </div>
-                        )}
-                      {this.state.speedOpen === true &&
-                        this.state.qualityOpen === false && (
-                          <div className="cog-options-wrapper">
-                            <div
-                              className="cog-options cog-header"
-                              onClick={() =>
-                                this.setState({ speedOpen: false })
-                              }
-                            >
-                              <i className="fas fa-chevron-left"></i>
-                              <div className="cog-title">{`Hastighet`}</div>
-                            </div>
-                            <div
-                              className="cog-options"
-                              onClick={() =>
-                                this.setState({
-                                  speedOpen: false,
-                                  playBackRate: 0.25,
-                                })
-                              }
-                            >
-                              {this.state.playBackRate == 0.25 && (
-                                <i className="fas fa-check"></i>
-                              )}
-                              <div className="cog-title">{`0.25`}</div>
-                            </div>
-                            <div
-                              className="cog-options"
-                              onClick={() =>
-                                this.setState({
-                                  speedOpen: false,
-                                  playBackRate: 0.5,
-                                })
-                              }
-                            >
-                              {this.state.playBackRate == 0.5 && (
-                                <i className="fas fa-check"></i>
-                              )}
-                              <div className="cog-title">{`0.5`}</div>
-                            </div>
-                            <div
-                              className="cog-options"
-                              onClick={() =>
-                                this.setState({
-                                  speedOpen: false,
-                                  playBackRate: 0.75,
-                                })
-                              }
-                            >
-                              {this.state.playBackRate == 0.75 && (
-                                <i className="fas fa-check"></i>
-                              )}
-                              <div className="cog-title">{`0.75`}</div>
-                            </div>
-                            <div
-                              className="cog-options"
-                              onClick={() =>
-                                this.setState({
-                                  speedOpen: false,
-                                  playBackRate: 1,
-                                })
-                              }
-                            >
-                              {this.state.playBackRate == 1 && (
-                                <i className="fas fa-check"></i>
-                              )}
-                              <div className="cog-title">{`Normal`}</div>
-                            </div>
-                            <div
-                              className="cog-options"
-                              onClick={() =>
-                                this.setState({
-                                  speedOpen: false,
-                                  playBackRate: 1.25,
-                                })
-                              }
-                            >
-                              {this.state.playBackRate == 1.25 && (
-                                <i className="fas fa-check"></i>
-                              )}
-                              <div className="cog-title">{`1.25`}</div>
-                            </div>
-                            <div
-                              className="cog-options"
-                              onClick={() =>
-                                this.setState({
-                                  speedOpen: false,
-                                  playBackRate: 1.5,
-                                })
-                              }
-                            >
-                              {this.state.playBackRate == 1.5 && (
-                                <i className="fas fa-check"></i>
-                              )}
-                              <div className="cog-title">{`1.5`}</div>
-                            </div>
-                            <div
-                              className="cog-options"
-                              onClick={() =>
-                                this.setState({
-                                  speedOpen: false,
-                                  playBackRate: 1.75,
-                                })
-                              }
-                            >
-                              {this.state.playBackRate == 1.75 && (
-                                <i className="fas fa-check"></i>
-                              )}
-                              <div className="cog-title">{`1.75`}</div>
-                            </div>
-                            <div
-                              className="cog-options"
-                              onClick={() =>
-                                this.setState({
-                                  speedOpen: false,
-                                  playBackRate: 2,
-                                })
-                              }
-                            >
-                              {this.state.playBackRate == 2 && (
-                                <i className="fas fa-check"></i>
-                              )}
-                              <div className="cog-title">{`2`}</div>
-                            </div>
-                          </div>
-                        )}
-                    </span>
-                  )}
-                  <Button onClick={this.handleSettings} id="cog-button">
-                    <i
-                      className={`fas fa-cog tooltip ${
-                        this.state.cogOpen === true ? "open-cog" : "closed-cog"
-                      }`}
-                    ></i>
-                  </Button>
-                </div>
-                <div className="pip-wrapper">
-                  <Button onClick={() => this.setState({ pip: true })}>
-                    <i className="fas fa-clone"></i>
-                  </Button>
-                </div>
-                <div className="fullScreen-wrapper">
-                  <Button onClick={this.toggleFullScreen}>
-                    {this.state.fullScreen === false ? (
-                      <i className="fas fa-expand"></i>
-                    ) : (
-                      <i className="fas fa-compress"></i>
+                          )}
+                      </span>
                     )}
-                  </Button>
-                </div>
+                    <Button onClick={this.handleSettings} id="cog-button">
+                      <i
+                        className={`fas fa-cog tooltip ${
+                          this.state.cogOpen === true
+                            ? "open-cog"
+                            : "closed-cog"
+                        }`}
+                      ></i>
+                    </Button>
+                  </div>
+                )}
+                {this.props.pip && (
+                  <div className="pip-wrapper">
+                    <Button onClick={() => this.setState({ pip: true })}>
+                      <i className="fas fa-clone"></i>
+                    </Button>
+                  </div>
+                )}
+                {this.props.fullscreen && (
+                  <div className="fullScreen-wrapper">
+                    <Button onClick={this.toggleFullScreen}>
+                      {this.state.fullScreen === false ? (
+                        <i className="fas fa-expand"></i>
+                      ) : (
+                        <i className="fas fa-compress"></i>
+                      )}
+                    </Button>
+                  </div>
+                )}
               </div>
             </div>
           </div>

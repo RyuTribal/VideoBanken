@@ -83,11 +83,11 @@ const styles = StyleSheet.create({
     transition: "0.4s",
     textTransform: "uppercase",
   },
-  logoutIcon:{
+  logoutIcon: {
     color: "#fbf9f9",
     opacity: "0.7",
     transition: "0.4s",
-  }
+  },
 });
 
 class SidebarComponent extends React.Component {
@@ -138,6 +138,14 @@ class SidebarComponent extends React.Component {
                 active={this.props.selectedItem === "Feed"}
                 link="/home/"
               />
+              <div className={css(styles.separator)}></div>
+              <MenuItemsComponent
+                title="Profil"
+                icon="fas fa-user"
+                onClick={() => this.onItemClicked("Profil")}
+                active={this.props.selectedItem === "Profil"}
+                link={`/home/users/${this.props.username}`}
+              />
               {/* <MenuItemsComponent
                 title="Tickets"
                 icon="fas fa-user"
@@ -168,16 +176,14 @@ class SidebarComponent extends React.Component {
                 onClick={() => this.onItemClicked("Articles")}
                 active={this.props.selectedItem === "Articles"}
               /> */}
-              <div className={css(styles.separator)}></div>
-              <MenuItemsComponent
-                title="Profil"
-                icon="fas fa-user"
-                onClick={() => this.onItemClicked("Profil")}
-                active={this.props.selectedItem === "Profil"}
-                link={`/home/users/${this.props.username}`}
-              />
-              <Row onClick={this.props.logout} className={css(styles.logout)} vertical="center">
-                <i className={`${css(styles.logoutIcon)} fas fa-sign-out-alt`}></i>
+              <Row
+                onClick={this.props.logout}
+                className={css(styles.logout)}
+                vertical="center"
+              >
+                <i
+                  className={`${css(styles.logoutIcon)} fas fa-sign-out-alt`}
+                ></i>
                 <span className={css(styles.logoutTitle)}>Logga ut</span>
               </Row>
             </Column>

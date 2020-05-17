@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import { BrowserRouter, Switch, Route, Link } from "react-router-dom";
+import { BrowserRouter, Switch, Route, Link, withRouter } from "react-router-dom";
 import { Auth, Hub, Storage, API, graphqlOperation } from "aws-amplify";
 import $ from "jquery";
 import * as queries from "../graphql/queries";
@@ -76,7 +76,7 @@ class HomeFeed extends Component {
         {this.state.details.map((details, i) => (
           <div
             onClick={() =>
-              this.props.history.push(`home/watch?key=${details.id}`)
+              this.props.history.push(`/home/watch/${details.id}`)
             }
             key={i}
             className="video-preview"
@@ -107,4 +107,4 @@ class HomeFeed extends Component {
   }
 }
 
-export default HomeFeed;
+export default withRouter(HomeFeed);

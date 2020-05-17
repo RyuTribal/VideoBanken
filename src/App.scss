@@ -981,7 +981,7 @@ textarea {
 }
 
 .video-player video::-webkit-media-controls {
-  display:none !important;
+  display: none !important;
 }
 
 .player-wrapper {
@@ -997,7 +997,7 @@ textarea {
   opacity: 1;
 }
 
-.hide-player-controls{
+.hide-player-controls {
   opacity: 0 !important;
 }
 
@@ -1008,7 +1008,7 @@ textarea {
   height: 100%;
 }
 
-.video-player{
+.video-player {
   width: 100% !important;
   height: 100% !important;
   position: absolute;
@@ -1023,15 +1023,15 @@ textarea {
   width: 98%;
   flex-wrap: wrap;
   transition: opacity 0.2s ease-in-out;
-  background-color: transparent;
+  background-color: rgba(0, 0, 0, 0.2);
   opacity: 0;
-  left: 0; 
-  right: 0; 
-  margin-left: auto; 
+  left: 0;
+  right: 0;
+  margin-left: auto;
   margin-right: auto;
   color: $light-shade;
   font-size: 15px;
-  z-index: 2147483648
+  z-index: 2147483648;
 }
 
 .player-btns {
@@ -1059,6 +1059,7 @@ textarea {
   width: 20px;
   height: 20px;
   fill: white;
+  text-shadow: 2px 2px #ff0000;
 }
 
 .player-bar {
@@ -1071,46 +1072,46 @@ textarea {
   display: flex;
 }
 
-.player-bar:hover .video-loaded{
+.player-bar:hover .video-loaded {
   transform: scaleY(1.5);
   transition: transform 0.2s;
 }
-.player-bar:hover .video-duration{
-  transform: scaleY(1.5);
-  transition: transform 0.2s;
-}
-
-.player-bar:hover .video-played{
+.player-bar:hover .video-duration {
   transform: scaleY(1.5);
   transition: transform 0.2s;
 }
 
-.player-bar:hover .slider-circle{
+.player-bar:hover .video-played {
+  transform: scaleY(1.5);
+  transition: transform 0.2s;
+}
+
+.player-bar:hover .slider-circle {
   transform: scaleY(3.5) scaleX(3.5) !important;
   opacity: 1 !important;
   transition: transform 0.2s;
   transition: opacity 0.2s;
 }
 
-.player-controls:active{
+.player-controls:active {
   opacity: 1;
 }
 
-.player-bar:active .video-loaded{
+.player-bar:active .video-loaded {
   transform: scaleY(1.5);
   transition: transform 0.2s;
 }
-.player-bar:active .video-duration{
-  transform: scaleY(1.5);
-  transition: transform 0.2s;
-}
-
-.player-bar:active .video-played{
+.player-bar:active .video-duration {
   transform: scaleY(1.5);
   transition: transform 0.2s;
 }
 
-.player-bar:active .slider-circle{
+.player-bar:active .video-played {
+  transform: scaleY(1.5);
+  transition: transform 0.2s;
+}
+
+.player-bar:active .slider-circle {
   transform: scaleY(3.5) scaleX(3.5) !important;
   opacity: 1 !important;
   transition: transform 0.2s;
@@ -1120,13 +1121,13 @@ textarea {
 .player-bar .video-loaded {
   height: 3px;
   width: 0;
-  background-color: rgba(255,255,255,.4);
+  background-color: rgba(255, 255, 255, 0.4);
   transition: transform 0.2s;
   align-self: flex-end;
 }
 
-.player-bar .video-duration{
-  background-color: rgba(255,255,255,.2);
+.player-bar .video-duration {
+  background-color: rgba(255, 255, 255, 0.2);
   height: 3px;
   transition: transform 0.2s;
   align-self: flex-end;
@@ -1134,18 +1135,17 @@ textarea {
   position: absolute;
 }
 
-.player-bar .slider-circle{
+.player-bar .slider-circle {
   height: 3px;
-  transform: scaleY(3) scaleX(3)!important;
+  transform: scaleY(3) scaleX(3) !important;
   width: 3px;
   transition: transform 0.2s;
   background: $primary-color;
   border-radius: 50%;
   opacity: 0;
-
 }
 
-.player-bar .video-played-wrapper{
+.player-bar .video-played-wrapper {
   height: 3px;
   align-self: flex-end;
   position: absolute;
@@ -1161,7 +1161,7 @@ textarea {
   transition: transform 0.2s !important;
 }
 
-.video-time{
+.video-time {
   position: absolute;
   color: $light-shade;
   text-shadow: $dark-shade;
@@ -1169,31 +1169,31 @@ textarea {
   z-index: 10;
 }
 
-.video-time .frame-image{
+.video-time .frame-image {
   margin-bottom: 15px;
   background: $dark-shade;
   height: 84.38px;
   width: 150px;
 }
 
-.video-time{
+.video-time {
   text-align: center;
 }
 
-.volume-button{
+.volume-button {
   width: 43px;
 }
 
-.volume-wrapper{
+.volume-wrapper {
   display: inline-flex;
   align-items: center;
 }
 
-.volume-wrapper:hover{
+.volume-wrapper:hover {
   cursor: pointer;
 }
 
-.volume-bar{
+.volume-bar {
   width: 0px;
   height: 100%;
   transition: width 0.2s;
@@ -1201,29 +1201,29 @@ textarea {
   align-items: center;
 }
 
-.volume-wrapper:hover .volume-bar{
+.volume-wrapper:hover .volume-bar {
   width: 52px;
   transition: width 0.2s;
 }
 
-.volume-wrapper:active .volume-bar{
+.volume-wrapper:active .volume-bar {
   width: 52px;
   transition: width 0.2s;
 }
 
-.volume-level-wrapper{
+.volume-level-wrapper {
   height: 4px;
   width: 100%;
   display: flex;
   background: #999999;
 }
 
-.volume-meter{
+.volume-meter {
   height: 100%;
   background-color: $light-shade;
 }
 
-.volume-circle{
+.volume-circle {
   transform: scaleY(3) scaleX(3) !important;
   height: 10px;
   height: 100%;
@@ -1232,38 +1232,38 @@ textarea {
   border-radius: 50%;
 }
 
-.video-time-wrapper{
+.video-time-wrapper {
   display: flex;
   align-items: center;
   font-size: 12px;
 }
 
-.video-time-wrapper span{
+.video-time-wrapper span {
   padding-left: 1rem;
   padding-right: 1rem;
 }
 
-.right-side-wrapper{
+.right-side-wrapper {
   margin-left: auto;
-  display: flex
+  display: flex;
 }
 
-.closed-cog{
+.closed-cog {
   transform: rotate(-60deg);
   transition: 0.2s;
 }
 
-.open-cog{
+.open-cog {
   transform: rotate(60deg);
   transition: 0.2s;
 }
 
-.settings-wrapper button{
+.settings-wrapper button {
   width: 100%;
   z-index: 10;
 }
 
-.tooltip-cog{
+.tooltip-cog {
   position: absolute;
   bottom: calc(0px + 56px);
   right: calc(0px + 3%);
@@ -1281,13 +1281,13 @@ textarea {
   max-height: 3000px;
 }
 
-.tooltip-cog .cog-options{
+.tooltip-cog .cog-options {
   display: flex;
   align-items: center;
   border-radius: 4px;
 }
 
-.cog-title{
+.cog-title {
   padding-left: 15px !important;
   padding-right: 15px !important;
   padding-top: 10px !important;
@@ -1295,23 +1295,23 @@ textarea {
   width: 100%;
 }
 
-.tooltip-cog div:hover{
+.tooltip-cog div:hover {
   background-color: unset !important;
 }
 
-.cog-options i{
+.cog-options i {
   color: $light-shade !important;
 }
 
-.tooltip-cog .cog-options:hover{
+.tooltip-cog .cog-options:hover {
   background-color: rgba(73, 91, 122, 0.9) !important;
 }
 
-.tooltip-prompt{
+.tooltip-prompt {
   margin-left: auto;
 }
 
-.tooltip-prompt i{
+.tooltip-prompt i {
   color: $light-shade !important;
   margin-left: 10px;
 }
