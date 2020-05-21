@@ -51,56 +51,26 @@ const styles = StyleSheet.create({
   },
 });
 
-class CoverPhoto extends Component {
+class Posts extends Component {
   constructor() {
     super();
     this.state = {
-      coverPhoto: null,
-      currentUser: false,
-      user: "",
+      
     };
   }
   componentDidMount = async () => {
-    const currentUser = await Auth.currentAuthenticatedUser();
-    console.log(currentUser.username);
-    console.log(this.props.user);
-    if (this.props.user === currentUser.username) {
-      this.setState({
-        currentUser: true,
-        user: this.props.user,
-      });
-    }
+    
   };
   componentDidUpdate = async (prevProps) => {
-    if (prevProps.user !== this.props.user) {
-      this.componentDidMount();
-    }
+    
   };
-  changeCover = async () => {};
   render() {
     return (
       <div className={css(styles.container)}>
-        {this.state.coverPhoto === null ? (
-          <div className={css(styles.coverPhoto, styles.None)}>
-            <div className={css(styles.profileImageContainer)}>
-              <ProfileImage user={this.state.user} />
-            </div>
-            <div className={css(styles.equalizer)}></div>
-          </div>
-        ) : (
-          <img
-            src={this.state.coverPhoto}
-            className={css(styles.coverPhoto)}
-          ></img>
-        )}
-        {this.state.currentUser === true && (
-          <div className={css(styles.changeCover)}>
-            <i className="fas fa-camera"></i>
-          </div>
-        )}
+        Posts
       </div>
     );
   }
 }
 
-export default CoverPhoto;
+export default Posts;

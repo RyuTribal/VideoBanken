@@ -204,6 +204,12 @@ export const addUser = `mutation AddUser($input: UserInput!) {
     profileImg
     coverImg
     date_of_birth
+    height
+    weight
+    team
+    description
+    followers
+    following
   }
 }
 `;

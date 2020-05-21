@@ -146,6 +146,12 @@ export const getUser = `query GetUser($username: String) {
     profileImg
     coverImg
     date_of_birth
+    height
+    weight
+    team
+    description
+    followers
+    following
   }
 }
 `;

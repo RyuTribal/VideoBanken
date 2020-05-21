@@ -36,12 +36,6 @@ const styles = StyleSheet.create({
   mainBlock: {
     backgroundColor: "#F7F8FC",
   },
-  padded: {
-    padding: 30,
-    "@media (max-width: 768px)": {
-      padding: 0,
-    },
-  },
 });
 
 class Home extends Component {
@@ -75,20 +69,14 @@ class Home extends Component {
         console.log(err);
         this.props.history.push("/login");
       });
+    console.log(this.state.user.username);
     await API.graphql(
       graphqlOperation(queries.getUser, {
         username: this.state.user.username,
       })
     )
-      .then((res) => console.log(res))
-      .catch((err) => {
-        console.log(err);
-        if (
-          err.errors[0].path[0] === "getUser" &&
-          err.errors[0].path[1] === "username" &&
-          err.errors[0].message ===
-            "Cannot return null for non-nullable type: 'String' within parent 'User' (/getUser/username)"
-        ) {
+      .then((res) => {
+        if (res.data.getUser === null) {
           API.graphql(
             graphqlOperation(mutations.addUser, {
               input: {
@@ -101,7 +89,8 @@ class Home extends Component {
             .then((res) => console.log(res))
             .catch((err) => console.log(err));
         }
-      });
+      })
+      .catch((err) => {});
   };
 
   resize = () => this.forceUpdate();

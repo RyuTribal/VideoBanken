@@ -5,6 +5,7 @@ import { Column, Row } from "simple-flexbox";
 import { StyleSheet, css } from "aphrodite";
 import Player from "../vanilla-player/Player";
 import TagsInput from "react-tagsinput";
+import { Auth, Hub, Storage, API, graphqlOperation } from "aws-amplify";
 const styles = StyleSheet.create({
   modal: {
     minHeight: "720px",
@@ -28,12 +29,13 @@ const styles = StyleSheet.create({
     display: "flex",
     flexWrap: "wrap",
     flexDirection: "row",
+    justifyContent: "space-between",
   },
   modalInnerContent: {
     padding: 20,
     display: "flex",
-    flexBasis: "calc(50% - 40px)",
     flexDirection: "column",
+    width: "49%",
   },
   videoUploadContainer: {
     paddingTop: "56.25%",
@@ -78,7 +80,7 @@ const styles = StyleSheet.create({
     transition: "0.4s",
     borderRadius: 5,
     color: "#fbf9f9",
-    transition: "0.4s",
+    transition: "background-color 0.4s",
     ":hover": {
       backgroundColor: "#ff5050",
       transition: "0.4s",
@@ -144,6 +146,35 @@ const styles = StyleSheet.create({
     fontSize: "20px",
     textAlign: "end",
     cursor: "pointer",
+  },
+  buttonContainer: {
+    width: "100%",
+    display: "flex",
+    padding: 20,
+  },
+  confirmButton: {
+    marginLeft: "auto",
+    marginRight: 0,
+    background: "#ea3a3a",
+    padding: "10px 20px",
+    boxSizing: "border-box",
+    fontSize: 20,
+    border: 0,
+    transition: "0.4s",
+    borderRadius: 5,
+    color: "#fbf9f9",
+    transition: "background-color 0.4s",
+    ":hover": {
+      backgroundColor: "#ff5050",
+      transition: "0.4s",
+    },
+    ":focus": {
+      outline: "none",
+    },
+    ":disabled": {
+      backgroundColor: "rgb(245, 244, 242)",
+      color: "rgb(177, 172, 163)",
+    },
   },
 });
 
@@ -374,6 +405,13 @@ class Modal extends Component {
       </div>
     );
   }
+  uploadVideo = async () => {
+    Storage.put(`input/hello.mp4`, this.state.video, {
+      progressCallback(progress) {
+        console.log(`Uploaded: ${progress.loaded}/${progress.total}`);
+      },
+    }).then((result) => {});
+  };
   closeModal = () => {
     this.setState({
       dragging: false,
@@ -638,6 +676,14 @@ class Modal extends Component {
                     </p>
                   ))}
               </div>
+            </div>
+            <div className={css(styles.buttonContainer)}>
+              <button
+                onClick={this.uploadVideo}
+                className={css(styles.confirmButton)}
+              >
+                Ladda upp
+              </button>
             </div>
           </div>
         </div>

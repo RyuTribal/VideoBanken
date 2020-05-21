@@ -6,11 +6,11 @@ import { Auth } from "aws-amplify";
 
 const styles = StyleSheet.create({
   container: {
-    width: 150,
-    height: 150,
+    width: 200,
+    height: 200,
     position: "relative",
-    borderRadius: "50%",
-    border: "5px solid #fbf9f9",
+    cursor: "pointer",
+    padding: 20,
   },
   profileImage: {
     width: "100%",
@@ -22,8 +22,8 @@ const styles = StyleSheet.create({
     background: "#fbf9f9",
     width: 35,
     height: 35,
-    bottom: "5%",
-    right: "3%",
+    bottom: "11%",
+    right: "17%",
     borderRadius: "50%",
     color: "#263040",
     display: "flex",
@@ -40,7 +40,7 @@ class ProfileImage extends Component {
     this.state = {
       profileImage: null,
       currentUser: false,
-      user: ""
+      user: "",
     };
   }
   componentDidMount = async () => {
