@@ -16,6 +16,11 @@ const styles = StyleSheet.create({
     transform: "translate(-50%, -50%)",
     backgroundColor: "#F7F8FC",
     "z-index": "90001",
+    "@media (max-width: 1281px)": {
+      minWidth: "unset",
+      width: "100%",
+      minHeight: "unset",
+    },
   },
   overlay: {
     position: "absolute",
@@ -25,17 +30,24 @@ const styles = StyleSheet.create({
     "z-index": "90000",
   },
   modalContent: {
-    minHeight: "100%",
+    height: "100%",
     display: "flex",
     flexWrap: "wrap",
     flexDirection: "row",
     justifyContent: "space-between",
+    "@media (max-width: 1281px)": {
+      flexDirection: "column",
+      paddingTop: 20,
+    },
   },
   modalInnerContent: {
     padding: 20,
     display: "flex",
     flexDirection: "column",
     width: "49%",
+    "@media (max-width: 1281px)": {
+      width: "100%",
+    },
   },
   videoUploadContainer: {
     paddingTop: "56.25%",
@@ -54,6 +66,9 @@ const styles = StyleSheet.create({
     left: 0,
     bottom: 0,
     right: 0,
+    "@media (max-width: 1281px)": {
+      position: "static",
+    },
   },
   unmountedContainer: {
     display: "flex",
@@ -175,6 +190,9 @@ const styles = StyleSheet.create({
       backgroundColor: "rgb(245, 244, 242)",
       color: "rgb(177, 172, 163)",
     },
+    "@media (max-width: 1281px)": {
+      width: "100%",
+    },
   },
 });
 
@@ -248,6 +266,14 @@ class Modal extends Component {
       imageDiv.removeEventListener("drop", this.handleImageDrop);
     }
   }
+
+  isMobile = () => {
+    if (window.matchMedia("(max-width: 1281px)").matches) {
+      return true;
+    } else {
+      return false;
+    }
+  };
 
   addThumbnailDrag = () => {
     let imageDiv = this.imageDropRef.current;

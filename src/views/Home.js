@@ -93,7 +93,9 @@ class Home extends Component {
       .catch((err) => {});
   };
 
-  resize = () => this.forceUpdate();
+  resize = () => {
+    this.forceUpdate();
+  };
   componentWillUnmount() {
     window.removeEventListener("resize", this.resize);
   }
@@ -116,7 +118,6 @@ class Home extends Component {
         )}
         <Row id="wrapper" className={css(styles.container)}>
           <SidebarComponent
-            isMobile={isMobile}
             selectedItem={this.state.selectedItem}
             username={this.state.user.username}
             logout={this.logout}
@@ -187,6 +188,7 @@ class Home extends Component {
                               onChange={(selectedItem) =>
                                 this.setState({ selectedItem })
                               }
+                              isMobile={isMobile}
                             />
                           )}
                         />

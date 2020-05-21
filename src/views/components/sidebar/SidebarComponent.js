@@ -29,7 +29,7 @@ const styles = StyleSheet.create({
     fontSize: 20,
   },
   containerMobile: {
-    transition: "left 0.5s, right 0.5s",
+    transition: "left 0.2s, right 0.2s",
     position: "absolute",
     width: 255,
     height: "100vh",
@@ -91,13 +91,27 @@ const styles = StyleSheet.create({
 });
 
 class SidebarComponent extends React.Component {
-  state = { expanded: false };
-
+  constructor() {
+    super();
+    this.state = {
+      expanded: false,
+    };
+  }
   onItemClicked = (item) => {
     this.setState({ expanded: false });
   };
 
-  isMobile = () => window.innerWidth <= 768;
+  isMobile = () => {
+    if (
+      window.matchMedia("(max-width: 813px)").matches ||
+      window.matchMedia("(max-width: 1025px) and (orientation: landscape)")
+        .matches
+    ) {
+      return true;
+    } else {
+      return false;
+    }
+  };
 
   toggleMenu = () =>
     this.setState((prevState) => ({ expanded: !prevState.expanded }));
@@ -111,23 +125,23 @@ class SidebarComponent extends React.Component {
   };
 
   render() {
-    const { expanded } = this.state;
-    const isMobile = this.props.isMobile;
     return (
       <div style={{ position: "relative" }}>
         <Row
-          className={css(styles.mainContainer)}
-          breakpoints={{ 768: css(styles.mainContainerMobile) }}
+          className={css(
+            styles.mainContainer,
+            this.isMobile() === true && styles.mainContainerMobile
+          )}
         >
-          {isMobile && !expanded && this.renderBurger()}
+          {this.isMobile() === true &&
+            !this.state.expanded &&
+            this.renderBurger()}
           <Column
-            className={css(styles.container)}
-            breakpoints={{
-              768: css(
-                styles.containerMobile,
-                expanded ? styles.show : styles.hide
-              ),
-            }}
+            className={css(
+              styles.container,
+              this.isMobile() === true && styles.containerMobile,
+              this.state.expanded ? styles.show : styles.hide
+            )}
           >
             <LogoComponent />
             <Column className={css(styles.menuItemList)}>
@@ -188,7 +202,7 @@ class SidebarComponent extends React.Component {
               </Row>
             </Column>
           </Column>
-          {isMobile && expanded && (
+          {this.isMobile() === true && this.state.expanded && (
             <div
               className={css(styles.outsideLayer)}
               onClick={this.toggleMenu}

@@ -33,6 +33,7 @@
     "react-router-dom": "^5.0.1",
     "react-scripts": "^3.4.1",
     "react-show-more": "^2.0.0",
+    "react-super-responsive-table": "^5.1.1",
     "react-tagsinput": "^3.19.0",
     "react-timeago": "^4.4.0",
     "react-uuid": "^1.0.2",

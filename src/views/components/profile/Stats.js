@@ -3,6 +3,8 @@ import { StyleSheet, css } from "aphrodite";
 import { BrowserRouter, Switch, Route, Link } from "react-router-dom";
 import ProfileImage from "./ProfileImage";
 import { Auth } from "aws-amplify";
+import { Table, Thead, Tbody, Tr, Th, Td } from "react-super-responsive-table";
+import "react-super-responsive-table/dist/SuperResponsiveTableStyle.css";
 
 const styles = StyleSheet.create({
   container: {
@@ -17,7 +19,7 @@ const styles = StyleSheet.create({
   statTable: {
     width: "100%",
     overflowX: "auto",
-    padding: 20
+    padding: 20,
   },
   table: {
     borderCollapse: "collapse",
@@ -120,48 +122,54 @@ class Stats extends Component {
         ) : (
           <div className={css(styles.statTable)}>
             <h2>Stats per säsong</h2>
-            <table className={css(styles.table)}>
-              <tr className={css(styles.tableContentWrapper)}>
-                <th className={css(styles.tableContent)}>År</th>
-                <th className={css(styles.tableContent)}>GP</th>
-                <th className={css(styles.tableContent)}>GS</th>
-                <th className={css(styles.tableContent)}>PTS</th>
-                <th className={css(styles.tableContent)}>AST</th>
-                <th className={css(styles.tableContent)}>REB</th>
-                <th className={css(styles.tableContent)}>BLK</th>
-                <th className={css(styles.tableContent)}>STL</th>
-                <th className={css(styles.tableContent)}>PF</th>
-                <th className={css(styles.tableContent)}>TO</th>
-                <th className={css(styles.tableContent)}>MIN</th>
-                <th className={css(styles.tableContent)}>FG</th>
-                <th className={css(styles.tableContent)}>FG%</th>
-                <th className={css(styles.tableContent)}>3PT</th>
-                <th className={css(styles.tableContent)}>3P%</th>
-                <th className={css(styles.tableContent)}>FT</th>
-                <th className={css(styles.tableContent)}>FT%</th>
-              </tr>
-              {dummyStats.map((stats, i) => (
-                <tr className={css(styles.tableContentWrapper)}>
-                  <td className={css(styles.tableContent)}>{stats.year}</td>
-                  <td className={css(styles.tableContent)}>{stats.gp}</td>
-                  <td className={css(styles.tableContent)}>{stats.gs}</td>
-                  <td className={css(styles.tableContent)}>{stats.pts}</td>
-                  <td className={css(styles.tableContent)}>{stats.ast}</td>
-                  <td className={css(styles.tableContent)}>{stats.reb}</td>
-                  <td className={css(styles.tableContent)}>{stats.blk}</td>
-                  <td className={css(styles.tableContent)}>{stats.stl}</td>
-                  <td className={css(styles.tableContent)}>{stats.pf}</td>
-                  <td className={css(styles.tableContent)}>{stats.to}</td>
-                  <td className={css(styles.tableContent)}>{stats.min}</td>
-                  <td className={css(styles.tableContent)}>{stats.fg}</td>
-                  <td className={css(styles.tableContent)}>{stats.fgPer}</td>
-                  <td className={css(styles.tableContent)}>{stats.long}</td>
-                  <td className={css(styles.tableContent)}>{stats.longPer}</td>
-                  <td className={css(styles.tableContent)}>{stats.ft}</td>
-                  <td className={css(styles.tableContent)}>{stats.ftPer}</td>
-                </tr>
-              ))}
-            </table>
+            <Table className={css(styles.table)}>
+              <Thead>
+                <Tr className={css(styles.TableContentWrapper)}>
+                  <Th className={css(styles.tableContent)}>År</Th>
+                  <Th className={css(styles.tableContent)}>GP</Th>
+                  <Th className={css(styles.tableContent)}>GS</Th>
+                  <Th className={css(styles.tableContent)}>PTS</Th>
+                  <Th className={css(styles.tableContent)}>AST</Th>
+                  <Th className={css(styles.tableContent)}>REB</Th>
+                  <Th className={css(styles.tableContent)}>BLK</Th>
+                  <Th className={css(styles.tableContent)}>STL</Th>
+                  <Th className={css(styles.tableContent)}>PF</Th>
+                  <Th className={css(styles.tableContent)}>TO</Th>
+                  <Th className={css(styles.tableContent)}>MIN</Th>
+                  <Th className={css(styles.tableContent)}>FG</Th>
+                  <Th className={css(styles.tableContent)}>FG%</Th>
+                  <Th className={css(styles.tableContent)}>3PT</Th>
+                  <Th className={css(styles.tableContent)}>3P%</Th>
+                  <Th className={css(styles.tableContent)}>FT</Th>
+                  <Th className={css(styles.tableContent)}>FT%</Th>
+                </Tr>
+              </Thead>
+              <Tbody>
+                {dummyStats.map((stats, i) => (
+                  <Tr className={css(styles.tableContentWrapper)}>
+                    <Td className={css(styles.tableContent)}>{stats.year}</Td>
+                    <Td className={css(styles.tableContent)}>{stats.gp}</Td>
+                    <Td className={css(styles.tableContent)}>{stats.gs}</Td>
+                    <Td className={css(styles.tableContent)}>{stats.pts}</Td>
+                    <Td className={css(styles.tableContent)}>{stats.ast}</Td>
+                    <Td className={css(styles.tableContent)}>{stats.reb}</Td>
+                    <Td className={css(styles.tableContent)}>{stats.blk}</Td>
+                    <Td className={css(styles.tableContent)}>{stats.stl}</Td>
+                    <Td className={css(styles.tableContent)}>{stats.pf}</Td>
+                    <Td className={css(styles.tableContent)}>{stats.to}</Td>
+                    <Td className={css(styles.tableContent)}>{stats.min}</Td>
+                    <Td className={css(styles.tableContent)}>{stats.fg}</Td>
+                    <Td className={css(styles.tableContent)}>{stats.fgPer}</Td>
+                    <Td className={css(styles.tableContent)}>{stats.long}</Td>
+                    <Td className={css(styles.tableContent)}>
+                      {stats.longPer}
+                    </Td>
+                    <Td className={css(styles.tableContent)}>{stats.ft}</Td>
+                    <Td className={css(styles.tableContent)}>{stats.ftPer}</Td>
+                  </Tr>
+                ))}
+              </Tbody>
+            </Table>
           </div>
         )}
       </div>

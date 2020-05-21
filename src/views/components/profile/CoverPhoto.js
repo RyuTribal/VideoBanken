@@ -48,6 +48,12 @@ const styles = StyleSheet.create({
     flex: "5",
     display: "flex",
     width: "100%",
+    "@media (max-width: 813px)": {
+      display: "none",
+    },
+    "@media (max-width: 1025px) and (orientation: landscape)": {
+      display: "none",
+    },
   },
 });
 
