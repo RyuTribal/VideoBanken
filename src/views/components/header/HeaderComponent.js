@@ -25,6 +25,7 @@ const styles = StyleSheet.create({
     padding: 30,
     paddingTop: 30,
     color: "#263040",
+    zIndex: 99
   },
   cursorPointer: {
     cursor: "pointer",

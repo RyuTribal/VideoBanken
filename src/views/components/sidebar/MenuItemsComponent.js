@@ -7,9 +7,10 @@ import { Link } from "react-router-dom";
 const styles = StyleSheet.create({
   activeBar: {
     height: 56,
-    width: 3,
+    width: "100%",
     position: "absolute",
     left: 0,
+    background: "#1e2633",
   },
   activeTarget: {
     right: -2,
@@ -21,6 +22,7 @@ const styles = StyleSheet.create({
   activeTitle: {
     color: "#ea3a3a",
     opacity: 1,
+    zIndex: 1,
   },
   container: {
     height: 56,
@@ -55,7 +57,7 @@ const styles = StyleSheet.create({
     },
     ":focus": {
       textDecoration: "none",
-    }
+    },
   },
 });
 
@@ -76,9 +78,6 @@ function MenuItemComponent(props) {
         <span className={css(styles.title, active && styles.activeTitle)}>
           {title}
         </span>
-        {active && (
-          <i className={`fas fa-caret-left ${css(styles.activeTarget)}`}></i>
-        )}
       </Row>
     </Link>
   );

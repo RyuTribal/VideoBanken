@@ -11,14 +11,13 @@ const styles = StyleSheet.create({
     paddingTop: 32,
     height: "100vh !important",
     overflowY: "auto",
+    overflowX: "hidden",
   },
   menuItemList: {
     marginTop: 52,
   },
   separator: {
     borderTop: "1px solid #FFF",
-    marginTop: 16,
-    marginBottom: 16,
     opacity: 0.06,
   },
   burgerIcon: {
@@ -27,6 +26,7 @@ const styles = StyleSheet.create({
     left: 24,
     top: 17,
     fontSize: 20,
+    zIndex: 10000,
   },
   containerMobile: {
     transition: "left 0.2s, right 0.2s",
@@ -53,7 +53,7 @@ const styles = StyleSheet.create({
     minWidth: "100%",
     height: "100%",
     backgroundColor: "rgba(0,0,0,.50)",
-    zIndex: 900,
+    zIndex: 100,
   },
   hide: {
     left: -255,

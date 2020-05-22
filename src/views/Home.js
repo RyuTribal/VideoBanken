@@ -113,7 +113,7 @@ class Home extends Component {
   render() {
     return (
       <BrowserRouter>
-        {this.state.videoModal === true && isMobile === false && (
+        {this.state.videoModal === true && (
           <Modal closeModal={this.closeModal} />
         )}
         <Row id="wrapper" className={css(styles.container)}>
