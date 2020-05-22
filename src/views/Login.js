@@ -223,7 +223,7 @@ class Login extends Component {
             <Federated federated={federated} />
           </div>
           <div className="login-link">
-            Har inget konto? <Link to="registration">Skapa ett här</Link>
+            ObiWan <Link to="registration">Skapa ett här</Link>
           </div>
         </div>
       </div>
