@@ -23,7 +23,7 @@ const styles = StyleSheet.create({
     },
   },
   overlay: {
-    position: "absolute",
+    position: "fixed",
     height: "100%",
     width: "100%",
     background: "rgba(0,0,0,0.7)",

@@ -20,6 +20,7 @@ import { StyleSheet, css } from "aphrodite";
 import SidebarComponent from "./components/sidebar/SidebarComponent";
 import HeaderComponent from "./components/header/HeaderComponent";
 import Modal from "./components/modal/Modal";
+import MobileModal from "./components/modal/MobileModal";
 
 const styles = StyleSheet.create({
   container: {
@@ -113,8 +114,11 @@ class Home extends Component {
   render() {
     return (
       <BrowserRouter>
-        {this.state.videoModal === true && (
+        {this.state.videoModal === true && !isMobile && (
           <Modal closeModal={this.closeModal} />
+        )}
+        {this.state.videoModal === true && isMobile && (
+          <MobileModal closeModal={this.closeModal} />
         )}
         <Row id="wrapper" className={css(styles.container)}>
           <SidebarComponent
