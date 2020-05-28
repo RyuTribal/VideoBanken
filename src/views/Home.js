@@ -244,6 +244,17 @@ class Home extends Component {
                           />
                         )}
                       />
+                      <Route
+                        path={`${this.props.match.path}/team/`}
+                        render={() => (
+                          <Team
+                            onChange={(selectedItem) =>
+                              this.setState({ selectedItem })
+                            }
+                            isMobile={isMobile}
+                          />
+                        )}
+                      />
                     </Switch>
                   );
                 }}

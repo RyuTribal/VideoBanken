@@ -316,7 +316,7 @@ class Team extends Component {
     this.state = { activeMenu: "roster" }
 
   }
-  componentDidMount = async () => {
+  componentDidMount = () => {
 
     this.props.onChange("Team");
 
