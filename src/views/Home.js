@@ -12,6 +12,7 @@ import * as queries from "../graphql/queries";
 import * as mutations from "../graphql/mutations";
 import VideoUpload from "./VideoUpload";
 import HomeFeed from "./HomeFeed";
+import Team from "./Team";
 import Watch from "./Watch";
 import Profile from "./Profile";
 import Inbox from "./Inbox";
@@ -30,7 +31,7 @@ const styles = StyleSheet.create({
     minHeight: "100vh",
   },
   content: {
-    marginTop: 54,
+    marginTop: 0,
     overflowY: "auto",
     overflowX: "hidden",
     height: "100vh",
