@@ -1,264 +1,802 @@
 /* tslint:disable */
 //  This file was automatically generated and should not be edited.
 
-export type CreateVideoStorageInput = {
-  videoKey: string,
-  username: string,
-  videoDesc: string,
-  videoTitle: string,
-  thumbKey: string,
-  tags: string,
-  likes?: string | null,
-  dislikes?: string | null,
-  views?: string | null,
-  comments?: string | null,
-  category: string,
-  createdAt: string,
-  editedAt?: string | null,
-};
-
-export type UpdateVideoStorageInput = {
+export type VideoInput = {
+  id?: string | null,
+  title?: string | null,
+  description?: string | null,
   username?: string | null,
-  videoKey?: string | null,
-  videoDesc?: string | null,
-  videoTitle?: string | null,
-  thumbKey?: string | null,
+  thumbnail?: string | null,
   category?: string | null,
   tags?: string | null,
-  likes?: string | null,
-  dislikes?: string | null,
-  views?: string | null,
-  comments?: string | null,
+  likes?: number | null,
+  dislikes?: number | null,
+  views?: number | null,
   createdAt?: string | null,
-  editedAt?: string | null,
 };
 
-export type DeleteVideoStorageInput = {
-  videoKey: string,
+export type VideoLikesInput = {
+  username?: string | null,
+  videoID?: string | null,
+  conditional?: string | null,
 };
 
-export type TableVideoStorageFilterInput = {
-  username?: TableStringFilterInput | null,
-  videoKey?: TableStringFilterInput | null,
-  videoDesc?: TableStringFilterInput | null,
-  videoTitle?: TableStringFilterInput | null,
-  thumbKey?: TableStringFilterInput | null,
-  category?: TableStringFilterInput | null,
-  createdAt?: TableStringFilterInput | null,
-  editedAt?: TableStringFilterInput | null,
+export type VideoDislikesInput = {
+  username?: string | null,
+  videoID?: string | null,
+  conditional?: string | null,
 };
 
-export type TableStringFilterInput = {
-  ne?: string | null,
-  eq?: string | null,
-  le?: string | null,
-  lt?: string | null,
-  ge?: string | null,
-  gt?: string | null,
-  contains?: string | null,
-  notContains?: string | null,
-  between?: Array< string | null > | null,
-  beginsWith?: string | null,
+export type TagInput = {
+  tags?: string | null,
+  conditional?: string | null,
+  videoID?: string | null,
 };
 
-export type CreateVideoStorageMutationVariables = {
-  input: CreateVideoStorageInput,
+export type CommentInput = {
+  id?: string | null,
+  videoID?: string | null,
+  username?: string | null,
+  createdAt?: string | null,
+  comment?: string | null,
 };
 
-export type CreateVideoStorageMutation = {
-  createVideoStorage:  {
-    __typename: "VideoStorage",
-    username: string,
-    videoKey: string,
-    videoDesc: string,
-    videoTitle: string,
-    thumbKey: string,
-    category: string,
-    tags: string,
-    likes: string | null,
-    dislikes: string | null,
-    views: string | null,
-    comments: string | null,
-    createdAt: string,
-    editedAt: string | null,
+export type CommentLikeInput = {
+  username?: string | null,
+  commentID?: string | null,
+  videoID?: string | null,
+  conditional?: string | null,
+};
+
+export type CommentDislikeInput = {
+  username?: string | null,
+  commentID?: string | null,
+  videoID?: string | null,
+  conditional?: string | null,
+};
+
+export type ReplyInput = {
+  id?: string | null,
+  commentID?: string | null,
+  videoID?: string | null,
+  username?: string | null,
+  comment?: string | null,
+  createdAt?: string | null,
+  isEdited?: boolean | null,
+};
+
+export type ReplyLikeInput = {
+  username?: string | null,
+  replyID?: string | null,
+  commentID?: string | null,
+  videoID?: string | null,
+  conditional?: string | null,
+};
+
+export type ReplyDislikeInput = {
+  username?: string | null,
+  replyID?: string | null,
+  commentID?: string | null,
+  videoID?: string | null,
+  conditional?: string | null,
+};
+
+export type UserInput = {
+  username?: string | null,
+  fullName?: string | null,
+  email?: string | null,
+  profileImg?: string | null,
+  coverImg?: string | null,
+  date_of_birth?: string | null,
+};
+
+export type AddVideoMutationVariables = {
+  input: VideoInput,
+};
+
+export type AddVideoMutation = {
+  addVideo:  {
+    __typename: "Video",
+    id: string,
+    title: string | null,
+    description: string | null,
+    username: string | null,
+    thumbnail: string | null,
+    category: string | null,
+    tags: string | null,
+    createdAt: string | null,
+    likes: number | null,
+    dislikes: number | null,
+    views: number | null,
+    ammountComments: number | null,
   } | null,
 };
 
-export type UpdateVideoStorageMutationVariables = {
-  input: UpdateVideoStorageInput,
+export type DeleteVideoMutationVariables = {
+  input: VideoInput,
 };
 
-export type UpdateVideoStorageMutation = {
-  updateVideoStorage:  {
-    __typename: "VideoStorage",
-    username: string,
-    videoKey: string,
-    videoDesc: string,
-    videoTitle: string,
-    thumbKey: string,
-    category: string,
-    tags: string,
-    likes: string | null,
-    dislikes: string | null,
-    views: string | null,
-    comments: string | null,
-    createdAt: string,
-    editedAt: string | null,
+export type DeleteVideoMutation = {
+  deleteVideo:  {
+    __typename: "Video",
+    id: string,
+    title: string | null,
+    description: string | null,
+    username: string | null,
+    thumbnail: string | null,
+    category: string | null,
+    tags: string | null,
+    createdAt: string | null,
+    likes: number | null,
+    dislikes: number | null,
+    views: number | null,
+    ammountComments: number | null,
   } | null,
 };
 
-export type DeleteVideoStorageMutationVariables = {
-  input: DeleteVideoStorageInput,
+export type EditVideoMutationVariables = {
+  input: VideoInput,
 };
 
-export type DeleteVideoStorageMutation = {
-  deleteVideoStorage:  {
-    __typename: "VideoStorage",
-    username: string,
-    videoKey: string,
-    videoDesc: string,
-    videoTitle: string,
-    thumbKey: string,
-    category: string,
-    tags: string,
-    likes: string | null,
-    dislikes: string | null,
-    views: string | null,
-    comments: string | null,
-    createdAt: string,
-    editedAt: string | null,
+export type EditVideoMutation = {
+  editVideo:  {
+    __typename: "Video",
+    id: string,
+    title: string | null,
+    description: string | null,
+    username: string | null,
+    thumbnail: string | null,
+    category: string | null,
+    tags: string | null,
+    createdAt: string | null,
+    likes: number | null,
+    dislikes: number | null,
+    views: number | null,
+    ammountComments: number | null,
   } | null,
 };
 
-export type GetVideoStorageQueryVariables = {
-  videoKey: string,
+export type SendViewMutationVariables = {
+  id: string,
 };
 
-export type GetVideoStorageQuery = {
-  getVideoStorage:  {
-    __typename: "VideoStorage",
-    username: string,
-    videoKey: string,
-    videoDesc: string,
-    videoTitle: string,
-    thumbKey: string,
-    category: string,
-    tags: string,
-    likes: string | null,
-    dislikes: string | null,
-    views: string | null,
-    comments: string | null,
-    createdAt: string,
-    editedAt: string | null,
+export type SendViewMutation = {
+  sendView:  {
+    __typename: "Video",
+    id: string,
+    title: string | null,
+    description: string | null,
+    username: string | null,
+    thumbnail: string | null,
+    category: string | null,
+    tags: string | null,
+    createdAt: string | null,
+    likes: number | null,
+    dislikes: number | null,
+    views: number | null,
+    ammountComments: number | null,
   } | null,
 };
 
-export type ListVideoStoragesQueryVariables = {
-  filter?: TableVideoStorageFilterInput | null,
-  limit?: number | null,
-  nextToken?: string | null,
+export type SendLikeMutationVariables = {
+  input: VideoLikesInput,
 };
 
-export type ListVideoStoragesQuery = {
-  listVideoStorages:  {
-    __typename: "VideoStorageConnection",
-    items:  Array< {
-      __typename: "VideoStorage",
-      username: string,
-      videoKey: string,
-      videoDesc: string,
-      videoTitle: string,
-      thumbKey: string,
-      category: string,
-      tags: string,
-      likes: string | null,
-      dislikes: string | null,
-      views: string | null,
-      comments: string | null,
-      createdAt: string,
-      editedAt: string | null,
+export type SendLikeMutation = {
+  sendLike:  {
+    __typename: "VideoLikes",
+    username: string | null,
+    videoID: string | null,
+  } | null,
+};
+
+export type SendDislikeMutationVariables = {
+  input: VideoDislikesInput,
+};
+
+export type SendDislikeMutation = {
+  sendDislike:  {
+    __typename: "VideoDislikes",
+    username: string | null,
+    videoID: string | null,
+  } | null,
+};
+
+export type SendTagMutationVariables = {
+  input: TagInput,
+};
+
+export type SendTagMutation = {
+  sendTag:  {
+    __typename: "Tag",
+    tag: string | null,
+    videoID: string | null,
+  } | null,
+};
+
+export type AddCommentMutationVariables = {
+  input: CommentInput,
+};
+
+export type AddCommentMutation = {
+  addComment:  {
+    __typename: "Comment",
+    id: string | null,
+    videoID: string | null,
+    username: string | null,
+    comment: string | null,
+    createdAt: string | null,
+    isEdited: boolean | null,
+    ammountReplies: number | null,
+  } | null,
+};
+
+export type DeleteCommentMutationVariables = {
+  input: CommentInput,
+};
+
+export type DeleteCommentMutation = {
+  deleteComment:  {
+    __typename: "Comment",
+    id: string | null,
+    videoID: string | null,
+    username: string | null,
+    comment: string | null,
+    createdAt: string | null,
+    isEdited: boolean | null,
+    ammountReplies: number | null,
+  } | null,
+};
+
+export type EditCommentMutationVariables = {
+  input: CommentInput,
+};
+
+export type EditCommentMutation = {
+  editComment:  {
+    __typename: "Comment",
+    id: string | null,
+    videoID: string | null,
+    username: string | null,
+    comment: string | null,
+    createdAt: string | null,
+    isEdited: boolean | null,
+    ammountReplies: number | null,
+  } | null,
+};
+
+export type LikeCommentMutationVariables = {
+  input: CommentLikeInput,
+};
+
+export type LikeCommentMutation = {
+  likeComment:  {
+    __typename: "CommentLikes",
+    username: string | null,
+    commentID: string | null,
+    videoID: string | null,
+  } | null,
+};
+
+export type DislikeCommentMutationVariables = {
+  input: CommentDislikeInput,
+};
+
+export type DislikeCommentMutation = {
+  dislikeComment:  {
+    __typename: "CommentDislikes",
+    username: string | null,
+    commentID: string | null,
+    videoID: string | null,
+  } | null,
+};
+
+export type AddReplyMutationVariables = {
+  input: ReplyInput,
+};
+
+export type AddReplyMutation = {
+  addReply:  {
+    __typename: "Reply",
+    id: string | null,
+    commentID: string | null,
+    username: string | null,
+    videoID: string | null,
+    comment: string | null,
+    createdAt: string | null,
+    isEdited: boolean | null,
+  } | null,
+};
+
+export type DeleteReplyMutationVariables = {
+  input: ReplyInput,
+};
+
+export type DeleteReplyMutation = {
+  deleteReply:  {
+    __typename: "Reply",
+    id: string | null,
+    commentID: string | null,
+    username: string | null,
+    videoID: string | null,
+    comment: string | null,
+    createdAt: string | null,
+    isEdited: boolean | null,
+  } | null,
+};
+
+export type EditReplyMutationVariables = {
+  input: ReplyInput,
+};
+
+export type EditReplyMutation = {
+  editReply:  {
+    __typename: "Reply",
+    id: string | null,
+    commentID: string | null,
+    username: string | null,
+    videoID: string | null,
+    comment: string | null,
+    createdAt: string | null,
+    isEdited: boolean | null,
+  } | null,
+};
+
+export type LikeReplyMutationVariables = {
+  input: ReplyLikeInput,
+};
+
+export type LikeReplyMutation = {
+  likeReply:  {
+    __typename: "ReplyLikes",
+    username: string | null,
+    replyID: string | null,
+    commentID: string | null,
+    videoID: string | null,
+  } | null,
+};
+
+export type DislikeReplyMutationVariables = {
+  input: ReplyDislikeInput,
+};
+
+export type DislikeReplyMutation = {
+  dislikeReply:  {
+    __typename: "ReplyDislikes",
+    username: string | null,
+    replyID: string | null,
+    commentID: string | null,
+    videoID: string | null,
+  } | null,
+};
+
+export type AddUserMutationVariables = {
+  input: UserInput,
+};
+
+export type AddUserMutation = {
+  addUser:  {
+    __typename: "User",
+    username: string | null,
+    fullName: string | null,
+    email: string | null,
+    profileImg: string | null,
+    coverImg: string | null,
+    date_of_birth: string | null,
+    height: number | null,
+    weight: number | null,
+    team: boolean | null,
+    description: string | null,
+    followers: number | null,
+    following: number | null,
+  } | null,
+};
+
+export type EditUserMutationVariables = {
+  input: UserInput,
+};
+
+export type EditUserMutation = {
+  editUser:  {
+    __typename: "User",
+    username: string | null,
+    fullName: string | null,
+    email: string | null,
+    profileImg: string | null,
+    coverImg: string | null,
+    date_of_birth: string | null,
+    height: number | null,
+    weight: number | null,
+    team: boolean | null,
+    description: string | null,
+    followers: number | null,
+    following: number | null,
+  } | null,
+};
+
+export type DeleteUserMutationVariables = {
+  input: UserInput,
+};
+
+export type DeleteUserMutation = {
+  deleteUser:  {
+    __typename: "User",
+    username: string | null,
+    fullName: string | null,
+    email: string | null,
+    profileImg: string | null,
+    coverImg: string | null,
+    date_of_birth: string | null,
+    height: number | null,
+    weight: number | null,
+    team: boolean | null,
+    description: string | null,
+    followers: number | null,
+    following: number | null,
+  } | null,
+};
+
+export type CreateMessageMutationVariables = {
+  body: string,
+  username: string,
+  chatId: string,
+};
+
+export type CreateMessageMutation = {
+  createMessage:  {
+    __typename: "Message",
+    chatId: string,
+    id: string,
+    message: string,
+    createdAt: string,
+    username: string,
+    userInfo:  Array< {
+      __typename: "User",
+      username: string | null,
+      fullName: string | null,
+      email: string | null,
+      profileImg: string | null,
+      coverImg: string | null,
+      date_of_birth: string | null,
+      height: number | null,
+      weight: number | null,
+      team: boolean | null,
+      description: string | null,
+      followers: number | null,
+      following: number | null,
     } | null > | null,
-    nextToken: string | null,
+  },
+};
+
+export type CreateRoomMutationVariables = {
+  users: string,
+};
+
+export type CreateRoomMutation = {
+  createRoom:  {
+    __typename: "Room",
+    id: string | null,
+    name: string | null,
+    createdAt: string | null,
+  },
+};
+
+export type GetVideosQueryVariables = {
+  offset?: number | null,
+};
+
+export type GetVideosQuery = {
+  getVideos:  Array< {
+    __typename: "Video",
+    id: string,
+    title: string | null,
+    description: string | null,
+    username: string | null,
+    thumbnail: string | null,
+    category: string | null,
+    tags: string | null,
+    createdAt: string | null,
+    likes: number | null,
+    dislikes: number | null,
+    views: number | null,
+    ammountComments: number | null,
+  } | null > | null,
+};
+
+export type GetVideoQueryVariables = {
+  input: VideoInput,
+};
+
+export type GetVideoQuery = {
+  getVideo:  {
+    __typename: "Video",
+    id: string,
+    title: string | null,
+    description: string | null,
+    username: string | null,
+    thumbnail: string | null,
+    category: string | null,
+    tags: string | null,
+    createdAt: string | null,
+    likes: number | null,
+    dislikes: number | null,
+    views: number | null,
+    ammountComments: number | null,
   } | null,
 };
 
-export type OnCreateVideoStorageSubscriptionVariables = {
-  username?: string | null,
-  videoKey?: string | null,
-  videoTitle?: string | null,
-  category?: string | null,
-  thumbKey?: string | null,
+export type GetLikesQueryVariables = {
+  videoID: string,
 };
 
-export type OnCreateVideoStorageSubscription = {
-  onCreateVideoStorage:  {
-    __typename: "VideoStorage",
-    username: string,
-    videoKey: string,
-    videoDesc: string,
-    videoTitle: string,
-    thumbKey: string,
-    category: string,
-    tags: string,
-    likes: string | null,
-    dislikes: string | null,
-    views: string | null,
-    comments: string | null,
-    createdAt: string,
-    editedAt: string | null,
+export type GetLikesQuery = {
+  getLikes:  Array< {
+    __typename: "VideoLikes",
+    username: string | null,
+    videoID: string | null,
+  } | null > | null,
+};
+
+export type GetDislikesQueryVariables = {
+  videoID: string,
+};
+
+export type GetDislikesQuery = {
+  getDislikes:  Array< {
+    __typename: "VideoDislikes",
+    username: string | null,
+    videoID: string | null,
+  } | null > | null,
+};
+
+export type GetTagsQueryVariables = {
+  input: TagInput,
+};
+
+export type GetTagsQuery = {
+  getTags:  {
+    __typename: "Tag",
+    tag: string | null,
+    videoID: string | null,
   } | null,
 };
 
-export type OnUpdateVideoStorageSubscriptionVariables = {
-  username?: string | null,
-  videoKey?: string | null,
-  videoTitle?: string | null,
-  category?: string | null,
-  thumbKey?: string | null,
+export type GetCommentsQueryVariables = {
+  offset?: number | null,
+  input: CommentInput,
 };
 
-export type OnUpdateVideoStorageSubscription = {
-  onUpdateVideoStorage:  {
-    __typename: "VideoStorage",
-    username: string,
-    videoKey: string,
-    videoDesc: string,
-    videoTitle: string,
-    thumbKey: string,
-    category: string,
-    tags: string,
-    likes: string | null,
-    dislikes: string | null,
-    views: string | null,
-    comments: string | null,
-    createdAt: string,
-    editedAt: string | null,
+export type GetCommentsQuery = {
+  getComments:  Array< {
+    __typename: "Comment",
+    id: string | null,
+    videoID: string | null,
+    username: string | null,
+    comment: string | null,
+    createdAt: string | null,
+    isEdited: boolean | null,
+    ammountReplies: number | null,
+  } | null > | null,
+};
+
+export type GetCommentLikesQueryVariables = {
+  commentID: string,
+};
+
+export type GetCommentLikesQuery = {
+  getCommentLikes:  Array< {
+    __typename: "CommentLikes",
+    username: string | null,
+    commentID: string | null,
+    videoID: string | null,
+  } | null > | null,
+};
+
+export type GetCommentDislikesQueryVariables = {
+  commentID: string,
+};
+
+export type GetCommentDislikesQuery = {
+  getCommentDislikes:  Array< {
+    __typename: "CommentDislikes",
+    username: string | null,
+    commentID: string | null,
+    videoID: string | null,
+  } | null > | null,
+};
+
+export type GetCommentQueryVariables = {
+  input: CommentInput,
+};
+
+export type GetCommentQuery = {
+  getComment:  {
+    __typename: "Comment",
+    id: string | null,
+    videoID: string | null,
+    username: string | null,
+    comment: string | null,
+    createdAt: string | null,
+    isEdited: boolean | null,
+    ammountReplies: number | null,
   } | null,
 };
 
-export type OnDeleteVideoStorageSubscriptionVariables = {
-  username?: string | null,
-  videoKey?: string | null,
-  videoTitle?: string | null,
-  category?: string | null,
-  thumbKey?: string | null,
+export type GetRepliesQueryVariables = {
+  offset?: number | null,
+  input: ReplyInput,
 };
 
-export type OnDeleteVideoStorageSubscription = {
-  onDeleteVideoStorage:  {
-    __typename: "VideoStorage",
-    username: string,
-    videoKey: string,
-    videoDesc: string,
-    videoTitle: string,
-    thumbKey: string,
-    category: string,
-    tags: string,
-    likes: string | null,
-    dislikes: string | null,
-    views: string | null,
-    comments: string | null,
+export type GetRepliesQuery = {
+  getReplies:  Array< {
+    __typename: "Reply",
+    id: string | null,
+    commentID: string | null,
+    username: string | null,
+    videoID: string | null,
+    comment: string | null,
+    createdAt: string | null,
+    isEdited: boolean | null,
+  } | null > | null,
+};
+
+export type GetReplyQueryVariables = {
+  input: ReplyInput,
+};
+
+export type GetReplyQuery = {
+  getReply:  {
+    __typename: "Reply",
+    id: string | null,
+    commentID: string | null,
+    username: string | null,
+    videoID: string | null,
+    comment: string | null,
+    createdAt: string | null,
+    isEdited: boolean | null,
+  } | null,
+};
+
+export type GetReplyLikesQueryVariables = {
+  replyID: string,
+};
+
+export type GetReplyLikesQuery = {
+  getReplyLikes:  Array< {
+    __typename: "ReplyLikes",
+    username: string | null,
+    replyID: string | null,
+    commentID: string | null,
+    videoID: string | null,
+  } | null > | null,
+};
+
+export type GetReplyDislikesQueryVariables = {
+  replyID: string,
+};
+
+export type GetReplyDislikesQuery = {
+  getReplyDislikes:  Array< {
+    __typename: "ReplyDislikes",
+    username: string | null,
+    replyID: string | null,
+    commentID: string | null,
+    videoID: string | null,
+  } | null > | null,
+};
+
+export type GetUserQueryVariables = {
+  username?: string | null,
+};
+
+export type GetUserQuery = {
+  getUser:  {
+    __typename: "User",
+    username: string | null,
+    fullName: string | null,
+    email: string | null,
+    profileImg: string | null,
+    coverImg: string | null,
+    date_of_birth: string | null,
+    height: number | null,
+    weight: number | null,
+    team: boolean | null,
+    description: string | null,
+    followers: number | null,
+    following: number | null,
+  } | null,
+};
+
+export type SearchUsersQueryVariables = {
+  query?: string | null,
+};
+
+export type SearchUsersQuery = {
+  searchUsers:  Array< {
+    __typename: "User",
+    username: string | null,
+    fullName: string | null,
+    email: string | null,
+    profileImg: string | null,
+    coverImg: string | null,
+    date_of_birth: string | null,
+    height: number | null,
+    weight: number | null,
+    team: boolean | null,
+    description: string | null,
+    followers: number | null,
+    following: number | null,
+  } | null >,
+};
+
+export type GetMessagesQueryVariables = {
+  id?: string | null,
+};
+
+export type GetMessagesQuery = {
+  getMessages:  Array< {
+    __typename: "Message",
+    chatId: string,
+    id: string,
+    message: string,
     createdAt: string,
-    editedAt: string | null,
+    username: string,
+    userInfo:  Array< {
+      __typename: "User",
+      username: string | null,
+      fullName: string | null,
+      email: string | null,
+      profileImg: string | null,
+      coverImg: string | null,
+      date_of_birth: string | null,
+      height: number | null,
+      weight: number | null,
+      team: boolean | null,
+      description: string | null,
+      followers: number | null,
+      following: number | null,
+    } | null > | null,
+  } >,
+};
+
+export type GetRoomsQueryVariables = {
+  username: string,
+};
+
+export type GetRoomsQuery = {
+  getRooms:  Array< {
+    __typename: "UserRoom",
+    roomId: string | null,
+    users: string | null,
+  } | null >,
+};
+
+export type AddMessageSubscriptionVariables = {
+  chatId: string,
+};
+
+export type AddMessageSubscription = {
+  addMessage:  {
+    __typename: "Message",
+    chatId: string,
+    id: string,
+    message: string,
+    createdAt: string,
+    username: string,
+    userInfo:  Array< {
+      __typename: "User",
+      username: string | null,
+      fullName: string | null,
+      email: string | null,
+      profileImg: string | null,
+      coverImg: string | null,
+      date_of_birth: string | null,
+      height: number | null,
+      weight: number | null,
+      team: boolean | null,
+      description: string | null,
+      followers: number | null,
+      following: number | null,
+    } | null > | null,
   } | null,
 };

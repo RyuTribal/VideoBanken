@@ -29,6 +29,7 @@
     "react-phone-input-2": "^2.9.5",
     "react-player": "^1.14.0",
     "react-player-controls": "^1.1.0",
+    "react-player-controls-touch": "0.0.1",
     "react-plyr": "^2.2.0",
     "react-router-dom": "^5.0.1",
     "react-scripts": "^3.4.1",
@@ -37,6 +38,7 @@
     "react-tagsinput": "^3.19.0",
     "react-timeago": "^4.4.0",
     "react-uuid": "^1.0.2",
+    "react-web-gifted-chat": "^0.6.7",
     "simple-flexbox": "^2.3.1",
     "typescript": "^3.6.4"
   },

@@ -152,6 +152,13 @@ class SidebarComponent extends React.Component {
                 active={this.props.selectedItem === "Feed"}
                 link="/home/"
               />
+              <MenuItemsComponent
+                title="Inbox"
+                icon="fas fa-envelope"
+                onClick={() => this.onItemClicked("Inbox")}
+                active={this.props.selectedItem === "Inbox"}
+                link="/home/inbox"
+              />
               <div className={css(styles.separator)}></div>
               <MenuItemsComponent
                 title="Profil"

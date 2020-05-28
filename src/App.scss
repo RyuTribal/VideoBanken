@@ -43,7 +43,7 @@ select:focus {
   outline: none;
 }
 
-textarea {
+.input-wrappers textarea {
   resize: vertical;
   height: 200px !important;
 }
@@ -1072,6 +1072,34 @@ textarea {
   display: flex;
 }
 
+.time-slider-wrapper {
+  align-self: flex-end;
+  justify-self: flex-end;
+  width: 100%;
+  margin-top: auto;
+  margin-bottom: 10px;
+}
+
+.time-slider-pad {
+  padding-left: 2.5%;
+  padding-right: 2.5%;
+}
+
+.video-time-wrapper-mobile {
+  color: #fbf9f9;
+  font-size: 12px;
+}
+
+.player-bar-mobile {
+  height: 16px;
+  position: relative !important;
+  bottom: calc(0px + 4%);
+  width: 100%;
+  cursor: pointer;
+  display: flex;
+  z-index: 1;
+}
+
 .player-bar:hover .video-loaded {
   transform: scaleY(1.5);
   transition: transform 0.2s;
@@ -1125,8 +1153,24 @@ textarea {
   transition: transform 0.2s;
   align-self: flex-end;
 }
+.video-loaded-mobile {
+  height: 3px;
+  width: 0;
+  background-color: rgba(255, 255, 255, 0.4);
+  transition: transform 0.2s;
+  align-self: flex-end;
+}
 
 .player-bar .video-duration {
+  background-color: rgba(255, 255, 255, 0.2);
+  height: 3px;
+  transition: transform 0.2s;
+  align-self: flex-end;
+  width: 100%;
+  position: absolute;
+}
+
+.player-bar-mobile .video-duration {
   background-color: rgba(255, 255, 255, 0.2);
   height: 3px;
   transition: transform 0.2s;
@@ -1143,9 +1187,60 @@ textarea {
   background: $primary-color;
   border-radius: 50%;
   opacity: 0;
+  z-index: 1;
 }
 
-.player-bar .video-played-wrapper {
+.video-overlay {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 2;
+  opacity: 0;
+  visibility: hidden;
+  transition: 0.2s;
+}
+
+.video-overlay-active {
+  display: flex;
+  opacity: 1;
+  visibility: visible;
+  transition: 0.2s;
+}
+
+.play-wrapper {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  margin-top: auto;
+  margin-bottom: auto;
+  position: absolute;
+}
+
+.slider-circle-mobile {
+  height: 3px;
+  transform: scaleY(3) scaleX(3) !important;
+  width: 3px;
+  transition: transform 0.2s;
+  background: $primary-color;
+  border-radius: 50%;
+  opacity: 1;
+  z-index: 1;
+}
+
+.play-button-mobile {
+  font-size: 30px;
+  background: transparent;
+  border: none;
+  color: #fbf9f9;
+  text-shadow: rgb(0, 0, 0) 1px 0 20px;
+  outline: none;
+}
+.video-played-wrapper {
   height: 3px;
   align-self: flex-end;
   position: absolute;
@@ -1153,7 +1248,15 @@ textarea {
   width: 100%;
 }
 
-.player-bar .video-played {
+.video-played {
+  height: 100% !important;
+  width: 0;
+  background-color: $primary-color !important;
+  z-index: 1 !important;
+  transition: transform 0.2s !important;
+}
+
+.video-played-mobile {
   height: 100% !important;
   width: 0;
   background-color: $primary-color !important;
@@ -1167,17 +1270,28 @@ textarea {
   text-shadow: $dark-shade;
   bottom: calc(0px + 46px);
   z-index: 10;
+  text-align: center;
 }
 
-.video-time .frame-image {
+.video-time-mobile {
+  position: absolute;
+  color: $light-shade;
+  text-shadow: $dark-shade;
+  bottom: calc(0px + 20px);
+  z-index: 10;
+  text-align: center;
+}
+
+.frame-image {
   margin-bottom: 15px;
   background: $dark-shade;
   height: 84.38px;
   width: 150px;
 }
 
-.video-time {
-  text-align: center;
+.frame-image img {
+  height: 100%;
+  width: 100%;
 }
 
 .volume-button {

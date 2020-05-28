@@ -705,6 +705,7 @@ class Modal extends Component {
             </div>
             <div className={css(styles.buttonContainer)}>
               <button
+                disabled={isDisabled}
                 onClick={this.uploadVideo}
                 className={css(styles.confirmButton)}
               >
