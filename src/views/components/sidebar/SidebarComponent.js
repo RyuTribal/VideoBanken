@@ -160,6 +160,13 @@ class SidebarComponent extends React.Component {
                 active={this.props.selectedItem === "Profil"}
                 link={`/home/users/${this.props.username}`}
               />
+              <MenuItemsComponent
+                title="Huddinge P06"
+                icon="fas fa-users"
+                onClick={() => this.onItemClicked("Team")}
+                active={this.props.selectedItem === "Team"}
+                link={`/home/team/`} //'/home/teams/${this.props.team}'
+              />
               {/* <MenuItemsComponent
                 title="Tickets"
                 icon="fas fa-user"

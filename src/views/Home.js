@@ -12,6 +12,7 @@ import * as queries from "../graphql/queries";
 import * as mutations from "../graphql/mutations";
 import VideoUpload from "./VideoUpload";
 import HomeFeed from "./HomeFeed";
+import Team from "./Team";
 import Watch from "./Watch";
 import Profile from "./Profile";
 import { isMobile } from "react-device-detect";
@@ -27,7 +28,7 @@ const styles = StyleSheet.create({
     minHeight: "100vh",
   },
   content: {
-    marginTop: 54,
+    marginTop: 0,
     overflowY: "auto",
     overflowX: "hidden",
     height: "100vh",
@@ -185,6 +186,17 @@ class Home extends Component {
                           path={`${this.props.match.path}/users/:user`}
                           render={() => (
                             <Profile
+                              onChange={(selectedItem) =>
+                                this.setState({ selectedItem })
+                              }
+                              isMobile={isMobile}
+                            />
+                          )}
+                        />
+                        <Route
+                          path={`${this.props.match.path}/team`}
+                          render={() => (
+                            <Team
                               onChange={(selectedItem) =>
                                 this.setState({ selectedItem })
                               }

@@ -31,7 +31,7 @@ const styles = StyleSheet.create({
     cursor: "pointer",
   },
   name: {
-    fontFamily: "Muli",
+    fontFamily: "",
     fontStyle: "normal",
     fontWeight: 600,
     fontSize: 14,
