@@ -221,6 +221,12 @@ export const editUser = `mutation EditUser($input: UserInput!) {
     profileImg
     coverImg
     date_of_birth
+    height
+    weight
+    team
+    description
+    followers
+    following
   }
 }
 `;
@@ -232,6 +238,44 @@ export const deleteUser = `mutation DeleteUser($input: UserInput!) {
     profileImg
     coverImg
     date_of_birth
+    height
+    weight
+    team
+    description
+    followers
+    following
+  }
+}
+`;
+export const createMessage = `mutation CreateMessage($body: String!, $username: String!, $chatId: String!) {
+  createMessage(body: $body, username: $username, chatId: $chatId) {
+    chatId
+    id
+    message
+    createdAt
+    username
+    userInfo {
+      username
+      fullName
+      email
+      profileImg
+      coverImg
+      date_of_birth
+      height
+      weight
+      team
+      description
+      followers
+      following
+    }
+  }
+}
+`;
+export const createRoom = `mutation CreateRoom($users: AWSJSON!) {
+  createRoom(users: $users) {
+    id
+    name
+    createdAt
   }
 }
 `;

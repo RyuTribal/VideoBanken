@@ -155,3 +155,51 @@ export const getUser = `query GetUser($username: String) {
   }
 }
 `;
+export const searchUsers = `query SearchUsers($query: String) {
+  searchUsers(query: $query) {
+    username
+    fullName
+    email
+    profileImg
+    coverImg
+    date_of_birth
+    height
+    weight
+    team
+    description
+    followers
+    following
+  }
+}
+`;
+export const getMessages = `query GetMessages($id: String) {
+  getMessages(id: $id) {
+    chatId
+    id
+    message
+    createdAt
+    username
+    userInfo {
+      username
+      fullName
+      email
+      profileImg
+      coverImg
+      date_of_birth
+      height
+      weight
+      team
+      description
+      followers
+      following
+    }
+  }
+}
+`;
+export const getRooms = `query GetRooms($username: String!) {
+  getRooms(username: $username) {
+    roomId
+    users
+  }
+}
+`;

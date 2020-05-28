@@ -11,7 +11,7 @@ import {
   PlayerIcon,
   Button,
   FormattedTime,
-} from "react-player-controls";
+} from "react-player-controls-touch";
 import IdleTimer from "react-idle-timer";
 
 class Player extends Component {
@@ -89,7 +89,10 @@ class Player extends Component {
       }
     });
     document.addEventListener("mousedown", this.handleClickOutside);
-    this.wrapperRef.current.addEventListener("keydown", this.handleVideoShortcuts);
+    this.wrapperRef.current.addEventListener(
+      "keydown",
+      this.handleVideoShortcuts
+    );
   };
   componentWillUnmount = () => {
     this._isMounted = false;
@@ -122,7 +125,10 @@ class Player extends Component {
       }
     });
     document.removeEventListener("mousedown", this.handleClickOutside);
-    this.wrapperRef.current.removeEventListener("keydown", this.handleVideoShortcuts);
+    this.wrapperRef.current.removeEventListener(
+      "keydown",
+      this.handleVideoShortcuts
+    );
     clearInterval();
   };
   handleVideoShortcuts = (event) => {
@@ -971,11 +977,17 @@ class Player extends Component {
     }
   };
   addEvents() {
-    this.wrapperRef.current.addEventListener("keydown", this.handleVideoShortcuts);
+    this.wrapperRef.current.addEventListener(
+      "keydown",
+      this.handleVideoShortcuts
+    );
   }
 
   removeEvents() {
-    this.wrapperRef.current.removeEventListener("keydown", this.handleVideoShortcuts);
+    this.wrapperRef.current.removeEventListener(
+      "keydown",
+      this.handleVideoShortcuts
+    );
   }
 
   handleMouseMoving = (e) => {
@@ -1035,6 +1047,8 @@ class Player extends Component {
             volume={this.state.volumeLevel}
             onMouseMove={this.handleMouseMoving}
             onMouseOver={this.checkIdle}
+            controls={false}
+            playsinline={true}
             onEnded={() =>
               this.setState({ play: false, pause: false, replay: true })
             }

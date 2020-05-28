@@ -15,12 +15,14 @@ import HomeFeed from "./HomeFeed";
 import Team from "./Team";
 import Watch from "./Watch";
 import Profile from "./Profile";
+import Inbox from "./Inbox";
 import { isMobile } from "react-device-detect";
 import { Column, Row } from "simple-flexbox";
 import { StyleSheet, css } from "aphrodite";
 import SidebarComponent from "./components/sidebar/SidebarComponent";
 import HeaderComponent from "./components/header/HeaderComponent";
 import Modal from "./components/modal/Modal";
+import ChatModal from "./components/inbox/ChatModal";
 import MobileModal from "./components/modal/MobileModal";
 
 const styles = StyleSheet.create({
@@ -54,6 +56,8 @@ class Home extends Component {
       selectedItem: "",
       playerRef: null,
       playing: false,
+      mobileVideo: "",
+      chatModal: false,
     };
   }
   componentDidMount = async () => {
@@ -79,17 +83,18 @@ class Home extends Component {
     )
       .then((res) => {
         if (res.data.getUser === null) {
-          API.graphql(
-            graphqlOperation(mutations.addUser, {
-              input: {
-                username: this.state.user.username,
-                fullName: this.state.user.attributes.nickname,
-                email: this.state.user.attributes.email,
-              },
-            })
-          )
-            .then((res) => console.log(res))
-            .catch((err) => console.log(err));
+          console.log(res)
+          // API.graphql(
+          //   graphqlOperation(mutations.addUser, {
+          //     input: {
+          //       username: this.state.user.username,
+          //       fullName: this.state.user.attributes.nickname,
+          //       email: this.state.user.attributes.email,
+          //     },
+          //   })
+          // )
+          //   .then((res) => console.log(res))
+          //   .catch((err) => console.log(err));
         }
       })
       .catch((err) => {});
@@ -110,16 +115,43 @@ class Home extends Component {
     if (this.state.playing === true) {
       this.state.playerRef.getInternalPlayer().play();
     }
+    if (this.refs.fileUploader) {
+      this.refs.fileUploader.value = "";
+    }
     this.setState({ videoModal: false, playing: false });
   };
   render() {
     return (
       <BrowserRouter>
+        {this.state.chatModal && (
+          <ChatModal closeModal={() => this.setState({ chatModal: false })} />
+        )}
         {this.state.videoModal === true && !isMobile && (
           <Modal closeModal={this.closeModal} />
         )}
         {this.state.videoModal === true && isMobile && (
-          <MobileModal closeModal={this.closeModal} />
+          <MobileModal
+            closeModal={this.closeModal}
+            video={this.state.mobileVideo}
+          />
+        )}
+        {isMobile && (
+          <input
+            id="video-uploader"
+            type="file"
+            className="upload"
+            accept="video/*"
+            style={{ display: "none" }}
+            ref="fileUploader"
+            onChange={(e) => {
+              if (e.target.files[0]) {
+                this.setState({
+                  videoModal: true,
+                  mobileVideo: URL.createObjectURL(e.target.files[0]),
+                });
+              }
+            }}
+          ></input>
         )}
         <Row id="wrapper" className={css(styles.container)}>
           <SidebarComponent
@@ -142,77 +174,80 @@ class Home extends Component {
                     this.state.playerRef.getInternalPlayer().pause();
                   }
                 }
-                this.setState({ videoModal: true });
+                if (isMobile) {
+                  this.refs.fileUploader.click();
+                } else {
+                  this.setState({ videoModal: true });
+                }
               }}
             />
             <div className={css(styles.content)}>
-              <div className={css(styles.padded)}>
-                <Route
-                  render={(props) => {
-                    return (
-                      <Switch>
-                        <Route
-                          exact
-                          path={this.props.match.path}
-                          render={() => (
-                            <HomeFeed
-                              user={this.state.user}
-                              onChange={(selectedItem) =>
-                                this.setState({ selectedItem: selectedItem })
-                              }
-                            />
-                          )}
-                        />
-                        <Route
-                          path={`${this.props.match.path}/video-upload`}
-                          render={() => (
-                            <VideoUpload
-                              onChange={(selectedItem) =>
-                                this.setState({ selectedItem: selectedItem })
-                              }
-                            />
-                          )}
-                        />
-                        <Route
-                          path={`${this.props.match.path}/watch/:video`}
-                          render={() => (
-                            <Watch
-                              onChange={(selectedItem) =>
-                                this.setState({ selectedItem: selectedItem })
-                              }
-                              playerRef={(playerRef) =>
-                                this.setState({ playerRef: playerRef })
-                              }
-                            />
-                          )}
-                        />
-                        <Route
-                          path={`${this.props.match.path}/users/:user`}
-                          render={() => (
-                            <Profile
-                              onChange={(selectedItem) =>
-                                this.setState({ selectedItem })
-                              }
-                              isMobile={isMobile}
-                            />
-                          )}
-                        />
-                        <Route
-                          path={`${this.props.match.path}/team`}
-                          render={() => (
-                            <Team
-                              onChange={(selectedItem) =>
-                                this.setState({ selectedItem })
-                              }
-                              isMobile={isMobile}
-                            />
-                          )}
-                        />
-                      </Switch>
-                    );
-                  }}
-                />
-              </div>
+              <Route
+                render={(props) => {
+                  return (
+                    <Switch>
+                      <Route
+                        exact
+                        path={this.props.match.path}
+                        render={() => (
+                          <HomeFeed
+                            user={this.state.user}
+                            onChange={(selectedItem) =>
+                              this.setState({ selectedItem: selectedItem })
+                            }
+                          />
+                        )}
+                      />
+                      <Route
+                        path={`${this.props.match.path}/video-upload`}
+                        render={() => (
+                          <VideoUpload
+                            onChange={(selectedItem) =>
+                              this.setState({ selectedItem: selectedItem })
+                            }
+                          />
+                        )}
+                      />
+                      <Route
+                        path={`${this.props.match.path}/watch/:video`}
+                        render={() => (
+                          <Watch
+                            onChange={(selectedItem) =>
+                              this.setState({ selectedItem: selectedItem })
+                            }
+                            playerRef={(playerRef) =>
+                              this.setState({ playerRef: playerRef })
+                            }
+                          />
+                        )}
+                      />
+                      <Route
+                        path={`${this.props.match.path}/inbox/`}
+                        render={() => (
+                          <Inbox
+                            onChange={(selectedItem) =>
+                              this.setState({ selectedItem })
+                            }
+                            isMobile={isMobile}
+                            modal={() => this.setState({ chatModal: true })}
+                          />
+                        )}
+                      />
+                      <Route
+                        path={`${this.props.match.path}/users/:user`}
+                        render={() => (
+                          <Profile
+                            onChange={(selectedItem) =>
+                              this.setState({ selectedItem })
+                            }
+                            isMobile={isMobile}
+                          />
+                        )}
+                      />
+                    </Switch>
+                  );
+                }}
+              />
             </div>
           </Column>
         </Row>
