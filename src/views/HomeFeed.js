@@ -81,7 +81,8 @@ class HomeFeed extends Component {
             key={i}
             className="video-preview"
           >
-            <img src={details.thumbnail}></img>
+  
+            <div className="video-thumbnail" styles={{background: `url(${details.thumbnail})`}}></div>
             <div className="video-details">
               <div className="video-title-wrap">
                 <h3 className="video-title">{details.title}</h3>
