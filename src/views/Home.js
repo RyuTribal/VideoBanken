@@ -82,22 +82,25 @@ class Home extends Component {
       })
     )
       .then((res) => {
+        console.log(res);
         if (res.data.getUser === null) {
-          console.log(res)
-          // API.graphql(
-          //   graphqlOperation(mutations.addUser, {
-          //     input: {
-          //       username: this.state.user.username,
-          //       fullName: this.state.user.attributes.nickname,
-          //       email: this.state.user.attributes.email,
-          //     },
-          //   })
-          // )
-          //   .then((res) => console.log(res))
-          //   .catch((err) => console.log(err));
+          console.log(res);
+          API.graphql(
+            graphqlOperation(mutations.addUser, {
+              input: {
+                username: this.state.user.username,
+                fullName: this.state.user.attributes.nickname,
+                email: this.state.user.attributes.email,
+              },
+            })
+          )
+            .then((res) => console.log(res))
+            .catch((err) => console.log(err));
         }
       })
-      .catch((err) => {});
+      .catch((err) => {
+        console.log(err);
+      });
   };
 
   resize = () => {
@@ -218,6 +221,7 @@ class Home extends Component {
                             playerRef={(playerRef) =>
                               this.setState({ playerRef: playerRef })
                             }
+                            container={styles.content}
                           />
                         )}
                       />

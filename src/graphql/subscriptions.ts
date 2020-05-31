@@ -8,20 +8,8 @@ export const addMessage = `subscription AddMessage($chatId: String!) {
     message
     createdAt
     username
-    userInfo {
-      username
-      fullName
-      email
-      profileImg
-      coverImg
-      date_of_birth
-      height
-      weight
-      team
-      description
-      followers
-      following
-    }
+    profileImg
+    fullName
   }
 }
 `;

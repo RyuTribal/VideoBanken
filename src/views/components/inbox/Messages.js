@@ -8,6 +8,7 @@ import {
 } from "react-router-dom";
 import { StyleSheet, css } from "aphrodite";
 import blankProfile from "../../../img/blank-profile.png";
+import { Auth } from "aws-amplify";
 
 const styles = StyleSheet.create({
   container: {
@@ -93,11 +94,14 @@ class Messages extends Component {
       chatChosen: "",
     };
   }
-  componentDidMount = () =>{
-    if(this.isMobile()){
-      this.setState({ chats: this.props.chats, chatChosen: this.props.chosenChat });
+  componentDidMount = () => {
+    if (this.isMobile()) {
+      this.setState({
+        chats: this.props.chats,
+        chatChosen: this.props.chosenChat,
+      });
     }
-  }
+  };
   componentWillReceiveProps = async (props) => {
     this.setState({ chats: props.chats, chatChosen: props.chosenChat });
   };
@@ -151,8 +155,13 @@ class MessageBox extends Component {
     super();
     this.state = {
       active: false,
+      user: "",
     };
   }
+  componentDidMount = async () => {
+    const currentUser = await Auth.currentAuthenticatedUser();
+    this.setState({ user: currentUser.username });
+  };
   componentWillReceiveProps = (props) => {
     if (props.chosen && props.chosen === props.chat.roomId) {
       this.setState({ active: true });
@@ -172,6 +181,7 @@ class MessageBox extends Component {
     }
   };
   render() {
+    console.log(this.props.chat);
     return (
       <div onClick={this.props.onClick} className={css(styles.messageBox)}>
         <img className={css(styles.image)} src={blankProfile}></img>
@@ -179,9 +189,11 @@ class MessageBox extends Component {
           <div className={css(styles.name)}>
             {this.props.chat.title}{" "}
             {this.props.chat.users.length < 2 && (
-              <span
-                className={css(styles.user)}
-              >{`@${this.props.chat.users[0].username}`}</span>
+              <span className={css(styles.user)}>{`@${
+                this.props.chat.users && this.props.chat.users.length > 0
+                  ? this.props.chat.users[0].username
+                  : this.state.user
+              }`}</span>
             )}
           </div>
           <div className={css(styles.message)}>

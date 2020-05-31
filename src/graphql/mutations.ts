@@ -247,27 +247,27 @@ export const deleteUser = `mutation DeleteUser($input: UserInput!) {
   }
 }
 `;
-export const createMessage = `mutation CreateMessage($body: String!, $username: String!, $chatId: String!) {
-  createMessage(body: $body, username: $username, chatId: $chatId) {
+export const createMessage = `mutation CreateMessage(
+  $body: String!
+  $username: String!
+  $chatId: String!
+  $profileImg: String
+  $fullName: String!
+) {
+  createMessage(
+    body: $body
+    username: $username
+    chatId: $chatId
+    profileImg: $profileImg
+    fullName: $fullName
+  ) {
     chatId
     id
     message
     createdAt
     username
-    userInfo {
-      username
-      fullName
-      email
-      profileImg
-      coverImg
-      date_of_birth
-      height
-      weight
-      team
-      description
-      followers
-      following
-    }
+    profileImg
+    fullName
   }
 }
 `;

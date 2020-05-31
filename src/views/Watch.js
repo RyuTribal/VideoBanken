@@ -1,6 +1,12 @@
 import React, { Component } from "react";
 import ReactDOM from "react-dom";
-import { BrowserRouter, Switch, Route, Link, withRouter } from "react-router-dom";
+import {
+  BrowserRouter,
+  Switch,
+  Route,
+  Link,
+  withRouter,
+} from "react-router-dom";
 import { Auth, Hub, Storage, API, graphqlOperation } from "aws-amplify";
 import $ from "jquery";
 import * as queries from "../graphql/queries";
@@ -34,6 +40,7 @@ class Watch extends Component {
       likes: "",
       dislikes: "",
       offset: 0,
+      username: "",
     };
     this._isMounted = false;
     this.playerRef = React.createRef();
@@ -42,10 +49,12 @@ class Watch extends Component {
     this._isMounted = true;
     that = this;
     let videoID;
-    const username = "";
+    const currentUser = await Auth.currentAuthenticatedUser();
+    const username = currentUser.username;
+    this.setState({ username: username });
     let userInformation;
     this.props.onChange("None");
-    console.log(this.props)
+    console.log(this.props);
     videoID = this.props.match.params.video;
     let videoDetails = {};
     let videoUrl = "";
@@ -167,12 +176,12 @@ class Watch extends Component {
         that.handleDisLikes(that.username, videoID, userInformation);
       });
     }
-  }
+  };
 
   componentWillUnmount = () => {
     this._isMounted = false;
     document
-      .getElementsByClassName("content_1hrfb9k")[0]
+      .getElementsByClassName(this.props.container._name)[0]
       .removeEventListener("scroll", this.trackScrolling);
     clearInterval();
   };
@@ -359,7 +368,7 @@ class Watch extends Component {
         graphqlOperation(mutations.addComment, {
           input: {
             videoID: this.state.key,
-            username: this.username,
+            username: this.state.username,
             comment: comment,
           },
         })
