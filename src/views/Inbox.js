@@ -38,6 +38,8 @@ class Inbox extends Component {
       currentUsers: [],
       roomTitle: "",
       chosenWindow: "messages",
+      profileImg: "",
+      fullName: "",
     };
   }
   componentDidMount = async () => {
@@ -50,22 +52,35 @@ class Inbox extends Component {
     ).then((res) => {
       return res.data.getRooms;
     });
+    console.log(rooms);
+    console.log(rooms[0].users);
+    const currentUserInfo = JSON.parse(rooms[0].users).filter(
+      (i) => i.username === currentUser.username
+    );
+    this.setState({
+      profileImg: currentUserInfo[0].profileImg,
+      fullName: currentUserInfo[0].fullName,
+    });
     rooms = rooms.map((room) => {
       room.users = JSON.parse(room.users).filter(
         (i) => i.username !== currentUser.username
       );
-      if ((room.users.length = 1)) {
+      if (room.users.length === 1) {
         room.title = room.users[0].fullName;
+      } else if (room.users.length < 1) {
+        room.title = "Jag";
       }
       return room;
     });
-
-    this.setState({
-      chats: rooms,
-      chosenRoom: rooms[0].roomId,
-      currentUsers: rooms[0].users,
-      roomTitle: rooms[0].title,
-    });
+    if (rooms.length > 0) {
+      this.setState({
+        chats: rooms,
+        chosenRoom: rooms[0].roomId,
+        currentUsers: rooms[0].users,
+        roomTitle: rooms[0].title,
+      });
+    }
+    console.log(this.state.chosenRoom)
   };
 
   componentWillUnmount() {}
@@ -104,6 +119,8 @@ class Inbox extends Component {
               users={this.state.currentUsers}
               title={this.state.roomTitle}
               isMobile={this.props.isMobile}
+              fullName={this.state.fullName}
+              profileImg={this.state.profileImg}
             />
             <Search isMobile={this.props.isMobile} />
           </div>

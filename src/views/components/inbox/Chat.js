@@ -13,8 +13,9 @@ import { Auth, graphqlOperation, API } from "aws-amplify";
 import * as queries from "../../../graphql/queries";
 import * as mutations from "../../../graphql/mutations";
 import * as subscriptions from "../../../graphql/subscriptions";
-import { GiftedChat } from "react-web-gifted-chat";
+import { GiftedChat, Bubble } from "react-web-gifted-chat";
 import blankProfile from "../../../img/blank-profile.png";
+import { v4 as uuidv4 } from "uuid";
 
 const styles = StyleSheet.create({
   container: {
@@ -67,6 +68,9 @@ const styles = StyleSheet.create({
     fontSize: 16,
     marginRight: "0px",
   },
+  message: {
+    maxWidth: "100%",
+  },
 });
 let subscription;
 class Chat extends Component {
@@ -78,6 +82,8 @@ class Chat extends Component {
       id: null,
       users: [],
       title: "",
+      fullName: "",
+      profileImg: "",
     };
   }
   componentDidMount = async () => {
@@ -90,6 +96,51 @@ class Chat extends Component {
       subscription.unsubscribe();
     }
     if (this.props && this.isMobile()) {
+      this.setState(
+        {
+          profileImg: this.props.profileImg,
+          fullName: this.props.fullName,
+          id: this.props.id,
+          users: this.props.users,
+          title: this.props.title,
+        },
+        () => {
+          subscription = API.graphql(
+            graphqlOperation(subscriptions.addMessage, {
+              chatId: this.state.id,
+            })
+          ).subscribe({
+            next: (res) => {
+              console.log(res);
+              let currentMessage = res.value.data.addMessage;
+              console.log(currentMessage);
+              if (currentMessage.username === this.state.username) {
+              } else if (currentMessage.username !== this.state.username) {
+                console.log("hey");
+                if (currentMessage.profileImg === null) {
+                  currentMessage.profileImg = blankProfile;
+                }
+                this.setState((prevState) => ({
+                  messages: [
+                    ...prevState.messages,
+                    {
+                      id: currentMessage.id,
+                      text: currentMessage.message,
+                      createdAt: currentMessage.createdAt,
+                      user: {
+                        id: currentMessage.username,
+                        name: currentMessage.fullName,
+                        avatar: currentMessage.profileImg,
+                      },
+                    },
+                  ],
+                }));
+              }
+            },
+          });
+        }
+      );
+      console.log(this.props);
       API.graphql(
         graphqlOperation(queries.getMessages, {
           id: this.props.id,
@@ -98,82 +149,23 @@ class Chat extends Component {
         console.log(res.data.getMessages);
         let messageObjects = [];
         res.data.getMessages.map((message) => {
-          if (message.userInfo[0].profileImg === null) {
-            message.userInfo[0].profileImg = blankProfile;
+          if (message.profileImg === null) {
+            message.profileImg = blankProfile;
           }
           messageObjects.push({
             id: message.id,
             text: message.message,
             createdAt: message.createdAt,
             user: {
-              id: message.userInfo[0].username,
-              name: message.userInfo[0].fullName,
-              avatar: message.userInfo[0].profileImg,
+              id: message.username,
+              name: message.fullName,
+              avatar: message.profileImg,
             },
           });
         });
-        this.setState(
-          {
-            id: this.props.id,
-            users: this.props.users,
-            title: this.props.title,
-            messages: messageObjects,
-          },
-          () => {
-            subscription = API.graphql(
-              graphqlOperation(subscriptions.addMessage, {
-                chatId: this.state.id,
-              })
-            ).subscribe({
-              next: (res) => {
-                console.log(res);
-                let currentMessage = res.value.data.addMessage;
-                console.log(currentMessage);
-                if (currentMessage.username === this.state.username) {
-                  this.setState((prevState) => ({
-                    messages: [
-                      ...prevState.messages,
-                      {
-                        id: currentMessage.id,
-                        text: currentMessage.message,
-                        createdAt: currentMessage.createdAt,
-                        user: {
-                          id: this.state.username,
-                          name: this.state.username,
-                        },
-                      },
-                    ],
-                  }));
-                } else {
-                  API.graphql(
-                    graphqlOperation(queries.getUser, {
-                      username: currentMessage.username,
-                    })
-                  ).then((res) => {
-                    if (res.data.getUser.profileImg === null) {
-                      res.data.getUser.profileImg = blankProfile;
-                    }
-                    this.setState((prevState) => ({
-                      messages: [
-                        ...prevState.messages,
-                        {
-                          id: currentMessage.id,
-                          text: currentMessage.message,
-                          createdAt: currentMessage.createdAt,
-                          user: {
-                            id: res.data.getUser.username,
-                            name: res.data.getUser.fullName,
-                            avatar: res.data.getUser.profileImg,
-                          },
-                        },
-                      ],
-                    }));
-                  });
-                }
-              },
-            });
-          }
-        );
+        this.setState({
+          messages: messageObjects,
+        });
       });
     }
   };
@@ -192,9 +184,53 @@ class Chat extends Component {
     if (subscription) {
       subscription.unsubscribe();
     }
-    let currentProps = props;
-    console.log(props);
     if (props) {
+      console.log(props);
+      let currentProps = props;
+      this.setState(
+        {
+          profileImg: currentProps.profileImg,
+          fullName: currentProps.fullName,
+          id: currentProps.id,
+          users: currentProps.users,
+          title: currentProps.title,
+        },
+        () => {
+          subscription = API.graphql(
+            graphqlOperation(subscriptions.addMessage, {
+              chatId: this.state.id,
+            })
+          ).subscribe({
+            next: (res) => {
+              console.log(res);
+              let currentMessage = res.value.data.addMessage;
+              console.log(currentMessage);
+              if (currentMessage.username === this.state.username) {
+              } else if (currentMessage.username !== this.state.username) {
+                console.log("hey");
+                if (currentMessage.profileImg === null) {
+                  currentMessage.profileImg = blankProfile;
+                }
+                this.setState((prevState) => ({
+                  messages: [
+                    ...prevState.messages,
+                    {
+                      id: currentMessage.id,
+                      text: currentMessage.message,
+                      createdAt: currentMessage.createdAt,
+                      user: {
+                        id: currentMessage.username,
+                        name: currentMessage.fullName,
+                        avatar: currentMessage.profileImg,
+                      },
+                    },
+                  ],
+                }));
+              }
+            },
+          });
+        }
+      );
       API.graphql(
         graphqlOperation(queries.getMessages, {
           id: props.id,
@@ -203,97 +239,77 @@ class Chat extends Component {
         console.log(res.data.getMessages);
         let messageObjects = [];
         res.data.getMessages.map((message) => {
-          if (message.userInfo[0].profileImg === null) {
-            message.userInfo[0].profileImg = blankProfile;
+          if (message.profileImg === null) {
+            message.profileImg = blankProfile;
           }
           messageObjects.push({
             id: message.id,
             text: message.message,
             createdAt: message.createdAt,
             user: {
-              id: message.userInfo[0].username,
-              name: message.userInfo[0].fullName,
-              avatar: message.userInfo[0].profileImg,
+              id: message.username,
+              name: message.fullName,
+              avatar: message.profileImg,
             },
           });
         });
-        this.setState(
-          {
-            id: currentProps.id,
-            users: currentProps.users,
-            title: currentProps.title,
-            messages: messageObjects,
-          },
-          () => {
-            subscription = API.graphql(
-              graphqlOperation(subscriptions.addMessage, {
-                chatId: this.state.id,
-              })
-            ).subscribe({
-              next: (res) => {
-                console.log(res);
-                let currentMessage = res.value.data.addMessage;
-                console.log(currentMessage);
-                if (currentMessage.username === this.state.username) {
-                  this.setState((prevState) => ({
-                    messages: [
-                      ...prevState.messages,
-                      {
-                        id: currentMessage.id,
-                        text: currentMessage.message,
-                        createdAt: currentMessage.createdAt,
-                        user: {
-                          id: this.state.username,
-                          name: this.state.username,
-                        },
-                      },
-                    ],
-                  }));
-                } else {
-                  API.graphql(
-                    graphqlOperation(queries.getUser, {
-                      username: currentMessage.username,
-                    })
-                  ).then((res) => {
-                    if (res.data.getUser.profileImg === null) {
-                      res.data.getUser.profileImg = blankProfile;
-                    }
-                    this.setState((prevState) => ({
-                      messages: [
-                        ...prevState.messages,
-                        {
-                          id: currentMessage.id,
-                          text: currentMessage.message,
-                          createdAt: currentMessage.createdAt,
-                          user: {
-                            id: res.data.getUser.username,
-                            name: res.data.getUser.fullName,
-                            avatar: res.data.getUser.profileImg,
-                          },
-                        },
-                      ],
-                    }));
-                  });
-                }
-              },
-            });
-          }
-        );
+        console.log(currentProps);
+        this.setState({
+          messages: messageObjects,
+        });
       });
     }
   };
 
   componentWillUnmount() {}
   onSend = async (message) => {
+    console.log(message);
+    this.setState((prevState) => ({
+      messages: [
+        ...prevState.messages,
+        {
+          id: uuidv4(),
+          text: message,
+          createdAt: new Date(),
+          user: {
+            id: this.state.username,
+          },
+        },
+      ],
+    }));
+    console.log(this.state.id);
     await API.graphql(
       graphqlOperation(mutations.createMessage, {
         chatId: this.state.id,
         body: message,
         username: this.state.username,
+        fullName: this.state.fullName,
+        profileImg: this.state.profileImg,
       })
-    ).then((res) => {});
+    ).then((res) => {
+      console.log(res);
+    });
+  };
+  customBubble = (props) => {
+    return (
+      <Bubble
+        {...props}
+        wrapperStyle={{
+          right: {
+            backgroundColor: "#ea3a3a",
+            display: "block",
+            maxWidth: 500,
+          },
+          left: {
+            maxWidth: "1200px",
+            maxWidth: "100%",
+          },
+        }}
+      />
+    );
   };
   render() {
+    console.log(this.state.id);
     return (
       <div className={css(styles.container)}>
         <div className={css(styles.headerContainer)}>
@@ -316,11 +332,11 @@ class Chat extends Component {
           </h3>
           {this.isMobile() && (
             <button
-            onClick={this.props.back}
-            className={css(styles.headerRightButton)}
-          >
-            <i className="fas fa-cog"></i>
-          </button>
+              onClick={this.props.back}
+              className={css(styles.headerRightButton)}
+            >
+              <i className="fas fa-cog"></i>
+            </button>
           )}
         </div>
         <GiftedChat
@@ -334,6 +350,7 @@ class Chat extends Component {
             id: this.state.username,
           }}
           inverted={false}
+          renderBubble={this.customBubble}
         />
       </div>
     );
