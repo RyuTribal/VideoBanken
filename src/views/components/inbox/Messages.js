@@ -161,6 +161,11 @@ class MessageBox extends Component {
   componentDidMount = async () => {
     const currentUser = await Auth.currentAuthenticatedUser();
     this.setState({ user: currentUser.username });
+    if (this.props.chosen && this.props.chosen === this.props.chat.roomId) {
+      this.setState({ active: true });
+    } else {
+      this.setState({ active: false });
+    }
   };
   componentWillReceiveProps = (props) => {
     if (props.chosen && props.chosen === props.chat.roomId) {

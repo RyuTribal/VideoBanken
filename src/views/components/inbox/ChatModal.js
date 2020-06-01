@@ -255,13 +255,15 @@ class ChatModal extends Component {
     }
     const currentUser = await Auth.currentAuthenticatedUser();
     userArray.push(currentUser.username);
+    userArray = [...new Set(userArray)];
     console.log(userArray);
     await API.graphql(
       graphqlOperation(mutations.createRoom, {
         users: JSON.stringify(userArray),
       })
     ).then((res) => {
-      this.props.closeModal();
+      console.log(res)
+      this.props.closeModal(true);
     });
   };
   render() {
@@ -275,7 +277,7 @@ class ChatModal extends Component {
           <div className={css(styles.modalContent)}>
             <div className={css(styles.modalHeader)}>
               <h2
-                onClick={this.props.closeModal}
+                onClick={() => this.props.closeModal(false)}
                 className={css(styles.closeModal)}
               >
                 <i className="fas fa-times"></i>

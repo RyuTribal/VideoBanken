@@ -45,45 +45,56 @@ class Inbox extends Component {
   componentDidMount = async () => {
     this.props.onChange("Inbox");
     const currentUser = await Auth.currentAuthenticatedUser();
+    this.setState({username: currentUser.username})
+    this.getRooms()
+    
+  };
+  componentWillReceiveProps = (props) => {
+    if (props.newChat === true) {
+      this.getRooms()
+    }
+  };
+  componentWillUnmount() {}
+  getRooms = async () =>{
     let rooms = await API.graphql(
       graphqlOperation(queries.getRooms, {
-        username: currentUser.username,
+        username: this.state.username,
       })
     ).then((res) => {
       return res.data.getRooms;
     });
-    console.log(rooms);
-    console.log(rooms[0].users);
-    const currentUserInfo = JSON.parse(rooms[0].users).filter(
-      (i) => i.username === currentUser.username
-    );
-    this.setState({
-      profileImg: currentUserInfo[0].profileImg,
-      fullName: currentUserInfo[0].fullName,
-    });
-    rooms = rooms.map((room) => {
-      room.users = JSON.parse(room.users).filter(
-        (i) => i.username !== currentUser.username
-      );
-      if (room.users.length === 1) {
-        room.title = room.users[0].fullName;
-      } else if (room.users.length < 1) {
-        room.title = "Jag";
-      }
-      return room;
-    });
     if (rooms.length > 0) {
+      console.log(rooms);
+      console.log(rooms[0].users);
+      const currentUserInfo = JSON.parse(rooms[0].users).filter(
+        (i) => i.username === this.state.username
+      );
       this.setState({
-        chats: rooms,
-        chosenRoom: rooms[0].roomId,
-        currentUsers: rooms[0].users,
-        roomTitle: rooms[0].title,
+        profileImg: currentUserInfo[0].profileImg,
+        fullName: currentUserInfo[0].fullName,
       });
+      rooms = rooms.map((room) => {
+        room.users = JSON.parse(room.users).filter(
+          (i) => i.username !== this.state.username
+        );
+        if (room.users.length === 1) {
+          room.title = room.users[0].fullName;
+        } else if (room.users.length < 1) {
+          room.title = "Jag";
+        }
+        return room;
+      });
+      if (rooms.length > 0) {
+        this.setState({
+          chats: rooms,
+          chosenRoom: rooms[0].roomId,
+          currentUsers: rooms[0].users,
+          roomTitle: rooms[0].title,
+        });
+      }
+      console.log(this.state.chosenRoom);
     }
-    console.log(this.state.chosenRoom)
-  };
-
-  componentWillUnmount() {}
+  }
   isMobile = () => {
     if (
       window.matchMedia("(max-width: 813px)").matches ||
