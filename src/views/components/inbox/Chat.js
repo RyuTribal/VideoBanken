@@ -163,6 +163,9 @@ class Chat extends Component {
             },
           });
         });
+        messageObjects.sort((a, b) => {
+          return new Date(a.createdAt) - new Date(b.createdAt);
+        });
         this.setState({
           messages: messageObjects,
         });
@@ -253,7 +256,9 @@ class Chat extends Component {
             },
           });
         });
-        console.log(currentProps);
+        messageObjects.sort((a, b) => {
+          return new Date(a.createdAt) - new Date(b.createdAt);
+        });
         this.setState({
           messages: messageObjects,
         });

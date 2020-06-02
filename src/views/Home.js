@@ -58,6 +58,7 @@ class Home extends Component {
       playing: false,
       mobileVideo: "",
       chatModal: false,
+      newChat: false,
     };
   }
   componentDidMount = async () => {
@@ -127,7 +128,7 @@ class Home extends Component {
     return (
       <BrowserRouter>
         {this.state.chatModal && (
-          <ChatModal closeModal={() => this.setState({ chatModal: false })} />
+          <ChatModal closeModal={(newChat) => this.setState({ chatModal: false,  newChat: newChat})} />
         )}
         {this.state.videoModal === true && !isMobile && (
           <Modal closeModal={this.closeModal} />
@@ -234,6 +235,7 @@ class Home extends Component {
                             }
                             isMobile={isMobile}
                             modal={() => this.setState({ chatModal: true })}
+                            newChat={this.state.newChat}
                           />
                         )}
                       />
