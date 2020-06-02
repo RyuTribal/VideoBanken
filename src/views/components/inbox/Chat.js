@@ -9,7 +9,7 @@ import {
 import { StyleSheet, css } from "aphrodite";
 import SendMessage from "./SendMessage";
 import { Connect } from "aws-amplify-react";
-import { Auth, graphqlOperation, API } from "aws-amplify";
+import { Auth, graphqlOperation, API, Analytics } from "aws-amplify";
 import * as queries from "../../../graphql/queries";
 import * as mutations from "../../../graphql/mutations";
 import * as subscriptions from "../../../graphql/subscriptions";
@@ -111,7 +111,6 @@ class Chat extends Component {
             })
           ).subscribe({
             next: (res) => {
-              console.log(res);
               let currentMessage = res.value.data.addMessage;
               console.log(currentMessage);
               if (currentMessage.username === this.state.username) {
@@ -205,7 +204,6 @@ class Chat extends Component {
             })
           ).subscribe({
             next: (res) => {
-              console.log(res);
               let currentMessage = res.value.data.addMessage;
               console.log(currentMessage);
               if (currentMessage.username === this.state.username) {
@@ -268,7 +266,7 @@ class Chat extends Component {
 
   componentWillUnmount() {}
   onSend = async (message) => {
-    console.log(message);
+    Analytics.record({name: 'Chat MSG Sent'})
     this.setState((prevState) => ({
       messages: [
         ...prevState.messages,
@@ -282,7 +280,6 @@ class Chat extends Component {
         },
       ],
     }));
-    console.log(this.state.id);
     await API.graphql(
       graphqlOperation(mutations.createMessage, {
         chatId: this.state.id,
@@ -292,7 +289,6 @@ class Chat extends Component {
         profileImg: this.state.profileImg,
       })
     ).then((res) => {
-      console.log(res);
     });
   };
   customBubble = (props) => {
@@ -314,7 +310,6 @@ class Chat extends Component {
     );
   };
   render() {
-    console.log(this.state.id);
     return (
       <div className={css(styles.container)}>
         <div className={css(styles.headerContainer)}>

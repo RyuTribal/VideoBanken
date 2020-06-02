@@ -13,6 +13,13 @@ const styles = StyleSheet.create({
     height: "100%",
     width: "100%",
     flex: 1,
+    borderLeft: "1px solid rgb(191, 156, 150)",
+    "@media (max-width: 813px)": {
+      borderLeft: "none",
+    },
+    "@media (max-width: 1025px) and (orientation: landscape)": {
+      borderLeft: "none",
+    },
   },
   headerContainer: {
     borderTop: "1px solid rgb(191, 156, 150)",
