@@ -124,6 +124,7 @@ class Inbox extends Component {
               chosenChat={this.state.chosenRoom}
               modal={this.props.modal}
               isMobile={this.props.isMobile}
+              latestMessage={this.state.latestMessage}
             />
             <Chat
               id={this.state.chosenRoom}

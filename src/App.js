@@ -9,7 +9,7 @@ import Login from "./views/Login";
 import Home from "./views/Home";
 import PasswordReset from "./views/PasswordReset";
 import Amplify from "aws-amplify";
-import { Auth, Hub, Storage, API } from "aws-amplify";
+import { Auth, Hub, Storage, API, Analytics } from "aws-amplify";
 import awsconfig from "./aws-exports";
 
 Amplify.configure(awsconfig);
@@ -21,13 +21,22 @@ Amplify.configure({
     region: "eu-west-1",
     // OPTIONAL - Amazon Cognito User Pool ID
     userPoolId: "eu-west-1_QHxELz5qn",
-    userPoolWebClientId: "72lr8fbf82sbo9c115ksr16u5n"
+    userPoolWebClientId: "72lr8fbf82sbo9c115ksr16u5n",
   },
   Storage: {
     AWSS3: {
       bucket: "video-bank-video-storage", //REQUIRED -  Amazon S3 bucket
-      region: "eu-west-1" //OPTIONAL -  Amazon service region
-    }
+      region: "eu-west-1", //OPTIONAL -  Amazon service region
+    },
+  },
+  Analytics: {
+    AWSPinpoint: {
+      // Amazon Pinpoint App Client ID
+      appId: "b56de6d3fc754719ac4017df3fe9c8e5",
+      // Amazon service region
+      region: "eu-west-1",
+      mandatorySignIn: false,
+    },
   },
   aws_appsync_graphqlEndpoint:
     "https://p5cbrelhdzdy7kxk2b77xaxaai.appsync-api.eu-west-1.amazonaws.com/graphql",
