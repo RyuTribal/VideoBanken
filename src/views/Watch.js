@@ -517,7 +517,8 @@ class Watch extends Component {
             <div className="username-description-wrap">
               <div className="username-wrapper">
                 <Link to={`profile/${this.state.videoDetails.username}`}>
-                  {this.state.videoDetails.username}
+                <div className="username-profile-picture"></div>
+                                    {this.state.videoDetails.username}
                 </Link>
               </div>
               <div className="description-wrapper">
