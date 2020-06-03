@@ -281,7 +281,7 @@ class Chat extends Component {
 
   componentWillUnmount() {}
   onSend = async (message) => {
-    Analytics.record({ name: "Chat MSG Sent" });
+    // Analytics.record({ name: "Chat MSG Sent" });
     this.setState((prevState) => ({
       messages: [
         ...prevState.messages,

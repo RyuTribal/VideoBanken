@@ -11,10 +11,5 @@
 			"providerPlugin": "awscloudformation"
 		}
 	},
-	"analytics": {
-		"hermes": {
-			"service": "Pinpoint",
-			"providerPlugin": "awscloudformation"
-		}
-	}
+	"analytics": {}
 }
