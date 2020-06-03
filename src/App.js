@@ -29,15 +29,15 @@ Amplify.configure({
       region: "eu-west-1", //OPTIONAL -  Amazon service region
     },
   },
-  Analytics: {
-    AWSPinpoint: {
-      // Amazon Pinpoint App Client ID
-      appId: "b56de6d3fc754719ac4017df3fe9c8e5",
-      // Amazon service region
-      region: "eu-west-1",
-      mandatorySignIn: false,
-    },
-  },
+  // Analytics: {
+  //   AWSPinpoint: {
+  //     // Amazon Pinpoint App Client ID
+  //     appId: "b56de6d3fc754719ac4017df3fe9c8e5",
+  //     // Amazon service region
+  //     region: "eu-west-1",
+  //     mandatorySignIn: false,
+  //   },
+  // },
   aws_appsync_graphqlEndpoint:
     "https://p5cbrelhdzdy7kxk2b77xaxaai.appsync-api.eu-west-1.amazonaws.com/graphql",
   aws_appsync_region: "eu-west-1",
