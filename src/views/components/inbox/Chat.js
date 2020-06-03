@@ -13,7 +13,7 @@ import { Auth, graphqlOperation, API, Analytics } from "aws-amplify";
 import * as queries from "../../../graphql/queries";
 import * as mutations from "../../../graphql/mutations";
 import * as subscriptions from "../../../graphql/subscriptions";
-import { GiftedChat, Bubble } from "react-web-gifted-chat";
+import { GiftedChat, Bubble, Time } from "react-web-gifted-chat";
 import blankProfile from "../../../img/blank-profile.png";
 import { v4 as uuidv4 } from "uuid";
 
@@ -70,6 +70,21 @@ const styles = StyleSheet.create({
   },
   message: {
     maxWidth: "100%",
+  },
+  messageTimeWrapper: {
+    display: "flex",
+    flexDirection: "row",
+    color: "#ffffff",
+  },
+  messageStatus: {
+    marginRight: 5,
+    fontSize: 10,
+  },
+  sent: {
+    color: "#909090",
+  },
+  read: {
+    color: "#4BB543",
   },
 });
 let subscription;
@@ -266,7 +281,7 @@ class Chat extends Component {
 
   componentWillUnmount() {}
   onSend = async (message) => {
-    Analytics.record({name: 'Chat MSG Sent'})
+    Analytics.record({ name: "Chat MSG Sent" });
     this.setState((prevState) => ({
       messages: [
         ...prevState.messages,
@@ -288,8 +303,7 @@ class Chat extends Component {
         fullName: this.state.fullName,
         profileImg: this.state.profileImg,
       })
-    ).then((res) => {
-    });
+    ).then((res) => {});
   };
   customBubble = (props) => {
     return (
@@ -297,16 +311,38 @@ class Chat extends Component {
         {...props}
         wrapperStyle={{
           right: {
-            backgroundColor: "#ea3a3a",
+            backgroundColor: "rgb(38, 48, 64)",
             display: "block",
             maxWidth: 500,
+            color: "#fbf9f9",
           },
           left: {
+            color: "rgb(38, 48, 64)",
             maxWidth: "1200px",
             maxWidth: "100%",
           },
         }}
       />
+    );
+  };
+  customTime = (props) => {
+    console.log(props);
+    return (
+      <div className={css(styles.messageTimeWrapper)}>
+        <Time {...props} />
+        {props.currentMessage.user.id === this.state.username && (
+          <div
+            className={css(
+              styles.messageStatus,
+              props.currentMessage.read && props.currentMessage.read.length > 0
+                ? styles.read
+                : styles.sent
+            )}
+          >
+            <i className="fas fa-check"></i>
+          </div>
+        )}
+      </div>
     );
   };
   render() {
@@ -351,6 +387,7 @@ class Chat extends Component {
           }}
           inverted={false}
           renderBubble={this.customBubble}
+          renderTime={this.customTime}
         />
       </div>
     );

@@ -159,6 +159,8 @@ class Inbox extends Component {
                 users={this.state.currentUsers}
                 title={this.state.roomTitle}
                 back={() => this.setState({ chosenWindow: "messages" })}
+                fullName={this.state.fullName}
+                profileImg={this.state.profileImg}
               />
             )}
             {this.state.chosenWindow === "settings" && <Search />}
