@@ -87,6 +87,7 @@ const styles = StyleSheet.create({
     color: "#4BB543",
   },
 });
+let subscription;
 class Chat extends Component {
   constructor() {
     super();
@@ -99,7 +100,6 @@ class Chat extends Component {
       fullName: "",
       profileImg: "",
     };
-    this.subscription = null;
   }
   componentDidMount = async () => {
     const { username } = await Auth.currentAuthenticatedUser();
@@ -107,8 +107,8 @@ class Chat extends Component {
     this.setState({
       username: username,
     });
-    if (this.subscription) {
-      this.subscription.unsubscribe();
+    if (subscription) {
+      subscription.unsubscribe();
     }
     if (this.props && this.isMobile()) {
       this.setState(
@@ -120,7 +120,7 @@ class Chat extends Component {
           title: this.props.title,
         },
         () => {
-          this.subscription = API.graphql(
+          subscription = API.graphql(
             graphqlOperation(subscriptions.addMessage, {
               chatId: this.state.id,
             })
@@ -210,8 +210,7 @@ class Chat extends Component {
           title: currentProps.title,
         },
         () => {
-          console.log(this.state.id)
-          this.subscription = API.graphql(
+          subscription = API.graphql(
             graphqlOperation(subscriptions.addMessage, {
               chatId: this.state.id,
             })
