@@ -86,7 +86,6 @@ class Inbox extends Component {
       if (rooms.length > 0) {
         this.setState({
           chats: rooms,
-          chosenRoom: rooms[0].roomId,
           currentUsers: rooms[0].users,
           roomTitle: rooms[0].title,
         });

@@ -282,7 +282,7 @@ class Chat extends Component {
   };
 
   componentWillUnmount() {
-    this.subscription.unsubscribe();
+    subscription.unsubscribe();
   }
   onSend = async (message) => {
     // Analytics.record({ name: "Chat MSG Sent" });
@@ -380,20 +380,24 @@ class Chat extends Component {
             </button>
           )}
         </div>
-        <GiftedChat
-          maxInputLength={250}
-          className={css(styles.messages)}
-          messages={this.state.messages}
-          renderUsernameOnMessage={true}
-          placeholder="Skriv ett meddelande här..."
-          onSend={(messages) => this.onSend(messages[0].text)}
-          user={{
-            id: this.state.username,
-          }}
-          inverted={false}
-          renderBubble={this.customBubble}
-          renderTime={this.customTime}
-        />
+        {this.state.id ? (
+          <GiftedChat
+            maxInputLength={250}
+            className={css(styles.messages)}
+            messages={this.state.messages}
+            renderUsernameOnMessage={true}
+            placeholder="Skriv ett meddelande här..."
+            onSend={(messages) => this.onSend(messages[0].text)}
+            user={{
+              id: this.state.username,
+            }}
+            inverted={false}
+            renderBubble={this.customBubble}
+            renderTime={this.customTime}
+          />
+        ) : (
+          <div>Välj ett run och börja chatta i</div>
+        )}
       </div>
     );
   }
