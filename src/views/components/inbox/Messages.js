@@ -168,7 +168,7 @@ class MessageBox extends Component {
       lastMessage: "",
     };
   }
-  subscription
+  subscription = null;
   componentDidMount = async () => {
     const currentUser = await Auth.currentAuthenticatedUser();
     this.setState({ user: currentUser.username });
