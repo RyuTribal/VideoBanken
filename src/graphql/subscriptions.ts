@@ -13,3 +13,15 @@ export const addMessage = `subscription AddMessage($chatId: String!) {
   }
 }
 `;
+export const roomMessage = `subscription RoomMessage($chatId: String!) {
+  roomMessage(chatId: $chatId) {
+    chatId
+    id
+    message
+    createdAt
+    username
+    profileImg
+    fullName
+  }
+}
+`;

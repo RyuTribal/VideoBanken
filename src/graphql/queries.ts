@@ -184,6 +184,18 @@ export const getMessages = `query GetMessages($id: String) {
   }
 }
 `;
+export const getLastMessage = `query GetLastMessage($chatId: String) {
+  getLastMessage(chatId: $chatId) {
+    chatId
+    id
+    message
+    createdAt
+    username
+    profileImg
+    fullName
+  }
+}
+`;
 export const getRooms = `query GetRooms($username: String!) {
   getRooms(username: $username) {
     roomId

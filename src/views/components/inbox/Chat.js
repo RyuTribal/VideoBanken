@@ -87,7 +87,6 @@ const styles = StyleSheet.create({
     color: "#4BB543",
   },
 });
-let subscription;
 class Chat extends Component {
   constructor() {
     super();
@@ -100,6 +99,7 @@ class Chat extends Component {
       fullName: "",
       profileImg: "",
     };
+    this.subscription = null;
   }
   componentDidMount = async () => {
     const { username } = await Auth.currentAuthenticatedUser();
@@ -107,8 +107,8 @@ class Chat extends Component {
     this.setState({
       username: username,
     });
-    if (subscription) {
-      subscription.unsubscribe();
+    if (this.subscription) {
+      this.subscription.unsubscribe();
     }
     if (this.props && this.isMobile()) {
       this.setState(
@@ -120,7 +120,7 @@ class Chat extends Component {
           title: this.props.title,
         },
         () => {
-          subscription = API.graphql(
+          this.subscription = API.graphql(
             graphqlOperation(subscriptions.addMessage, {
               chatId: this.state.id,
             })
@@ -131,7 +131,7 @@ class Chat extends Component {
               if (currentMessage.username === this.state.username) {
               } else if (currentMessage.username !== this.state.username) {
                 console.log("hey");
-                if (currentMessage.profileImg === null) {
+                if (currentMessage.profileImg === "null") {
                   currentMessage.profileImg = blankProfile;
                 }
                 this.setState((prevState) => ({
@@ -163,7 +163,7 @@ class Chat extends Component {
         console.log(res.data.getMessages);
         let messageObjects = [];
         res.data.getMessages.map((message) => {
-          if (message.profileImg === null) {
+          if (message.profileImg === "null") {
             message.profileImg = blankProfile;
           }
           messageObjects.push({
@@ -198,10 +198,7 @@ class Chat extends Component {
     }
   };
   componentWillReceiveProps = (props) => {
-    if (subscription) {
-      subscription.unsubscribe();
-    }
-    if (props) {
+    if (props && !this.isMobile()) {
       console.log(props);
       let currentProps = props;
       this.setState(
@@ -213,7 +210,7 @@ class Chat extends Component {
           title: currentProps.title,
         },
         () => {
-          subscription = API.graphql(
+          this.subscription = API.graphql(
             graphqlOperation(subscriptions.addMessage, {
               chatId: this.state.id,
             })
@@ -224,9 +221,10 @@ class Chat extends Component {
               if (currentMessage.username === this.state.username) {
               } else if (currentMessage.username !== this.state.username) {
                 console.log("hey");
-                if (currentMessage.profileImg === null) {
+                if (currentMessage.profileImg === "null") {
                   currentMessage.profileImg = blankProfile;
                 }
+
                 this.setState((prevState) => ({
                   messages: [
                     ...prevState.messages,
@@ -255,7 +253,8 @@ class Chat extends Component {
         console.log(res.data.getMessages);
         let messageObjects = [];
         res.data.getMessages.map((message) => {
-          if (message.profileImg === null) {
+          if (message.profileImg === "null") {
+            console.log();
             message.profileImg = blankProfile;
           }
           messageObjects.push({
@@ -279,7 +278,9 @@ class Chat extends Component {
     }
   };
 
-  componentWillUnmount() {}
+  componentWillUnmount() {
+    this.subscription.unsubscribe();
+  }
   onSend = async (message) => {
     // Analytics.record({ name: "Chat MSG Sent" });
     this.setState((prevState) => ({
@@ -295,6 +296,7 @@ class Chat extends Component {
         },
       ],
     }));
+    console.log(this.state.profileImg);
     await API.graphql(
       graphqlOperation(mutations.createMessage, {
         chatId: this.state.id,
@@ -314,10 +316,8 @@ class Chat extends Component {
             backgroundColor: "rgb(38, 48, 64)",
             display: "block",
             maxWidth: 500,
-            color: "#fbf9f9",
           },
           left: {
-            color: "rgb(38, 48, 64)",
             maxWidth: "1200px",
             maxWidth: "100%",
           },

@@ -45,17 +45,16 @@ class Inbox extends Component {
   componentDidMount = async () => {
     this.props.onChange("Inbox");
     const currentUser = await Auth.currentAuthenticatedUser();
-    this.setState({username: currentUser.username})
-    this.getRooms()
-    
+    this.setState({ username: currentUser.username });
+    this.getRooms();
   };
   componentWillReceiveProps = (props) => {
     if (props.newChat === true) {
-      this.getRooms()
+      this.getRooms();
     }
   };
   componentWillUnmount() {}
-  getRooms = async () =>{
+  getRooms = async () => {
     let rooms = await API.graphql(
       graphqlOperation(queries.getRooms, {
         username: this.state.username,
@@ -94,7 +93,7 @@ class Inbox extends Component {
       }
       console.log(this.state.chosenRoom);
     }
-  }
+  };
   isMobile = () => {
     if (
       window.matchMedia("(max-width: 813px)").matches ||
@@ -125,6 +124,7 @@ class Inbox extends Component {
               modal={this.props.modal}
               isMobile={this.props.isMobile}
               latestMessage={this.state.latestMessage}
+              newestMessages={this.state.newestMessages}
             />
             <Chat
               id={this.state.chosenRoom}
@@ -159,8 +159,6 @@ class Inbox extends Component {
                 users={this.state.currentUsers}
                 title={this.state.roomTitle}
                 back={() => this.setState({ chosenWindow: "messages" })}
-                fullName={this.state.fullName}
-                profileImg={this.state.profileImg}
               />
             )}
             {this.state.chosenWindow === "settings" && <Search />}

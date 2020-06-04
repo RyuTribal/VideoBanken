@@ -735,6 +735,23 @@ export type GetMessagesQuery = {
   } >,
 };
 
+export type GetLastMessageQueryVariables = {
+  chatId?: string | null,
+};
+
+export type GetLastMessageQuery = {
+  getLastMessage:  {
+    __typename: "Message",
+    chatId: string,
+    id: string,
+    message: string,
+    createdAt: string,
+    username: string,
+    profileImg: string | null,
+    fullName: string,
+  } | null,
+};
+
 export type GetRoomsQueryVariables = {
   username: string,
 };
@@ -753,6 +770,23 @@ export type AddMessageSubscriptionVariables = {
 
 export type AddMessageSubscription = {
   addMessage:  {
+    __typename: "Message",
+    chatId: string,
+    id: string,
+    message: string,
+    createdAt: string,
+    username: string,
+    profileImg: string | null,
+    fullName: string,
+  } | null,
+};
+
+export type RoomMessageSubscriptionVariables = {
+  chatId: string,
+};
+
+export type RoomMessageSubscription = {
+  roomMessage:  {
     __typename: "Message",
     chatId: string,
     id: string,

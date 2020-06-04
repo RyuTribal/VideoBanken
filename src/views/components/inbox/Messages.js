@@ -8,7 +8,9 @@ import {
 } from "react-router-dom";
 import { StyleSheet, css } from "aphrodite";
 import blankProfile from "../../../img/blank-profile.png";
-import { Auth } from "aws-amplify";
+import { Auth, graphqlOperation, API, Analytics } from "aws-amplify";
+import * as queries from "../../../graphql/queries";
+import * as subscriptions from "../../../graphql/subscriptions";
 
 const styles = StyleSheet.create({
   container: {
@@ -92,6 +94,7 @@ class Messages extends Component {
       modal: false,
       chats: [],
       chatChosen: "",
+      newestMessages: [],
     };
   }
   componentDidMount = () => {
@@ -99,11 +102,16 @@ class Messages extends Component {
       this.setState({
         chats: this.props.chats,
         chatChosen: this.props.chosenChat,
+        newestMessages: this.props.newestMessages,
       });
     }
   };
   componentWillReceiveProps = async (props) => {
-    this.setState({ chats: props.chats, chatChosen: props.chosenChat });
+    this.setState({
+      chats: props.chats,
+      chatChosen: props.chosenChat,
+      newestMessages: props.newestMessages,
+    });
   };
   componentWillUnmount() {}
   changeChat = (chat) => {
@@ -142,6 +150,7 @@ class Messages extends Component {
               chosen={this.state.chatChosen}
               chat={chat}
               onClick={() => this.changeChat(chat)}
+              sendMessages={this.props.sendMessage}
             />
           ))}
         </div>
@@ -156,7 +165,9 @@ class MessageBox extends Component {
     this.state = {
       active: false,
       user: "",
+      lastMessage: "",
     };
+    this.subscription = "";
   }
   componentDidMount = async () => {
     const currentUser = await Auth.currentAuthenticatedUser();
@@ -166,6 +177,44 @@ class MessageBox extends Component {
     } else {
       this.setState({ active: false });
     }
+    console.log(this.props.chat.roomId);
+    API.graphql(
+      graphqlOperation(queries.getLastMessage, {
+        chatId: this.props.chat.roomId,
+      })
+    ).then((res) => {
+      console.log(res);
+      if (res.data.getLastMessage) {
+        console.log(res.data.getLastMessage);
+        let lastMessage = `${res.data.getLastMessage.fullName.split(" ")[0]}: ${
+          res.data.getLastMessage.message
+        }`;
+        if (lastMessage.length > 25) {
+          lastMessage = lastMessage.slice(0, 22) + "...";
+        }
+        console.log(lastMessage);
+        this.setState({ lastMessage: lastMessage });
+      }
+    });
+    this.subscription = API.graphql(
+      graphqlOperation(subscriptions.roomMessage, {
+        chatId: this.props.chat.roomId,
+      })
+    ).subscribe({
+      next: (res) => {
+        let currentMessage = res.value.data.roomMessage;
+        console.log(currentMessage);
+        let lastMessage = `${currentMessage.fullName.split(" ")[0]}: ${
+          currentMessage.message
+        }`;
+        if (lastMessage.length > 25) {
+          lastMessage = lastMessage.slice(0, 22) + "...";
+        }
+        this.setState({
+          lastMessage: lastMessage,
+        });
+      },
+    });
   };
   componentWillReceiveProps = (props) => {
     if (props.chosen && props.chosen === props.chat.roomId) {
@@ -173,6 +222,9 @@ class MessageBox extends Component {
     } else {
       this.setState({ active: false });
     }
+  };
+  componentWillUnmount = () => {
+    this.subscription.unsubscribe();
   };
   isMobile = () => {
     if (
@@ -202,7 +254,9 @@ class MessageBox extends Component {
             )}
           </div>
           <div className={css(styles.message)}>
-            Ivan: Hey man whats going o...
+            {!this.state.lastMessage || this.state.lastMessage === ""
+              ? "..."
+              : this.state.lastMessage}
           </div>
           {this.state.active && !this.isMobile() && (
             <div className={css(styles.active)}></div>
