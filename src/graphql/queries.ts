@@ -172,7 +172,7 @@ export const searchUsers = `query SearchUsers($query: String) {
   }
 }
 `;
-export const getMessages = `query GetMessages($id: String) {
+export const getMessages = `query GetMessages($id: Int) {
   getMessages(id: $id) {
     chatId
     id
@@ -184,7 +184,7 @@ export const getMessages = `query GetMessages($id: String) {
   }
 }
 `;
-export const getLastMessage = `query GetLastMessage($chatId: String) {
+export const getLastMessage = `query GetLastMessage($chatId: Int) {
   getLastMessage(chatId: $chatId) {
     chatId
     id

@@ -210,6 +210,7 @@ class Chat extends Component {
           title: currentProps.title,
         },
         () => {
+          console.log(this.state.id)
           this.subscription = API.graphql(
             graphqlOperation(subscriptions.addMessage, {
               chatId: this.state.id,
@@ -305,7 +306,9 @@ class Chat extends Component {
         fullName: this.state.fullName,
         profileImg: this.state.profileImg,
       })
-    ).then((res) => {});
+    ).then((res) => {
+      console.log(res)
+    });
   };
   customBubble = (props) => {
     return (

@@ -250,7 +250,7 @@ export const deleteUser = `mutation DeleteUser($input: UserInput!) {
 export const createMessage = `mutation CreateMessage(
   $body: String!
   $username: String!
-  $chatId: String!
+  $chatId: Int
   $profileImg: String
   $fullName: String!
 ) {
