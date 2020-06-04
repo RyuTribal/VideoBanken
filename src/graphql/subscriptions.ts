@@ -1,7 +1,7 @@
 // tslint:disable
 // this is an auto generated file. This will be overwritten
 
-export const addMessage = `subscription AddMessage($chatId: String!) {
+export const addMessage = `subscription AddMessage($chatId: Int!) {
   addMessage(chatId: $chatId) {
     chatId
     id
@@ -13,7 +13,7 @@ export const addMessage = `subscription AddMessage($chatId: String!) {
   }
 }
 `;
-export const roomMessage = `subscription RoomMessage($chatId: String!) {
+export const roomMessage = `subscription RoomMessage($chatId: Int!) {
   roomMessage(chatId: $chatId) {
     chatId
     id

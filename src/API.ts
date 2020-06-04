@@ -439,7 +439,7 @@ export type DeleteUserMutation = {
 export type CreateMessageMutationVariables = {
   body: string,
   username: string,
-  chatId: string,
+  chatId?: number | null,
   profileImg?: string | null,
   fullName: string,
 };
@@ -447,8 +447,8 @@ export type CreateMessageMutationVariables = {
 export type CreateMessageMutation = {
   createMessage:  {
     __typename: "Message",
-    chatId: string,
-    id: string,
+    chatId: number | null,
+    id: number,
     message: string,
     createdAt: string,
     username: string,
@@ -464,7 +464,7 @@ export type CreateRoomMutationVariables = {
 export type CreateRoomMutation = {
   createRoom:  {
     __typename: "Room",
-    id: string | null,
+    id: number | null,
     name: string | null,
     createdAt: string | null,
   },
@@ -719,14 +719,14 @@ export type SearchUsersQuery = {
 };
 
 export type GetMessagesQueryVariables = {
-  id?: string | null,
+  id?: number | null,
 };
 
 export type GetMessagesQuery = {
   getMessages:  Array< {
     __typename: "Message",
-    chatId: string,
-    id: string,
+    chatId: number | null,
+    id: number,
     message: string,
     createdAt: string,
     username: string,
@@ -736,14 +736,14 @@ export type GetMessagesQuery = {
 };
 
 export type GetLastMessageQueryVariables = {
-  chatId?: string | null,
+  chatId?: number | null,
 };
 
 export type GetLastMessageQuery = {
   getLastMessage:  {
     __typename: "Message",
-    chatId: string,
-    id: string,
+    chatId: number | null,
+    id: number,
     message: string,
     createdAt: string,
     username: string,
@@ -759,20 +759,20 @@ export type GetRoomsQueryVariables = {
 export type GetRoomsQuery = {
   getRooms:  Array< {
     __typename: "UserRoom",
-    roomId: string | null,
+    roomId: number | null,
     users: string | null,
   } | null >,
 };
 
 export type AddMessageSubscriptionVariables = {
-  chatId: string,
+  chatId: number,
 };
 
 export type AddMessageSubscription = {
   addMessage:  {
     __typename: "Message",
-    chatId: string,
-    id: string,
+    chatId: number | null,
+    id: number,
     message: string,
     createdAt: string,
     username: string,
@@ -782,14 +782,14 @@ export type AddMessageSubscription = {
 };
 
 export type RoomMessageSubscriptionVariables = {
-  chatId: string,
+  chatId: number,
 };
 
 export type RoomMessageSubscription = {
   roomMessage:  {
     __typename: "Message",
-    chatId: string,
-    id: string,
+    chatId: number | null,
+    id: number,
     message: string,
     createdAt: string,
     username: string,
