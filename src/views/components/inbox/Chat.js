@@ -201,6 +201,9 @@ class Chat extends Component {
     if (props && !this.isMobile()) {
       console.log(props);
       let currentProps = props;
+      if (subscription) {
+        subscription.unsubscribe();
+      }
       this.setState(
         {
           profileImg: currentProps.profileImg,
@@ -306,7 +309,7 @@ class Chat extends Component {
         profileImg: this.state.profileImg,
       })
     ).then((res) => {
-      console.log(res)
+      console.log(res);
     });
   };
   customBubble = (props) => {
