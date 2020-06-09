@@ -268,6 +268,7 @@ export const createMessage = `mutation CreateMessage(
     username
     profileImg
     fullName
+    sent
   }
 }
 `;

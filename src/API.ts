@@ -454,6 +454,7 @@ export type CreateMessageMutation = {
     username: string,
     profileImg: string | null,
     fullName: string,
+    sent: boolean | null,
   },
 };
 
@@ -732,6 +733,7 @@ export type GetMessagesQuery = {
     username: string,
     profileImg: string | null,
     fullName: string,
+    sent: boolean | null,
   } >,
 };
 
@@ -749,6 +751,7 @@ export type GetLastMessageQuery = {
     username: string,
     profileImg: string | null,
     fullName: string,
+    sent: boolean | null,
   } | null,
 };
 
@@ -778,6 +781,7 @@ export type AddMessageSubscription = {
     username: string,
     profileImg: string | null,
     fullName: string,
+    sent: boolean | null,
   } | null,
 };
 
@@ -795,5 +799,6 @@ export type RoomMessageSubscription = {
     username: string,
     profileImg: string | null,
     fullName: string,
+    sent: boolean | null,
   } | null,
 };

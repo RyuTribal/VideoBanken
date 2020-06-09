@@ -13,8 +13,6 @@ import { StyleSheet, css } from "aphrodite";
 import { Auth, Hub, Storage, API, graphqlOperation } from "aws-amplify";
 import * as queries from "../graphql/queries";
 import * as mutations from "../graphql/mutations";
-import { App } from "sendbird-uikit";
-import "sendbird-uikit/dist/index.css";
 const styles = StyleSheet.create({
   container: {
     height: "100%",
@@ -109,12 +107,7 @@ class Inbox extends Component {
     console.log(this.state.chosenWindow);
     return (
       <div className={css(styles.container)}>
-        <App
-          userId={this.state.username}
-          appId="3E1EED8B-97D4-45E8-B06C-0D06BD521C9D"
-          theme="dark"
-        />
-        {/* {!this.isMobile() ? (
+        {!this.isMobile() ? (
           <div className={css(styles.viewContainer)}>
             <Messages
               chats={this.state.chats}
@@ -170,7 +163,7 @@ class Inbox extends Component {
             )}
             {this.state.chosenWindow === "settings" && <Search />}
           </div>
-        )} */}
+        )}
       </div>
     );
   }
