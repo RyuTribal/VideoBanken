@@ -181,6 +181,7 @@ export const getMessages = `query GetMessages($id: Int) {
     username
     profileImg
     fullName
+    sent
   }
 }
 `;
@@ -193,6 +194,7 @@ export const getLastMessage = `query GetLastMessage($chatId: Int) {
     username
     profileImg
     fullName
+    sent
   }
 }
 `;

@@ -16,12 +16,19 @@ import * as subscriptions from "../../../graphql/subscriptions";
 import { GiftedChat, Bubble, Time } from "react-web-gifted-chat";
 import blankProfile from "../../../img/blank-profile.png";
 import { v4 as uuidv4 } from "uuid";
-
+import Messages from "./chatComponents/Messages";
+const blinking = {
+  from: {
+    opacity: 1,
+  },
+  to: {
+    opacity: 0,
+  },
+};
 const styles = StyleSheet.create({
   container: {
     height: "calc(100% - 60px)",
-    width: "100%",
-    flex: 2,
+    flex: 3,
   },
   headerContainer: {
     borderTop: "1px solid rgb(191, 156, 150)",
@@ -86,6 +93,15 @@ const styles = StyleSheet.create({
   read: {
     color: "#4BB543",
   },
+  sending: {
+    color: "#909090",
+    animationName: [blinking],
+    animationDuration: "1s",
+    animationIterationCount: "infinite",
+  },
+  messages: {
+    height: "100%",
+  },
 });
 let subscription;
 class Chat extends Component {
@@ -129,6 +145,16 @@ class Chat extends Component {
               let currentMessage = res.value.data.addMessage;
               console.log(currentMessage);
               if (currentMessage.username === this.state.username) {
+                let messages = this.state.messages;
+                console.log(messages);
+                for (let i = messages.length; i > 0; i--) {
+                  if (messages[i].user.id === currentMessage.username) {
+                    messages[i].sent = currentMessage.sent;
+                    console.log(messages[i]);
+                    break;
+                  }
+                }
+                this.setState({ messages: messages });
               } else if (currentMessage.username !== this.state.username) {
                 console.log("hey");
                 if (currentMessage.profileImg === "null") {
@@ -141,6 +167,7 @@ class Chat extends Component {
                       id: currentMessage.id,
                       text: currentMessage.message,
                       createdAt: currentMessage.createdAt,
+                      sent: currentMessage.sent,
                       user: {
                         id: currentMessage.username,
                         name: currentMessage.fullName,
@@ -170,6 +197,7 @@ class Chat extends Component {
             id: message.id,
             text: message.message,
             createdAt: message.createdAt,
+            sent: message.sent,
             user: {
               id: message.username,
               name: message.fullName,
@@ -222,6 +250,17 @@ class Chat extends Component {
               let currentMessage = res.value.data.addMessage;
               console.log(currentMessage);
               if (currentMessage.username === this.state.username) {
+                let messages = this.state.messages;
+                console.log(messages);
+                for (let i = messages.length - 1; i >= 0; i--) {
+                  console.log(i);
+                  if (messages[i].sent === currentMessage.username) {
+                    messages[i] = currentMessage;
+                    break;
+                  }
+                }
+                this.setState({ messages: messages });
+                console.log(this.state.messages);
               } else if (currentMessage.username !== this.state.username) {
                 console.log("hey");
                 if (currentMessage.profileImg === "null") {
@@ -235,6 +274,7 @@ class Chat extends Component {
                       id: currentMessage.id,
                       text: currentMessage.message,
                       createdAt: currentMessage.createdAt,
+                      sent: currentMessage.sent,
                       user: {
                         id: currentMessage.username,
                         name: currentMessage.fullName,
@@ -264,6 +304,7 @@ class Chat extends Component {
             id: message.id,
             text: message.message,
             createdAt: message.createdAt,
+            sent: message.sent,
             user: {
               id: message.username,
               name: message.fullName,
@@ -286,36 +327,44 @@ class Chat extends Component {
   }
   onSend = async (message) => {
     // Analytics.record({ name: "Chat MSG Sent" });
-    this.setState((prevState) => ({
-      messages: [
-        ...prevState.messages,
-        {
-          id: uuidv4(),
-          text: message,
-          createdAt: new Date(),
-          user: {
-            id: this.state.username,
+    if (message.length === 0 || !message.trim()) {
+    } else {
+      this.setState((prevState) => ({
+        messages: [
+          ...prevState.messages,
+          {
+            id: uuidv4(),
+            text: message,
+            createdAt: new Date(),
+            sent: false,
+            user: {
+              id: this.state.username,
+            },
           },
-        },
-      ],
-    }));
-    console.log(this.state.profileImg);
-    await API.graphql(
-      graphqlOperation(mutations.createMessage, {
-        chatId: this.state.id,
-        body: message,
-        username: this.state.username,
-        fullName: this.state.fullName,
-        profileImg: this.state.profileImg,
-      })
-    ).then((res) => {
-      console.log(res);
-    });
+        ],
+      }));
+      console.log(this.state.messages);
+      console.log(this.state.profileImg);
+      await API.graphql(
+        graphqlOperation(mutations.createMessage, {
+          chatId: this.state.id,
+          body: message,
+          username: this.state.username,
+          fullName: this.state.fullName,
+          profileImg: this.state.profileImg,
+        })
+      ).then((res) => {
+        console.log(res);
+      });
+    }
   };
   customBubble = (props) => {
     return (
       <Bubble
         {...props}
+        tickStyle={{
+          color: "white",
+        }}
         wrapperStyle={{
           right: {
             backgroundColor: "rgb(38, 48, 64)",
@@ -336,21 +385,19 @@ class Chat extends Component {
       <div className={css(styles.messageTimeWrapper)}>
         <Time {...props} />
         {props.currentMessage.user.id === this.state.username && (
-          <div
-            className={css(
-              styles.messageStatus,
-              props.currentMessage.read && props.currentMessage.read.length > 0
-                ? styles.read
-                : styles.sent
+          <div>
+            {!props.currentMessage.sent && (
+              <div className={css(styles.messageStatus, styles.sending)}>
+                <i className="fas fa-ellipsis-h"></i>
+              </div>
             )}
-          >
-            <i className="fas fa-check"></i>
           </div>
         )}
       </div>
     );
   };
   render() {
+    console.log(this.state.messages)
     return (
       <div className={css(styles.container)}>
         <div className={css(styles.headerContainer)}>
@@ -380,7 +427,8 @@ class Chat extends Component {
             </button>
           )}
         </div>
-        {this.state.id ? (
+        <Messages messages={this.state.messages} />
+        {/* {this.state.id ? (
           <GiftedChat
             maxInputLength={250}
             className={css(styles.messages)}
@@ -397,7 +445,7 @@ class Chat extends Component {
           />
         ) : (
           <div>Välj ett run och börja chatta i</div>
-        )}
+        )} */}
       </div>
     );
   }

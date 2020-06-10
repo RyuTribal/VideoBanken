@@ -10,6 +10,7 @@ export const addMessage = `subscription AddMessage($chatId: Int!) {
     username
     profileImg
     fullName
+    sent
   }
 }
 `;
@@ -22,6 +23,7 @@ export const roomMessage = `subscription RoomMessage($chatId: Int!) {
     username
     profileImg
     fullName
+    sent
   }
 }
 `;

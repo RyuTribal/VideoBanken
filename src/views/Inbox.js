@@ -13,7 +13,6 @@ import { StyleSheet, css } from "aphrodite";
 import { Auth, Hub, Storage, API, graphqlOperation } from "aws-amplify";
 import * as queries from "../graphql/queries";
 import * as mutations from "../graphql/mutations";
-
 const styles = StyleSheet.create({
   container: {
     height: "100%",
