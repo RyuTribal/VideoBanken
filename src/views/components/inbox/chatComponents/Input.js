@@ -9,10 +9,8 @@ import TextareaAutosize from "react-textarea-autosize";
 
 const styles = StyleSheet.create({
   container: {
-    maxWidth: "100%",
     width: "100%",
     borderTop: "1px solid rgb(230, 236, 240)",
-    flex: "0 5 auto",
   },
   inputWrapper: {
     padding: "13px 5px",
@@ -33,6 +31,9 @@ const styles = StyleSheet.create({
     color: "rgb(38, 48, 64)",
     ":hover": {
       opacity: 0.7,
+    },
+    ":disabled": {
+      opacity: 0.5,
     },
   },
   textBox: {
@@ -71,18 +72,26 @@ const styles = StyleSheet.create({
     transform: "rotate(55deg)",
   },
 });
+function validate(messageValue) {
+  return {
+    messageValue: messageValue.length === 0,
+  };
+}
 class Input extends Component {
   constructor() {
     super();
     this.state = {
       messageValue: "",
     };
+    this.textRef = React.createRef();
   }
   handleMessageChange = (e) => {
     console.log(e.target.value.length);
     this.setState({ messageValue: e.target.value });
   };
   render() {
+    const errors = validate(this.state.messageValue);
+    const isDisabled = Object.keys(errors).some((x) => errors[x]);
     return (
       <div className={css(styles.container)}>
         <div className={css(styles.inputWrapper)}>
@@ -92,6 +101,7 @@ class Input extends Component {
             </button>
           </div>
           <TextareaAutosize
+            ref={this.textRef}
             className={css(styles.textBox)}
             contentEditable
             spellcheck
@@ -100,7 +110,9 @@ class Input extends Component {
               if (e.keyCode === 13) {
                 e.stopPropagation();
                 e.preventDefault();
-                console.log("enter");
+                this.props.onSend(this.state.messageValue);
+                this.setState({ messageValue: "" });
+                e.target.value = "";
               }
             }}
             placeholder="Skriv ett meddelande här..."
@@ -111,7 +123,7 @@ class Input extends Component {
             {this.state.messageValue}
           </TextareaAutosize>
           <div className={css(styles.sendButtonWrapper)}>
-            <button className={css(styles.signButtons)}>
+            <button disabled={isDisabled} className={css(styles.signButtons)}>
               <i className={`fas fa-paper-plane ${css(styles.rotate)}`}></i>
             </button>
           </div>

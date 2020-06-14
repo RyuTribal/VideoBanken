@@ -13,7 +13,7 @@ import { Auth, graphqlOperation, API, Analytics } from "aws-amplify";
 import * as queries from "../../../graphql/queries";
 import * as mutations from "../../../graphql/mutations";
 import * as subscriptions from "../../../graphql/subscriptions";
-import { GiftedChat, Bubble, Time } from "react-web-gifted-chat";
+import { GiftedChat, Bubble, Time, InputToolbar } from "react-web-gifted-chat";
 import blankProfile from "../../../img/blank-profile.png";
 import { v4 as uuidv4 } from "uuid";
 import Messages from "./chatComponents/Messages";
@@ -28,7 +28,7 @@ const blinking = {
 const styles = StyleSheet.create({
   container: {
     height: "calc(100% - 60px)",
-    flex: 3,
+    flex: 2,
   },
   headerContainer: {
     borderTop: "1px solid rgb(191, 156, 150)",
@@ -75,9 +75,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     marginRight: "0px",
   },
-  message: {
-    maxWidth: "100%",
-  },
   messageTimeWrapper: {
     display: "flex",
     flexDirection: "row",
@@ -99,8 +96,37 @@ const styles = StyleSheet.create({
     animationDuration: "1s",
     animationIterationCount: "infinite",
   },
-  messages: {
+  message: {
+    maxWidth: "100%",
+  },
+  emptyChat: {
     height: "100%",
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    flexDirection: "column",
+    fontSize: 20,
+  },
+  newChat: {
+    background: "#ea3a3a",
+    padding: "10px 20px",
+    fontSize: "1.5em",
+    border: 0,
+    transition: "0.4s",
+    borderRadius: 5,
+    color: "#fbf9f9",
+    transition: "background-color 0.4s",
+    ":hover": {
+      backgroundColor: "#ff5050",
+      transition: "0.4s",
+    },
+    ":focus": {
+      outline: "none",
+    },
+    ":disabled": {
+      backgroundColor: "rgb(245, 244, 242)",
+      color: "rgb(177, 172, 163)",
+    },
   },
 });
 let subscription;
@@ -149,7 +175,7 @@ class Chat extends Component {
                 console.log(messages);
                 for (let i = messages.length; i > 0; i--) {
                   if (messages[i].user.id === currentMessage.username) {
-                    messages[i].sent = currentMessage.sent;
+                    // messages[i].sent = currentMessage.sent;
                     console.log(messages[i]);
                     break;
                   }
@@ -162,18 +188,18 @@ class Chat extends Component {
                 }
                 this.setState((prevState) => ({
                   messages: [
-                    ...prevState.messages,
                     {
                       id: currentMessage.id,
                       text: currentMessage.message,
                       createdAt: currentMessage.createdAt,
-                      sent: currentMessage.sent,
+                      // sent: currentMessage.sent,
                       user: {
                         id: currentMessage.username,
                         name: currentMessage.fullName,
                         avatar: currentMessage.profileImg,
                       },
                     },
+                    ...prevState.messages,
                   ],
                 }));
               }
@@ -197,16 +223,13 @@ class Chat extends Component {
             id: message.id,
             text: message.message,
             createdAt: message.createdAt,
-            sent: message.sent,
+            // sent: message.sent,
             user: {
               id: message.username,
               name: message.fullName,
               avatar: message.profileImg,
             },
           });
-        });
-        messageObjects.sort((a, b) => {
-          return new Date(a.createdAt) - new Date(b.createdAt);
         });
         this.setState({
           messages: messageObjects,
@@ -250,17 +273,17 @@ class Chat extends Component {
               let currentMessage = res.value.data.addMessage;
               console.log(currentMessage);
               if (currentMessage.username === this.state.username) {
-                let messages = this.state.messages;
-                console.log(messages);
-                for (let i = messages.length - 1; i >= 0; i--) {
-                  console.log(i);
-                  if (messages[i].sent === currentMessage.username) {
-                    messages[i] = currentMessage;
-                    break;
-                  }
-                }
-                this.setState({ messages: messages });
-                console.log(this.state.messages);
+                // let messages = this.state.messages;
+                // console.log(messages);
+                // for (let i = messages.length - 1; i >= 0; i--) {
+                //   console.log(i);
+                //   if (messages[i].sent === currentMessage.username) {
+                //     messages[i] = currentMessage;
+                //     break;
+                //   }
+                // }
+                // this.setState({ messages: messages });
+                // console.log(this.state.messages);
               } else if (currentMessage.username !== this.state.username) {
                 console.log("hey");
                 if (currentMessage.profileImg === "null") {
@@ -269,18 +292,18 @@ class Chat extends Component {
 
                 this.setState((prevState) => ({
                   messages: [
-                    ...prevState.messages,
                     {
                       id: currentMessage.id,
                       text: currentMessage.message,
                       createdAt: currentMessage.createdAt,
-                      sent: currentMessage.sent,
+                      // sent: currentMessage.sent,
                       user: {
                         id: currentMessage.username,
                         name: currentMessage.fullName,
                         avatar: currentMessage.profileImg,
                       },
                     },
+                    ...prevState.messages,
                   ],
                 }));
               }
@@ -304,16 +327,13 @@ class Chat extends Component {
             id: message.id,
             text: message.message,
             createdAt: message.createdAt,
-            sent: message.sent,
+            // sent: message.sent,
             user: {
               id: message.username,
               name: message.fullName,
               avatar: message.profileImg,
             },
           });
-        });
-        messageObjects.sort((a, b) => {
-          return new Date(a.createdAt) - new Date(b.createdAt);
         });
         this.setState({
           messages: messageObjects,
@@ -331,16 +351,16 @@ class Chat extends Component {
     } else {
       this.setState((prevState) => ({
         messages: [
-          ...prevState.messages,
           {
             id: uuidv4(),
             text: message,
             createdAt: new Date(),
-            sent: false,
+            // sent: false,
             user: {
               id: this.state.username,
             },
           },
+          ...prevState.messages,
         ],
       }));
       console.log(this.state.messages);
@@ -369,11 +389,9 @@ class Chat extends Component {
           right: {
             backgroundColor: "rgb(38, 48, 64)",
             display: "block",
-            maxWidth: 500,
-          },
-          left: {
-            maxWidth: "1200px",
-            maxWidth: "100%",
+            overflowWrap: "break-word",
+            wordWrap: "break-word",
+            hyphens: "auto",
           },
         }}
       />
@@ -397,55 +415,50 @@ class Chat extends Component {
     );
   };
   render() {
-    console.log(this.state.messages)
+    console.log(this.state.messages);
     return (
       <div className={css(styles.container)}>
-        <div className={css(styles.headerContainer)}>
-          {this.isMobile() && (
-            <button
-              onClick={this.props.back}
-              className={css(styles.headerLeftButton)}
-            >
-              <i className="fas fa-chevron-left"></i>
-            </button>
-          )}
-
-          <h3 className={css(styles.headerName)}>
-            {this.state.title}{" "}
-            {this.state.users.length < 2 && this.state.users.length > 0 && (
-              <span
-                className={css(styles.headerUser)}
-              >{`@${this.state.users[0].username}`}</span>
+        {this.state.id ? (
+          <div className={css(styles.headerContainer)}>
+            {this.isMobile() && (
+              <button
+                onClick={this.props.back}
+                className={css(styles.headerLeftButton)}
+              >
+                <i className="fas fa-chevron-left"></i>
+              </button>
             )}
-          </h3>
-          {this.isMobile() && (
-            <button
-              onClick={this.props.back}
-              className={css(styles.headerRightButton)}
-            >
-              <i className="fas fa-cog"></i>
-            </button>
-          )}
-        </div>
-        <Messages messages={this.state.messages} />
-        {/* {this.state.id ? (
-          <GiftedChat
-            maxInputLength={250}
-            className={css(styles.messages)}
-            messages={this.state.messages}
-            renderUsernameOnMessage={true}
-            placeholder="Skriv ett meddelande här..."
-            onSend={(messages) => this.onSend(messages[0].text)}
-            user={{
-              id: this.state.username,
-            }}
-            inverted={false}
-            renderBubble={this.customBubble}
-            renderTime={this.customTime}
-          />
+
+            <h3 className={css(styles.headerName)}>
+              {this.state.title}{" "}
+              {this.state.users.length < 2 && this.state.users.length > 0 && (
+                <span
+                  className={css(styles.headerUser)}
+                >{`@${this.state.users[0].username}`}</span>
+              )}
+            </h3>
+            {this.isMobile() && (
+              <button
+                onClick={this.props.back}
+                className={css(styles.headerRightButton)}
+              >
+                <i className="fas fa-cog"></i>
+              </button>
+            )}
+          </div>
         ) : (
-          <div>Välj ett run och börja chatta i</div>
-        )} */}
+          ""
+        )}
+        {this.state.id ? (
+          <Messages messages={this.state.messages} onSend={this.onSend} />
+        ) : (
+          <div className={css(styles.emptyChat)}>
+            Inget rum vald. Välj ett rum eller
+            <button className={css(styles.newChat)} onClick={this.props.modal}>
+              Skapa ett nytt rum
+            </button>
+          </div>
+        )}
       </div>
     );
   }

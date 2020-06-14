@@ -26,7 +26,6 @@ class Messages extends Component {
   componentDidUpdate = (prevProps) => {
     console.log(this.props);
     if (prevProps !== this.props) {
-      console.log(this.props);
       this.setState({ messages: this.props.messages });
     }
   };
@@ -34,7 +33,7 @@ class Messages extends Component {
     return (
       <div className={css(styles.container)}>
         <MessageBox messages={this.state.messages} />
-        <Input />
+        <Input onSend={this.props.onSend} />
       </div>
     );
   }

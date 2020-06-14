@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import { BrowserRouter, Switch, Route } from "react-router-dom";
+import { BrowserRouter, Switch, Route, withRouter } from "react-router-dom";
 import { StyleSheet, css } from "aphrodite";
 import { Auth, graphqlOperation, API, Analytics } from "aws-amplify";
 import * as queries from "../../../../graphql/queries";
@@ -8,10 +8,54 @@ import * as subscriptions from "../../../../graphql/subscriptions";
 
 const styles = StyleSheet.create({
   container: {
-    padding: 5,
-    background: "black",
-    color: "white",
-    display: "flex"
+    display: "flex",
+  },
+  bubbleContainer: {
+    padding: 10,
+    display: "flex",
+    width: "100%",
+    flexDirection: "column",
+  },
+  profileContainer: {},
+  yourContainer: {
+    marginLeft: "auto",
+    marginRight: 0,
+  },
+  dateWrapper: {
+    textAlign: "center",
+    color: "#AAAAAA",
+    fontSize: 16,
+    padding: 10,
+    fontWeight: "bold",
+  },
+  bubble: {
+    padding: 10,
+    display: "inline-flex",
+    flexDirection: "column",
+    wordBreak: "break-word",
+    borderRadius: 15,
+    background: "rgb(240, 240, 240)",
+    color: "black",
+  },
+  yourBubble: {
+    textAlign: "end",
+    background: "rgb(38, 48, 64)",
+    color: "#fbf9f9",
+  },
+  profileImg: {
+    height: 35,
+    width: 35,
+    borderRadius: "50%",
+    border: "1px solid rgb(191, 156, 150)",
+    cursor: "pointer",
+    marginRight: "1.5rem",
+    marginTop: 7.5,
+  },
+  timeWrapper: {
+    fontSize: 11,
+  },
+  otherTime: {
+    color: "#aaaaaa",
   },
 });
 class Bubble extends Component {
@@ -19,23 +63,153 @@ class Bubble extends Component {
     super();
     this.state = {
       message: {},
+      username: "",
+      prevMessage: {},
     };
   }
-  componentDidMount = () => {
-    console.log(this.props.message);
-    this.setState({ message: this.props.message });
+  componentDidMount = async () => {
+    const { username } = await Auth.currentAuthenticatedUser();
+    this.setState({
+      message: this.props.message,
+      username: username,
+      prevMessage: this.props.prevMessage,
+    });
   };
   componentDidUpdate = (prevProps) => {
     if (prevProps !== this.props) {
-      this.setState({ message: this.props.message });
+      console.log(this.props.prevMessage);
+      this.setState({
+        message: this.props.message,
+        prevMessage: this.props.prevMessage,
+      });
+    }
+  };
+  getTime = (date) => {
+    if (date) {
+      let messageDate = new Date(Date.parse(date));
+      let pm = false;
+      let hours = messageDate.getHours();
+      if (hours > 12) {
+        pm = true;
+        hours = hours - 12;
+      }
+      const minutes = messageDate.getMinutes();
+      messageDate = `${hours}:${minutes} ${pm ? "PM" : "AM"}`;
+      return messageDate;
+    }
+  };
+  getDate = (date) => {
+    if (date) {
+      let messageDate = new Date(Date.parse(date));
+      console.log(messageDate);
+      const months = [
+        "JAN",
+        "FEB",
+        "MAR",
+        "APR",
+        "MAY",
+        "JUN",
+        "JUL",
+        "AUG",
+        "SEP",
+        "OKT",
+        "NOV",
+        "DEC",
+      ];
+      const year = messageDate.getFullYear();
+      const month = messageDate.getMonth();
+      const day = messageDate.getDate();
+      messageDate = `${months[month]} ${day}, ${year}`;
+      return messageDate;
+    }
+  };
+  compareDate = (date, prevDate) => {
+    if (date && prevDate) {
+      let messageDate = new Date(Date.parse(date));
+      let prevMessageDate = new Date(Date.parse(prevDate));
+      if (
+        messageDate.getFullYear() === prevMessageDate.getFullYear() &&
+        messageDate.getMonth() === prevMessageDate.getMonth() &&
+        messageDate.getDate() === prevMessageDate.getDate()
+      ) {
+        return true;
+      } else {
+        return false;
+      }
     }
   };
   render() {
-      console.log(this.state.message.text)
+    console.log(this.state.prevMessage);
     return (
-      <div className={css(styles.container)}>{this.state.message.text}</div>
+      <div className={css(styles.container)}>
+        <div className={css(styles.bubbleContainer)}>
+          {!this.state.prevMessage ||
+          !this.compareDate(
+            this.state.message.createdAt,
+            this.state.prevMessage.createdAt
+          ) ? (
+            <div className={css(styles.dateWrapper)}>
+              {this.getDate(this.state.message.createdAt)}
+            </div>
+          ) : (
+            ""
+          )}
+          <div
+            className={css(
+              styles.profileContainer,
+              this.state.message.user &&
+                this.state.message.user.id === this.state.username
+                ? styles.yourContainer
+                : ""
+            )}
+          >
+            {this.state.message.user &&
+            this.state.message.user.id !== this.state.username ? (
+              <img
+                onClick={() => {
+                  this.props.history.push(
+                    `/home/users/${this.state.message.user.id}`
+                  );
+                }}
+                className={css(styles.profileImg)}
+                src={this.state.message.user.avatar}
+              ></img>
+            ) : (
+              ""
+            )}
+
+            <div
+              className={css(
+                styles.bubble,
+                this.state.message.user &&
+                  this.state.message.user.id === this.state.username
+                  ? styles.yourBubble
+                  : ""
+              )}
+            >
+              {this.state.message.text}
+              <div
+                className={css(
+                  styles.timeWrapper,
+                  this.state.message.user &&
+                    this.state.message.user.id !== this.state.username
+                    ? styles.otherTime
+                    : ""
+                )}
+              >
+                {`${
+                  this.state.message.user &&
+                  this.state.message.user.id !== this.state.username
+                    ? `~ ${this.state.message.user.name}`
+                    : ""
+                } ${this.getTime(this.state.message.createdAt)}`}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     );
   }
 }
 
-export default Bubble;
+export default withRouter(Bubble);

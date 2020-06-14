@@ -131,8 +131,9 @@ class Inbox extends Component {
               isMobile={this.props.isMobile}
               fullName={this.state.fullName}
               profileImg={this.state.profileImg}
+              modal={this.props.modal}
             />
-            <Search isMobile={this.props.isMobile} />
+            {/* <Search isMobile={this.props.isMobile} /> */}
           </div>
         ) : (
           <div className={css(styles.viewContainer)}>
