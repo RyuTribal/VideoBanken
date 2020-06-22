@@ -205,3 +205,13 @@ export const getRooms = `query GetRooms($username: String!) {
   }
 }
 `;
+export const getUnreadMessages = `query GetUnreadMessages($username: String!) {
+  getUnreadMessages(username: $username) {
+    id
+    recepient_username
+    recepient_group_id
+    message_id
+    isRead
+  }
+}
+`;

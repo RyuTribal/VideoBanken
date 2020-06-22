@@ -98,9 +98,9 @@ class HeaderComponent extends Component {
           <div className={css(styles.iconStyles)}>
             <i className="fas fa-search"></i>
           </div>
-          <div className={css(styles.iconStyles)}>
+          {/* <div className={css(styles.iconStyles)}>
             <i className="fas fa-bell"></i>
-          </div>
+          </div> */}
           <div
             onClick={this.props.videoModal}
             className={css(styles.iconStyles)}

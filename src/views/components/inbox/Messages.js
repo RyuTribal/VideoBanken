@@ -196,6 +196,7 @@ class MessageBox extends Component {
         this.setState({ lastMessage: lastMessage });
       }
     });
+    console.log(this.props.chat.roomId)
     this.subscription = API.graphql(
       graphqlOperation(subscriptions.roomMessage, {
         chatId: this.props.chat.roomId,

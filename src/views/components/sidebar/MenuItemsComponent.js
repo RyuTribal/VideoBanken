@@ -3,6 +3,9 @@ import { bool, func, string, nominalTypeHack } from "prop-types";
 import { Row } from "simple-flexbox";
 import { StyleSheet, css } from "aphrodite";
 import { Link } from "react-router-dom";
+import { Auth, API, graphqlOperation } from "aws-amplify";
+import * as queries from "../../../graphql/queries";
+import * as mutations from "../../../graphql/mutations";
 
 const styles = StyleSheet.create({
   activeBar: {
@@ -52,6 +55,7 @@ const styles = StyleSheet.create({
     transition: "0.4s",
   },
   link: {
+    position: "relative",
     ":hover": {
       textDecoration: "none",
     },
@@ -59,12 +63,49 @@ const styles = StyleSheet.create({
       textDecoration: "none",
     },
   },
+  notification: {
+    position: "absolute",
+    top: 6,
+    left: 37,
+    backgroundColor: "#f44336",
+    color: "white",
+    height: 20,
+    width: 20,
+    fontSize: 15,
+    textAlign: "center",
+    borderRadius: "50%",
+    zIndex: 1,
+  },
 });
-
+async function getNotifications(username, type) {
+  if (type === "inbox") {
+    const unreadMessages = await API.graphql(
+      graphqlOperation(queries.getUnreadMessages, {
+        username: username,
+      })
+    ).then((res) => {
+      return res.data.getUnreadMessages.length;
+    });
+    return <div className={css(styles.notification)}>{unreadMessages}</div>;
+  }
+}
 function MenuItemComponent(props) {
-  const { active, icon, title, link, ...otherProps } = props;
+  const {
+    active,
+    icon,
+    title,
+    link,
+    hasNotifications,
+    notifications,
+    ...otherProps
+  } = props;
   return (
     <Link className={css(styles.link)} to={link}>
+      {hasNotifications === true && notifications > 0 ? (
+        <div className={css(styles.notification)}>{notifications}</div>
+      ) : (
+        ""
+      )}
       <Row className={css(styles.container)} vertical="center" {...otherProps}>
         {active && <div className={css(styles.activeBar)}></div>}
         <i

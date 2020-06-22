@@ -77,6 +77,15 @@ class Inbox extends Component {
         );
         if (room.users.length === 1) {
           room.title = room.users[0].fullName;
+        } else if (room.users.length > 1) {
+          let nameArray = [];
+          room.users.map((user) => {
+            nameArray.push(user.fullName.split(" ")[0]);
+          });
+          room.title =
+            nameArray.join(", ").length > 50
+              ? nameArray.join(", ").substr(0, 50 - 1) + "..."
+              : nameArray.join(", ");
         } else if (room.users.length < 1) {
           room.title = "Jag";
         }

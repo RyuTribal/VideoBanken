@@ -448,14 +448,14 @@ export type CreateMessageMutation = {
   createMessage:  {
     __typename: "Message",
     chatId: number | null,
-    id: number,
-    message: string,
-    createdAt: string,
-    username: string,
+    id: number | null,
+    message: string | null,
+    createdAt: string | null,
+    username: string | null,
     profileImg: string | null,
-    fullName: string,
+    fullName: string | null,
     sent: boolean | null,
-  },
+  } | null,
 };
 
 export type CreateRoomMutationVariables = {
@@ -465,7 +465,7 @@ export type CreateRoomMutationVariables = {
 export type CreateRoomMutation = {
   createRoom:  {
     __typename: "Room",
-    id: number | null,
+    id: string | null,
     name: string | null,
     createdAt: string | null,
   },
@@ -727,12 +727,12 @@ export type GetMessagesQuery = {
   getMessages:  Array< {
     __typename: "Message",
     chatId: number | null,
-    id: number,
-    message: string,
-    createdAt: string,
-    username: string,
+    id: number | null,
+    message: string | null,
+    createdAt: string | null,
+    username: string | null,
     profileImg: string | null,
-    fullName: string,
+    fullName: string | null,
     sent: boolean | null,
   } >,
 };
@@ -745,12 +745,12 @@ export type GetLastMessageQuery = {
   getLastMessage:  {
     __typename: "Message",
     chatId: number | null,
-    id: number,
-    message: string,
-    createdAt: string,
-    username: string,
+    id: number | null,
+    message: string | null,
+    createdAt: string | null,
+    username: string | null,
     profileImg: string | null,
-    fullName: string,
+    fullName: string | null,
     sent: boolean | null,
   } | null,
 };
@@ -767,6 +767,21 @@ export type GetRoomsQuery = {
   } | null >,
 };
 
+export type GetUnreadMessagesQueryVariables = {
+  username: string,
+};
+
+export type GetUnreadMessagesQuery = {
+  getUnreadMessages:  Array< {
+    __typename: "UnreadMessages",
+    id: string | null,
+    recepient_username: string | null,
+    recepient_group_id: string | null,
+    message_id: string | null,
+    isRead: boolean | null,
+  } | null >,
+};
+
 export type AddMessageSubscriptionVariables = {
   chatId: number,
 };
@@ -775,12 +790,12 @@ export type AddMessageSubscription = {
   addMessage:  {
     __typename: "Message",
     chatId: number | null,
-    id: number,
-    message: string,
-    createdAt: string,
-    username: string,
+    id: number | null,
+    message: string | null,
+    createdAt: string | null,
+    username: string | null,
     profileImg: string | null,
-    fullName: string,
+    fullName: string | null,
     sent: boolean | null,
   } | null,
 };
@@ -793,12 +808,12 @@ export type RoomMessageSubscription = {
   roomMessage:  {
     __typename: "Message",
     chatId: number | null,
-    id: number,
-    message: string,
-    createdAt: string,
-    username: string,
+    id: number | null,
+    message: string | null,
+    createdAt: string | null,
+    username: string | null,
     profileImg: string | null,
-    fullName: string,
+    fullName: string | null,
     sent: boolean | null,
   } | null,
 };

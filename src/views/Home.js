@@ -59,6 +59,7 @@ class Home extends Component {
       mobileVideo: "",
       chatModal: false,
       newChat: false,
+      notifications: 0,
     };
   }
   componentDidMount = async () => {
@@ -84,7 +85,7 @@ class Home extends Component {
     )
       .then((res) => {
         console.log(res);
-        if (res.data.getUser === null) {
+        if (res.data.getUser === null && this.state.user.username !== "") {
           console.log(res);
           API.graphql(
             graphqlOperation(mutations.addUser, {
@@ -102,6 +103,13 @@ class Home extends Component {
       .catch((err) => {
         console.log(err);
       });
+    await API.graphql(
+      graphqlOperation(queries.getUnreadMessages, {
+        username: this.state.user.username,
+      })
+    ).then((res) => {
+      this.setState({ notifications: res.data.getUnreadMessages.length });
+    });
   };
 
   resize = () => {
@@ -128,7 +136,11 @@ class Home extends Component {
     return (
       <BrowserRouter>
         {this.state.chatModal && (
-          <ChatModal closeModal={(newChat) => this.setState({ chatModal: false,  newChat: newChat})} />
+          <ChatModal
+            closeModal={(newChat) =>
+              this.setState({ chatModal: false, newChat: newChat })
+            }
+          />
         )}
         {this.state.videoModal === true && !isMobile && (
           <Modal closeModal={this.closeModal} />
@@ -162,6 +174,7 @@ class Home extends Component {
             selectedItem={this.state.selectedItem}
             username={this.state.user.username}
             logout={this.logout}
+            notifications={this.state.notifications}
           />
           <Column flexGrow={1} className={css(styles.mainBlock)}>
             <HeaderComponent
