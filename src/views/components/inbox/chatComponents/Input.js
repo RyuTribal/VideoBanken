@@ -70,6 +70,7 @@ const styles = StyleSheet.create({
     "-ms-transform": "rotate(55deg)",
     "-o-transform": "rotate(55deg)",
     transform: "rotate(55deg)",
+    "pointer-events": "none",
   },
 });
 function validate(messageValue) {
@@ -123,7 +124,15 @@ class Input extends Component {
             {this.state.messageValue}
           </TextareaAutosize>
           <div className={css(styles.sendButtonWrapper)}>
-            <button disabled={isDisabled} className={css(styles.signButtons)}>
+            <button
+              onClick={() => {
+                this.props.onSend(this.state.messageValue);
+                this.setState({ messageValue: "" });
+                this.textRef.current.value = "";
+              }}
+              disabled={isDisabled}
+              className={css(styles.signButtons)}
+            >
               <i className={`fas fa-paper-plane ${css(styles.rotate)}`}></i>
             </button>
           </div>

@@ -10,6 +10,7 @@ import { Auth, API, graphqlOperation } from "aws-amplify";
 import $ from "jquery";
 import * as queries from "../graphql/queries";
 import * as mutations from "../graphql/mutations";
+import * as subscriptions from "../graphql/subscriptions";
 import VideoUpload from "./VideoUpload";
 import HomeFeed from "./HomeFeed";
 import Team from "./Team";
@@ -60,7 +61,9 @@ class Home extends Component {
       chatModal: false,
       newChat: false,
       notifications: 0,
+      rooms: [],
     };
+    this.subscriptions = [];
   }
   componentDidMount = async () => {
     window.addEventListener("resize", this.resize);
@@ -108,15 +111,93 @@ class Home extends Component {
         username: this.state.user.username,
       })
     ).then((res) => {
+      console.log(res);
       this.setState({ notifications: res.data.getUnreadMessages.length });
     });
+    await this.getRooms();
+    if (this.state.rooms.length > 0) {
+      this.state.rooms.map((room, i) => {
+        this.subscriptions.push({
+          id: room.roomId,
+          subscription: API.graphql(
+            graphqlOperation(subscriptions.notificationMessage, {
+              chatId: room.roomId,
+            })
+          ).subscribe({
+            next: (res) => {
+              console.log(res.value.data.notificationMessage.id);
+              if (
+                res.value.data.notificationMessage.username !==
+                this.state.user.username
+              ) {
+                API.graphql(
+                  graphqlOperation(queries.getUnreadMessage, {
+                    id: res.value.data.notificationMessage.id,
+                    username: this.state.user.username,
+                  })
+                ).then((res) => {
+                  console.log(res);
+                  if (res.data.getUnreadMessage) {
+                    this.setState({
+                      notifications: this.state.notifications + 1,
+                    });
+                  }
+                  console.log(this.state.notifications);
+                });
+              }
+            },
+          }),
+        });
+      });
+    }
   };
-
+  getRooms = async () => {
+    let rooms = await API.graphql(
+      graphqlOperation(queries.getRooms, {
+        username: this.state.user.username,
+      })
+    ).then((res) => {
+      return res.data.getRooms;
+    });
+    if (rooms.length > 0) {
+      const currentUserInfo = JSON.parse(rooms[0].users).filter(
+        (i) => i.username === this.state.username
+      );
+      rooms = rooms.map((room) => {
+        room.users = JSON.parse(room.users).filter(
+          (i) => i.username !== this.state.username
+        );
+        if (room.users.length === 1) {
+          room.title = room.users[0].fullName;
+        } else if (room.users.length > 1) {
+          let nameArray = [];
+          room.users.map((user) => {
+            nameArray.push(user.fullName.split(" ")[0]);
+          });
+          room.title =
+            nameArray.join(", ").length > 50
+              ? nameArray.join(", ").substr(0, 50 - 1) + "..."
+              : nameArray.join(", ");
+        } else if (room.users.length < 1) {
+          room.title = "Jag";
+        }
+        return room;
+      });
+      if (rooms.length > 0) {
+        this.setState({
+          rooms: rooms,
+        });
+      }
+    }
+  };
   resize = () => {
     this.forceUpdate();
   };
   componentWillUnmount() {
     window.removeEventListener("resize", this.resize);
+    this.subscriptions.map((subscription) => {
+      subscription.subscription.unsubscribe();
+    });
   }
   logout = () => {
     Auth.signOut()

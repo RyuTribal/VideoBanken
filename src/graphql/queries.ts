@@ -215,3 +215,13 @@ export const getUnreadMessages = `query GetUnreadMessages($username: String!) {
   }
 }
 `;
+export const getUnreadMessage = `query GetUnreadMessage($id: Int!, $username: String!) {
+  getUnreadMessage(id: $id, username: $username) {
+    id
+    recepient_username
+    recepient_group_id
+    message_id
+    isRead
+  }
+}
+`;

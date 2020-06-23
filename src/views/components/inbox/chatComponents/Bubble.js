@@ -86,7 +86,7 @@ class Bubble extends Component {
   };
   getTime = (date) => {
     if (date) {
-      let messageDate = new Date(Date.parse(date));
+      let messageDate = new Date(Date.parse(date.replace(' ', 'T')));
       let pm = false;
       let hours = messageDate.getHours();
       if (hours > 12) {
@@ -100,7 +100,7 @@ class Bubble extends Component {
   };
   getDate = (date) => {
     if (date) {
-      let messageDate = new Date(Date.parse(date));
+      let messageDate = new Date(Date.parse(date.replace(' ', 'T')));
       console.log(messageDate);
       const months = [
         "JAN",
@@ -125,8 +125,8 @@ class Bubble extends Component {
   };
   compareDate = (date, prevDate) => {
     if (date && prevDate) {
-      let messageDate = new Date(Date.parse(date));
-      let prevMessageDate = new Date(Date.parse(prevDate));
+      let messageDate = new Date(Date.parse(date.replace(' ', 'T')));
+      let prevMessageDate = new Date(Date.parse(prevDate.replace(' ', 'T')));
       if (
         messageDate.getFullYear() === prevMessageDate.getFullYear() &&
         messageDate.getMonth() === prevMessageDate.getMonth() &&

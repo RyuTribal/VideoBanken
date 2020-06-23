@@ -102,7 +102,9 @@ function MenuItemComponent(props) {
   return (
     <Link className={css(styles.link)} to={link}>
       {hasNotifications === true && notifications > 0 ? (
-        <div className={css(styles.notification)}>{notifications}</div>
+        <div className={css(styles.notification)}>
+          {notifications > 9 ? `9+` : notifications}
+        </div>
       ) : (
         ""
       )}

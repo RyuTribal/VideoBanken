@@ -779,7 +779,23 @@ export type GetUnreadMessagesQuery = {
     recepient_group_id: string | null,
     message_id: string | null,
     isRead: boolean | null,
-  } | null >,
+  } | null > | null,
+};
+
+export type GetUnreadMessageQueryVariables = {
+  id: number,
+  username: string,
+};
+
+export type GetUnreadMessageQuery = {
+  getUnreadMessage:  {
+    __typename: "UnreadMessages",
+    id: string | null,
+    recepient_username: string | null,
+    recepient_group_id: string | null,
+    message_id: string | null,
+    isRead: boolean | null,
+  } | null,
 };
 
 export type AddMessageSubscriptionVariables = {
@@ -806,6 +822,24 @@ export type RoomMessageSubscriptionVariables = {
 
 export type RoomMessageSubscription = {
   roomMessage:  {
+    __typename: "Message",
+    chatId: number | null,
+    id: number | null,
+    message: string | null,
+    createdAt: string | null,
+    username: string | null,
+    profileImg: string | null,
+    fullName: string | null,
+    sent: boolean | null,
+  } | null,
+};
+
+export type NotificationMessageSubscriptionVariables = {
+  chatId: number,
+};
+
+export type NotificationMessageSubscription = {
+  notificationMessage:  {
     __typename: "Message",
     chatId: number | null,
     id: number | null,

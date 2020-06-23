@@ -27,3 +27,16 @@ export const roomMessage = `subscription RoomMessage($chatId: Int!) {
   }
 }
 `;
+export const notificationMessage = `subscription NotificationMessage($chatId: Int!) {
+  notificationMessage(chatId: $chatId) {
+    chatId
+    id
+    message
+    createdAt
+    username
+    profileImg
+    fullName
+    sent
+  }
+}
+`;
