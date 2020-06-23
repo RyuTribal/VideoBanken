@@ -169,20 +169,16 @@ class Chat extends Component {
           ).subscribe({
             next: (res) => {
               let currentMessage = res.value.data.addMessage;
-              console.log(currentMessage);
               if (currentMessage.username === this.state.username) {
                 let messages = this.state.messages;
-                console.log(messages);
                 for (let i = messages.length; i > 0; i--) {
                   if (messages[i].user.id === currentMessage.username) {
                     // messages[i].sent = currentMessage.sent;
-                    console.log(messages[i]);
                     break;
                   }
                 }
                 this.setState({ messages: messages });
               } else if (currentMessage.username !== this.state.username) {
-                console.log("hey");
                 if (currentMessage.profileImg === "null") {
                   currentMessage.profileImg = blankProfile;
                 }
@@ -207,13 +203,11 @@ class Chat extends Component {
           });
         }
       );
-      console.log(this.props);
       API.graphql(
         graphqlOperation(queries.getMessages, {
           id: this.props.id,
         })
       ).then((res) => {
-        console.log(res.data.getMessages);
         let messageObjects = [];
         res.data.getMessages.map((message) => {
           if (message.profileImg === "null") {
@@ -250,7 +244,6 @@ class Chat extends Component {
   };
   componentWillReceiveProps = (props) => {
     if (props && !this.isMobile()) {
-      console.log(props);
       let currentProps = props;
       if (subscription) {
         subscription.unsubscribe();
@@ -271,21 +264,16 @@ class Chat extends Component {
           ).subscribe({
             next: (res) => {
               let currentMessage = res.value.data.addMessage;
-              console.log(currentMessage);
               if (currentMessage.username === this.state.username) {
                 // let messages = this.state.messages;
-                // console.log(messages);
                 // for (let i = messages.length - 1; i >= 0; i--) {
-                //   console.log(i);
                 //   if (messages[i].sent === currentMessage.username) {
                 //     messages[i] = currentMessage;
                 //     break;
                 //   }
                 // }
                 // this.setState({ messages: messages });
-                // console.log(this.state.messages);
               } else if (currentMessage.username !== this.state.username) {
-                console.log("hey");
                 if (currentMessage.profileImg === "null") {
                   currentMessage.profileImg = blankProfile;
                 }
@@ -311,16 +299,23 @@ class Chat extends Component {
           });
         }
       );
+      // API.graphql(
+      //   graphqlOperation(mutations.changeReadStatus, {
+      //     id: this.props.id,
+      //     username: this.state.username,
+      //   })
+      // ).then((res) => {
+      //   console.log(res);
+      //   this.props.updateNotifications(this.props.id);
+      // });
       API.graphql(
         graphqlOperation(queries.getMessages, {
           id: props.id,
         })
       ).then((res) => {
-        console.log(res.data.getMessages);
         let messageObjects = [];
         res.data.getMessages.map((message) => {
           if (message.profileImg === "null") {
-            console.log();
             message.profileImg = blankProfile;
           }
           messageObjects.push({
@@ -354,7 +349,7 @@ class Chat extends Component {
           {
             id: uuidv4(),
             text: message,
-            createdAt: new Date(),
+            createdAt: new Date().YYYYMMDDHHMMSS(),
             // sent: false,
             user: {
               id: this.state.username,
@@ -363,8 +358,6 @@ class Chat extends Component {
           ...prevState.messages,
         ],
       }));
-      console.log(this.state.messages);
-      console.log(this.state.profileImg);
       await API.graphql(
         graphqlOperation(mutations.createMessage, {
           chatId: this.state.id,
@@ -373,9 +366,7 @@ class Chat extends Component {
           fullName: this.state.fullName,
           profileImg: this.state.profileImg,
         })
-      ).then((res) => {
-        console.log(res);
-      });
+      ).then((res) => {});
     }
   };
   customBubble = (props) => {
@@ -398,7 +389,6 @@ class Chat extends Component {
     );
   };
   customTime = (props) => {
-    console.log(props);
     return (
       <div className={css(styles.messageTimeWrapper)}>
         <Time {...props} />
@@ -415,7 +405,6 @@ class Chat extends Component {
     );
   };
   render() {
-    console.log(this.state.messages);
     return (
       <div className={css(styles.container)}>
         {this.state.id ? (
@@ -463,5 +452,20 @@ class Chat extends Component {
     );
   }
 }
+
+Object.defineProperty(Date.prototype, "YYYYMMDDHHMMSS", {
+  value: function () {
+    function pad2(n) {
+      // always returns a string
+      return (n < 10 ? "0" : "") + n;
+    }
+
+    return `${this.getFullYear()}-${pad2(this.getMonth() + 1)}-${pad2(
+      this.getDate()
+    )} ${pad2(this.getHours())}:${pad2(this.getMinutes())}:${pad2(
+      this.getSeconds()
+    )}`;
+  },
+});
 
 export default Chat;

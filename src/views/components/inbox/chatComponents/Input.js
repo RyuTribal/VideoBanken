@@ -87,7 +87,6 @@ class Input extends Component {
     this.textRef = React.createRef();
   }
   handleMessageChange = (e) => {
-    console.log(e.target.value.length);
     this.setState({ messageValue: e.target.value });
   };
   render() {
@@ -105,7 +104,7 @@ class Input extends Component {
             ref={this.textRef}
             className={css(styles.textBox)}
             contentEditable
-            spellcheck
+            spellCheck
             onChange={this.handleMessageChange}
             onKeyDown={(e) => {
               if (e.keyCode === 13) {
@@ -117,12 +116,11 @@ class Input extends Component {
               }
             }}
             placeholder="Skriv ett meddelande här..."
-            maxlength="250"
+            maxLength="250"
             minRows="0"
             maxRows="7"
-          >
-            {this.state.messageValue}
-          </TextareaAutosize>
+            value={this.state.messageValue}
+          />
           <div className={css(styles.sendButtonWrapper)}>
             <button
               onClick={() => {

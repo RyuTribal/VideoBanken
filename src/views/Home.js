@@ -60,7 +60,7 @@ class Home extends Component {
       mobileVideo: "",
       chatModal: false,
       newChat: false,
-      notifications: 0,
+      notifications: [],
       rooms: [],
     };
     this.subscriptions = [];
@@ -74,22 +74,18 @@ class Home extends Component {
         this.setState({
           user: { username: user.username, attributes: user.attributes },
         });
-        console.log(this.state.user);
       })
       .catch((err) => {
         console.log(err);
         this.props.history.push("/login");
       });
-    console.log(this.state.user.username);
     await API.graphql(
       graphqlOperation(queries.getUser, {
         username: this.state.user.username,
       })
     )
       .then((res) => {
-        console.log(res);
         if (res.data.getUser === null && this.state.user.username !== "") {
-          console.log(res);
           API.graphql(
             graphqlOperation(mutations.addUser, {
               input: {
@@ -98,9 +94,7 @@ class Home extends Component {
                 email: this.state.user.attributes.email,
               },
             })
-          )
-            .then((res) => console.log(res))
-            .catch((err) => console.log(err));
+          ).catch((err) => console.log(err));
         }
       })
       .catch((err) => {
@@ -111,8 +105,7 @@ class Home extends Component {
         username: this.state.user.username,
       })
     ).then((res) => {
-      console.log(res);
-      this.setState({ notifications: res.data.getUnreadMessages.length });
+      this.setState({ notifications: res.data.getUnreadMessages });
     });
     await this.getRooms();
     if (this.state.rooms.length > 0) {
@@ -125,7 +118,6 @@ class Home extends Component {
             })
           ).subscribe({
             next: (res) => {
-              console.log(res.value.data.notificationMessage.id);
               if (
                 res.value.data.notificationMessage.username !==
                 this.state.user.username
@@ -136,13 +128,14 @@ class Home extends Component {
                     username: this.state.user.username,
                   })
                 ).then((res) => {
-                  console.log(res);
                   if (res.data.getUnreadMessage) {
-                    this.setState({
-                      notifications: this.state.notifications + 1,
-                    });
+                    this.setState((prevState) => ({
+                      notifications: [
+                        ...prevState.notifications,
+                        res.data.getUnreadMessage,
+                      ],
+                    }));
                   }
-                  console.log(this.state.notifications);
                 });
               }
             },
@@ -330,6 +323,16 @@ class Home extends Component {
                             isMobile={isMobile}
                             modal={() => this.setState({ chatModal: true })}
                             newChat={this.state.newChat}
+                            updateNotifications={(id) => {
+                              console.log("we here")
+                              let notificationsArray = this.state.notifications;
+                              notificationsArray.filter(function (el) {
+                                return el.recepient_group_id !== id;
+                              });
+                              this.setState({
+                                notifications: notificationsArray,
+                              });
+                            }}
                           />
                         )}
                       />

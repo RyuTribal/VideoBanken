@@ -62,8 +62,6 @@ class Inbox extends Component {
       return res.data.getRooms;
     });
     if (rooms.length > 0) {
-      console.log(rooms);
-      console.log(rooms[0].users);
       const currentUserInfo = JSON.parse(rooms[0].users).filter(
         (i) => i.username === this.state.username
       );
@@ -98,7 +96,6 @@ class Inbox extends Component {
           roomTitle: rooms[0].title,
         });
       }
-      console.log(this.state.chosenRoom);
     }
   };
   isMobile = () => {
@@ -113,7 +110,6 @@ class Inbox extends Component {
     }
   };
   render() {
-    console.log(this.state.chosenWindow);
     return (
       <div className={css(styles.container)}>
         {!this.isMobile() ? (
@@ -141,6 +137,7 @@ class Inbox extends Component {
               fullName={this.state.fullName}
               profileImg={this.state.profileImg}
               modal={this.props.modal}
+              updateNotifications={(id) => this.props.updateNotifications(id)}
             />
             {/* <Search isMobile={this.props.isMobile} /> */}
           </div>

@@ -77,7 +77,6 @@ class Bubble extends Component {
   };
   componentDidUpdate = (prevProps) => {
     if (prevProps !== this.props) {
-      console.log(this.props.prevMessage);
       this.setState({
         message: this.props.message,
         prevMessage: this.props.prevMessage,
@@ -86,22 +85,24 @@ class Bubble extends Component {
   };
   getTime = (date) => {
     if (date) {
-      let messageDate = new Date(Date.parse(date.replace(' ', 'T')));
+      let messageDate = new Date(Date.parse(date.replace(" ", "T")));
       let pm = false;
       let hours = messageDate.getHours();
       if (hours > 12) {
         pm = true;
         hours = hours - 12;
       }
-      const minutes = messageDate.getMinutes();
+      let minutes = messageDate.getMinutes();
+      if (minutes < 10) {
+        minutes = "0" + minutes;
+      }
       messageDate = `${hours}:${minutes} ${pm ? "PM" : "AM"}`;
       return messageDate;
     }
   };
   getDate = (date) => {
     if (date) {
-      let messageDate = new Date(Date.parse(date.replace(' ', 'T')));
-      console.log(messageDate);
+      let messageDate = new Date(Date.parse(date.replace(" ", "T")));
       const months = [
         "JAN",
         "FEB",
@@ -124,9 +125,10 @@ class Bubble extends Component {
     }
   };
   compareDate = (date, prevDate) => {
+    console.log(date);
     if (date && prevDate) {
-      let messageDate = new Date(Date.parse(date.replace(' ', 'T')));
-      let prevMessageDate = new Date(Date.parse(prevDate.replace(' ', 'T')));
+      let messageDate = new Date(Date.parse(date.replace(" ", "T")));
+      let prevMessageDate = new Date(Date.parse(prevDate.replace(" ", "T")));
       if (
         messageDate.getFullYear() === prevMessageDate.getFullYear() &&
         messageDate.getMonth() === prevMessageDate.getMonth() &&
@@ -139,7 +141,6 @@ class Bubble extends Component {
     }
   };
   render() {
-    console.log(this.state.prevMessage);
     return (
       <div className={css(styles.container)}>
         <div className={css(styles.bubbleContainer)}>

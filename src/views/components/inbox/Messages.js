@@ -85,6 +85,10 @@ const styles = StyleSheet.create({
     width: 3,
     background: "#ea3a3a",
   },
+  isRead: {
+    color: "black",
+    fontWeight: "bold",
+  },
 });
 
 class Messages extends Component {
@@ -115,7 +119,6 @@ class Messages extends Component {
   };
   componentWillUnmount() {}
   changeChat = (chat) => {
-    console.log(chat);
     if (chat) {
       this.setState({ chatChosen: chat.roomId });
       this.props.changeChat(chat);
@@ -166,6 +169,7 @@ class MessageBox extends Component {
       active: false,
       user: "",
       lastMessage: "",
+      isRead: true,
     };
   }
   subscription = null;
@@ -177,26 +181,31 @@ class MessageBox extends Component {
     } else {
       this.setState({ active: false });
     }
-    console.log(this.props.chat.roomId);
     API.graphql(
       graphqlOperation(queries.getLastMessage, {
         chatId: this.props.chat.roomId,
       })
     ).then((res) => {
-      console.log(res);
       if (res.data.getLastMessage) {
-        console.log(res.data.getLastMessage);
         let lastMessage = `${res.data.getLastMessage.fullName.split(" ")[0]}: ${
           res.data.getLastMessage.message
         }`;
         if (lastMessage.length > 25) {
           lastMessage = lastMessage.slice(0, 22) + "...";
         }
-        console.log(lastMessage);
         this.setState({ lastMessage: lastMessage });
+        if (res.data.getLastMessage.username !== this.state.user) {
+          API.graphql(
+            graphqlOperation(queries.getUnreadMessage, {
+              id: res.data.getLastMessage.id,
+              username: this.state.user,
+            })
+          ).then((res) => {
+            this.setState({ isRead: res.data.getUnreadMessage.isRead });
+          });
+        }
       }
     });
-    console.log(this.props.chat.roomId)
     this.subscription = API.graphql(
       graphqlOperation(subscriptions.roomMessage, {
         chatId: this.props.chat.roomId,
@@ -204,7 +213,6 @@ class MessageBox extends Component {
     ).subscribe({
       next: (res) => {
         let currentMessage = res.value.data.roomMessage;
-        console.log(currentMessage);
         let lastMessage = `${currentMessage.fullName.split(" ")[0]}: ${
           currentMessage.message
         }`;
@@ -239,7 +247,6 @@ class MessageBox extends Component {
     }
   };
   render() {
-    console.log(this.props.chat);
     return (
       <div onClick={this.props.onClick} className={css(styles.messageBox)}>
         <img className={css(styles.image)} src={blankProfile}></img>
@@ -254,7 +261,12 @@ class MessageBox extends Component {
               }`}</span>
             )}
           </div>
-          <div className={css(styles.message)}>
+          <div
+            className={css(
+              styles.message,
+              this.state.isRead === false && styles.isRead
+            )}
+          >
             {!this.state.lastMessage || this.state.lastMessage === ""
               ? "..."
               : this.state.lastMessage}

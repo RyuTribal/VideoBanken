@@ -24,7 +24,6 @@ class Messages extends Component {
     };
   }
   componentDidUpdate = (prevProps) => {
-    console.log(this.props);
     if (prevProps !== this.props) {
       this.setState({ messages: this.props.messages });
     }

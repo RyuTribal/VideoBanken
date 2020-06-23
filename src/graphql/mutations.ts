@@ -280,3 +280,13 @@ export const createRoom = `mutation CreateRoom($users: AWSJSON!) {
   }
 }
 `;
+export const changeReadStatus = `mutation ChangeReadStatus($id: Int!, $username: String!) {
+  changeReadStatus(id: $id, username: $username) {
+    id
+    recepient_username
+    recepient_group_id
+    message_id
+    isRead
+  }
+}
+`;

@@ -256,13 +256,11 @@ class ChatModal extends Component {
     const currentUser = await Auth.currentAuthenticatedUser();
     userArray.push(currentUser.username);
     userArray = [...new Set(userArray)];
-    console.log(userArray);
     await API.graphql(
       graphqlOperation(mutations.createRoom, {
         users: JSON.stringify(userArray),
       })
     ).then((res) => {
-      console.log(res)
       this.props.closeModal(true);
     });
   };

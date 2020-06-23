@@ -471,6 +471,22 @@ export type CreateRoomMutation = {
   },
 };
 
+export type ChangeReadStatusMutationVariables = {
+  id: number,
+  username: string,
+};
+
+export type ChangeReadStatusMutation = {
+  changeReadStatus:  {
+    __typename: "UnreadMessages",
+    id: string | null,
+    recepient_username: string | null,
+    recepient_group_id: string | null,
+    message_id: string | null,
+    isRead: boolean | null,
+  } | null,
+};
+
 export type GetVideosQueryVariables = {
   offset?: number | null,
 };
