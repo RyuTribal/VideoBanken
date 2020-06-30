@@ -10,14 +10,10 @@ import MessageBox from "./MessageBox";
 
 const styles = StyleSheet.create({
   container: {
-    height: "100%",
+    height: "100vh",
     display: "flex",
     flexDirection: "column",
     width: "100%",
-    "@supports (-webkit-overflow-scrolling: touch)": {
-      display: "flex",
-      alignContent: "stretch",
-    },
   },
 });
 class Messages extends Component {
