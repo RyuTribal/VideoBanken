@@ -16,6 +16,10 @@ const styles = StyleSheet.create({
     display: "flex",
     width: "100%",
     flexDirection: "column",
+    "@supports (-webkit-overflow-scrolling: touch)": {
+      display: "flex",
+      alignContent: "stretch",
+    },
   },
   profileContainer: {},
   yourContainer: {
