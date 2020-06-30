@@ -13,6 +13,7 @@ import { StyleSheet, css } from "aphrodite";
 import { Auth, Hub, Storage, API, graphqlOperation } from "aws-amplify";
 import * as queries from "../graphql/queries";
 import * as mutations from "../graphql/mutations";
+import { connect } from "react-redux";
 const styles = StyleSheet.create({
   container: {
     height: "100%",
@@ -31,11 +32,7 @@ class Inbox extends Component {
     super();
     this.state = {
       username: "",
-      chosenRoom: "",
       modal: false,
-      chats: [],
-      currentUsers: [],
-      roomTitle: "",
       chosenWindow: "messages",
       profileImg: "",
       fullName: "",
@@ -43,61 +40,30 @@ class Inbox extends Component {
   }
   componentDidMount = async () => {
     this.props.onChange("Inbox");
+    if (this.props.match.params.id) {
+      this.props.change_room(JSON.parse(this.props.match.params.id));
+    }
     const currentUser = await Auth.currentAuthenticatedUser();
     this.setState({ username: currentUser.username });
-    this.getRooms();
   };
-  componentWillReceiveProps = (props) => {
-    if (props.newChat === true) {
-      this.getRooms();
-    }
-  };
-  componentWillUnmount() {}
-  getRooms = async () => {
-    let rooms = await API.graphql(
-      graphqlOperation(queries.getRooms, {
-        username: this.state.username,
-      })
-    ).then((res) => {
-      return res.data.getRooms;
-    });
-    if (rooms.length > 0) {
-      const currentUserInfo = JSON.parse(rooms[0].users).filter(
-        (i) => i.username === this.state.username
-      );
-      this.setState({
-        profileImg: currentUserInfo[0].profileImg,
-        fullName: currentUserInfo[0].fullName,
-      });
-      rooms = rooms.map((room) => {
-        room.users = JSON.parse(room.users).filter(
-          (i) => i.username !== this.state.username
-        );
-        if (room.users.length === 1) {
-          room.title = room.users[0].fullName;
-        } else if (room.users.length > 1) {
-          let nameArray = [];
-          room.users.map((user) => {
-            nameArray.push(user.fullName.split(" ")[0]);
-          });
-          room.title =
-            nameArray.join(", ").length > 50
-              ? nameArray.join(", ").substr(0, 50 - 1) + "..."
-              : nameArray.join(", ");
-        } else if (room.users.length < 1) {
-          room.title = "Jag";
-        }
-        return room;
-      });
-      if (rooms.length > 0) {
-        this.setState({
-          chats: rooms,
-          currentUsers: rooms[0].users,
-          roomTitle: rooms[0].title,
-        });
+  componentDidUpdate = (prevProps) => {
+    if (
+      prevProps.match.params.id !== this.props.match.params.id ||
+      prevProps.state.rooms.length !== this.props.state.rooms.length
+    ) {
+      if (
+        this.props.match.params.id &&
+        this.props.match.params.id !== prevProps.match.params.id
+      ) {
+        this.props.change_room(JSON.parse(this.props.match.params.id));
+      } else if (this.props.match.params.id) {
+        this.props.change_room(JSON.parse(this.props.match.params.id));
       }
     }
   };
+  componentWillUnmount() {
+    this.props.clear_selected_room();
+  }
   isMobile = () => {
     if (
       window.matchMedia("(max-width: 813px)").matches ||
@@ -114,28 +80,9 @@ class Inbox extends Component {
       <div className={css(styles.container)}>
         {!this.isMobile() ? (
           <div className={css(styles.viewContainer)}>
-            <Messages
-              chats={this.state.chats}
-              changeChat={(chat) => {
-                this.setState({
-                  chosenRoom: chat.roomId,
-                  currentUsers: chat.users,
-                  roomTitle: chat.title,
-                });
-              }}
-              chosenChat={this.state.chosenRoom}
-              modal={this.props.modal}
-              isMobile={this.props.isMobile}
-              latestMessage={this.state.latestMessage}
-              newestMessages={this.state.newestMessages}
-            />
+            <Messages modal={this.props.modal} isMobile={this.props.isMobile} />
             <Chat
-              id={this.state.chosenRoom}
-              users={this.state.currentUsers}
-              title={this.state.roomTitle}
               isMobile={this.props.isMobile}
-              fullName={this.state.fullName}
-              profileImg={this.state.profileImg}
               modal={this.props.modal}
               updateNotifications={(id) => this.props.updateNotifications(id)}
             />
@@ -143,29 +90,16 @@ class Inbox extends Component {
           </div>
         ) : (
           <div className={css(styles.viewContainer)}>
-            {this.state.chosenWindow === "messages" && (
-              <Messages
-                chats={this.state.chats}
-                changeChat={(chat) => {
-                  this.setState({
-                    chosenRoom: chat.roomId,
-                    currentUsers: chat.users,
-                    roomTitle: chat.title,
-                    chosenWindow: "chat",
-                  });
-                }}
-                chosenChat={this.state.chosenRoom}
-                modal={this.props.modal}
-              />
+            {!this.props.match.params.id && (
+              <Messages modal={this.props.modal} />
             )}
-            {this.state.chosenWindow === "chat" && (
+            {this.props.match.params.id && (
               <Chat
-                id={this.state.chosenRoom}
-                users={this.state.currentUsers}
-                title={this.state.roomTitle}
-                back={() => this.setState({ chosenWindow: "messages" })}
-                fullName={this.state.fullName}
-                profileImg={this.state.profileImg}
+                id={this.props.match.params.id}
+                back={() => {
+                  this.props.history.push("/home/inbox/");
+                  this.props.clear_selected_room();
+                }}
               />
             )}
             {this.state.chosenWindow === "settings" && <Search />}
@@ -176,4 +110,24 @@ class Inbox extends Component {
   }
 }
 
-export default withRouter(Inbox);
+function mapStateToProps(state) {
+  return {
+    state: state,
+  };
+}
+function mapDispatchToProps(dispatch) {
+  return {
+    set_rooms: (rooms) => dispatch({ type: "SET_ROOMS", rooms: rooms }),
+    add_room: (room) => dispatch({ type: "ADD_ROOM", room: room }),
+    remove_room: (id) => dispatch({ type: "REMOVE_ROOM", id, id }),
+    add_subscription: (subscription) =>
+      dispatch({ type: "ADD_SUBSCRIPTION", subscription: subscription }),
+    remove_subscription: (id) =>
+      dispatch({ type: "REMOVE_SUBSCRIPTION", id: id }),
+    add_message: (message) =>
+      dispatch({ type: "ADD_MESSAGE", message: message }),
+    change_room: (id) => dispatch({ type: "CHANGE_ROOM", id: id }),
+    clear_selected_room: () => dispatch({ type: "CLEAR_SELECTED_ROOM" }),
+  };
+}
+export default withRouter(connect(mapStateToProps, mapDispatchToProps)(Inbox));

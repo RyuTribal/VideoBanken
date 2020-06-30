@@ -11,6 +11,7 @@ import blankProfile from "../../../img/blank-profile.png";
 import { Auth, graphqlOperation, API, Analytics } from "aws-amplify";
 import * as queries from "../../../graphql/queries";
 import * as subscriptions from "../../../graphql/subscriptions";
+import { connect } from "react-redux";
 
 const styles = StyleSheet.create({
   container: {
@@ -97,31 +98,12 @@ class Messages extends Component {
     this.state = {
       modal: false,
       chats: [],
-      chatChosen: "",
       newestMessages: [],
     };
   }
-  componentDidMount = () => {
-    if (this.isMobile()) {
-      this.setState({
-        chats: this.props.chats,
-        chatChosen: this.props.chosenChat,
-        newestMessages: this.props.newestMessages,
-      });
-    }
-  };
-  componentWillReceiveProps = async (props) => {
-    this.setState({
-      chats: props.chats,
-      chatChosen: props.chosenChat,
-      newestMessages: props.newestMessages,
-    });
-  };
-  componentWillUnmount() {}
   changeChat = (chat) => {
     if (chat) {
-      this.setState({ chatChosen: chat.roomId });
-      this.props.changeChat(chat);
+      this.props.history.push("/home/inbox/" + chat.roomId);
     }
   };
   isMobile = () => {
@@ -136,6 +118,7 @@ class Messages extends Component {
     }
   };
   render() {
+    console.log(this.props.state);
     return (
       <div className={css(styles.container)}>
         <div className={css(styles.headerContainer)}>
@@ -148,11 +131,17 @@ class Messages extends Component {
           </button>
         </div>
         <div className={css(styles.messagesContainer)}>
-          {this.state.chats.map((chat, i) => (
+          {this.props.state.rooms.map((chat, i) => (
             <MessageBox
-              chosen={this.state.chatChosen}
+              chosen={
+                this.props.state.selectedRoom &&
+                this.props.state.selectedRoom.roomId
+              }
               chat={chat}
-              onClick={() => this.changeChat(chat)}
+              lastMessage={chat.lastMessage && chat.lastMessage}
+              onClick={() => {
+                this.changeChat(chat);
+              }}
               sendMessages={this.props.sendMessage}
             />
           ))}
@@ -172,68 +161,64 @@ class MessageBox extends Component {
       isRead: true,
     };
   }
-  subscription = null;
   componentDidMount = async () => {
+    console.log(this.props.chosenChat);
     const currentUser = await Auth.currentAuthenticatedUser();
     this.setState({ user: currentUser.username });
+    console.log(this.props.chosen);
     if (this.props.chosen && this.props.chosen === this.props.chat.roomId) {
       this.setState({ active: true });
     } else {
       this.setState({ active: false });
     }
-    API.graphql(
-      graphqlOperation(queries.getLastMessage, {
-        chatId: this.props.chat.roomId,
-      })
-    ).then((res) => {
-      if (res.data.getLastMessage) {
-        let lastMessage = `${res.data.getLastMessage.fullName.split(" ")[0]}: ${
-          res.data.getLastMessage.message
-        }`;
-        if (lastMessage.length > 25) {
-          lastMessage = lastMessage.slice(0, 22) + "...";
+    if (this.props.lastMessage) {
+      console.log(this.props.lastMessage);
+      API.graphql(
+        graphqlOperation(queries.getUnreadMessage, {
+          id: this.props.lastMessage.id,
+          username: this.state.user,
+        })
+      ).then((res) => {
+        console.log(res);
+        if (
+          res.data.getUnreadMessage &&
+          res.data.getUnreadMessage.isRead === false
+        ) {
+          this.setState({ isRead: false });
         }
-        this.setState({ lastMessage: lastMessage });
-        if (res.data.getLastMessage.username !== this.state.user) {
-          API.graphql(
-            graphqlOperation(queries.getUnreadMessage, {
-              id: res.data.getLastMessage.id,
-              username: this.state.user,
-            })
-          ).then((res) => {
-            this.setState({ isRead: res.data.getUnreadMessage.isRead });
-          });
-        }
-      }
-    });
-    this.subscription = API.graphql(
-      graphqlOperation(subscriptions.roomMessage, {
-        chatId: this.props.chat.roomId,
-      })
-    ).subscribe({
-      next: (res) => {
-        let currentMessage = res.value.data.roomMessage;
-        let lastMessage = `${currentMessage.fullName.split(" ")[0]}: ${
-          currentMessage.message
-        }`;
-        if (lastMessage.length > 25) {
-          lastMessage = lastMessage.slice(0, 22) + "...";
-        }
-        this.setState({
-          lastMessage: lastMessage,
-        });
-      },
-    });
-  };
-  componentWillReceiveProps = (props) => {
-    if (props.chosen && props.chosen === props.chat.roomId) {
-      this.setState({ active: true });
-    } else {
-      this.setState({ active: false });
+      });
     }
   };
-  componentWillUnmount = () => {
-    this.subscription.unsubscribe();
+  componentDidUpdate = (prevProps) => {
+    if (
+      this.props.chat.lastMessage !== prevProps.chat.lastMessage ||
+      this.props.chosen !== prevProps.chosen ||
+      this.props.lastMessage !== prevProps.lastMessage
+    ) {
+      console.log(this.props.chat);
+      if (this.props.chosen === this.props.chat.roomId) {
+        this.setState({ active: true });
+      } else {
+        this.setState({ active: false });
+      }
+      if (this.props.lastMessage) {
+        console.log(this.props.lastMessage);
+        API.graphql(
+          graphqlOperation(queries.getUnreadMessage, {
+            id: this.props.lastMessage.id,
+            username: this.state.user,
+          })
+        ).then((res) => {
+          console.log(res);
+          if (
+            res.data.getUnreadMessage &&
+            res.data.getUnreadMessage.isRead === false
+          ) {
+            this.setState({ isRead: false });
+          }
+        });
+      }
+    }
   };
   isMobile = () => {
     if (
@@ -248,7 +233,10 @@ class MessageBox extends Component {
   };
   render() {
     return (
-      <div onClick={this.props.onClick} className={css(styles.messageBox)}>
+      <div
+        onClick={() => this.props.onClick()}
+        className={css(styles.messageBox)}
+      >
         <img className={css(styles.image)} src={blankProfile}></img>
         <div className={css(styles.nameMessageWrapper)}>
           <div className={css(styles.name)}>
@@ -267,9 +255,10 @@ class MessageBox extends Component {
               this.state.isRead === false && styles.isRead
             )}
           >
-            {!this.state.lastMessage || this.state.lastMessage === ""
+            {!this.props.chat.lastMessage ||
+            this.props.chat.lastMessage.text === ""
               ? "..."
-              : this.state.lastMessage}
+              : this.props.chat.lastMessage.text}
           </div>
           {this.state.active && !this.isMobile() && (
             <div className={css(styles.active)}></div>
@@ -279,5 +268,25 @@ class MessageBox extends Component {
     );
   }
 }
-
-export default Messages;
+function mapStateToProps(state) {
+  return {
+    state: state,
+  };
+}
+function mapDispatchToProps(dispatch) {
+  return {
+    set_rooms: (rooms) => dispatch({ type: "SET_ROOMS", rooms: rooms }),
+    add_room: (room) => dispatch({ type: "ADD_ROOM", room: room }),
+    remove_room: (id) => dispatch({ type: "REMOVE_ROOM", id, id }),
+    add_subscription: (subscription) =>
+      dispatch({ type: "ADD_SUBSCRIPTION", subscription: subscription }),
+    remove_subscription: (id) =>
+      dispatch({ type: "REMOVE_SUBSCRIPTION", id: id }),
+    add_message: (message) =>
+      dispatch({ type: "ADD_MESSAGE", message: message }),
+    change_room: (id) => dispatch({ type: "CHANGE_ROOM", id: id }),
+  };
+}
+export default withRouter(
+  connect(mapStateToProps, mapDispatchToProps)(Messages)
+);

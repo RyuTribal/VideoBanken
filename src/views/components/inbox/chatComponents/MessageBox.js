@@ -6,6 +6,7 @@ import * as queries from "../../../../graphql/queries";
 import * as mutations from "../../../../graphql/mutations";
 import * as subscriptions from "../../../../graphql/subscriptions";
 import Bubble from "./Bubble";
+import { connect } from "react-redux";
 
 const styles = StyleSheet.create({
   container: {
@@ -30,28 +31,42 @@ class MessageBox extends Component {
     };
     this.bubbleContainerRef = React.createRef();
   }
-  componentDidUpdate = (prevProps) => {
-    if (prevProps !== this.props) {
-      this.setState({ messages: this.props.messages }, () => {
-        this.bubbleContainerRef.current.scrollTop = this.bubbleContainerRef.current.scrollHeight;
-      });
-    }
-  };
   render() {
+    console.log(this.props.state);
     return (
       <div ref={this.bubbleContainerRef} className={css(styles.container)}>
         <div className={css(styles.bubbleContainer)}>
-          {this.state.messages.map((message, i) => (
-            <Bubble
-              message={message}
-              prevMessage={this.state.messages[i + 1]}
-              key={i}
-            />
-          ))}
+          {this.props.state.selectedRoom.messages &&
+            this.props.state.selectedRoom.messages.map((message, i) => (
+              <Bubble
+                message={message}
+                prevMessage={this.props.state.selectedRoom.messages[i + 1]}
+                key={i}
+              />
+            ))}
         </div>
       </div>
     );
   }
 }
 
-export default MessageBox;
+function mapStateToProps(state) {
+  return {
+    state: state,
+  };
+}
+function mapDispatchToProps(dispatch) {
+  return {
+    set_rooms: (rooms) => dispatch({ type: "SET_ROOMS", rooms: rooms }),
+    add_room: (room) => dispatch({ type: "ADD_ROOM", room: room }),
+    remove_room: (id) => dispatch({ type: "REMOVE_ROOM", id, id }),
+    add_subscription: (subscription) =>
+      dispatch({ type: "ADD_SUBSCRIPTION", subscription: subscription }),
+    remove_subscription: (id) =>
+      dispatch({ type: "REMOVE_SUBSCRIPTION", id: id }),
+    add_message: (message) =>
+      dispatch({ type: "ADD_MESSAGE", message: message }),
+    change_room: (id) => dispatch({ type: "CHANGE_MESSAGE", id: id }),
+  };
+}
+export default connect(mapStateToProps, mapDispatchToProps)(MessageBox);

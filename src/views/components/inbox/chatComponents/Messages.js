@@ -14,24 +14,17 @@ const styles = StyleSheet.create({
     display: "flex",
     flexDirection: "column",
     width: "100%",
+    "@supports (-webkit-overflow-scrolling: touch)": {
+      display: "flex",
+      alignContent: "stretch",
+    },
   },
 });
 class Messages extends Component {
-  constructor() {
-    super();
-    this.state = {
-      messages: [],
-    };
-  }
-  componentDidUpdate = (prevProps) => {
-    if (prevProps !== this.props) {
-      this.setState({ messages: this.props.messages });
-    }
-  };
   render() {
     return (
       <div className={css(styles.container)}>
-        <MessageBox messages={this.state.messages} />
+        <MessageBox />
         <Input onSend={this.props.onSend} />
       </div>
     );

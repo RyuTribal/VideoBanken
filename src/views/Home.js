@@ -25,6 +25,7 @@ import HeaderComponent from "./components/header/HeaderComponent";
 import Modal from "./components/modal/Modal";
 import ChatModal from "./components/inbox/ChatModal";
 import MobileModal from "./components/modal/MobileModal";
+import { connect } from "react-redux";
 
 const styles = StyleSheet.create({
   container: {
@@ -94,7 +95,13 @@ class Home extends Component {
                 email: this.state.user.attributes.email,
               },
             })
-          ).catch((err) => console.log(err));
+          )
+            .then((res) => {
+              this.props.add_user(res.data.addUser);
+            })
+            .catch((err) => console.log(err));
+        } else {
+          this.props.add_user(res.data.getUser);
         }
       })
       .catch((err) => {
@@ -108,9 +115,9 @@ class Home extends Component {
       this.setState({ notifications: res.data.getUnreadMessages });
     });
     await this.getRooms();
-    if (this.state.rooms.length > 0) {
-      this.state.rooms.map((room, i) => {
-        this.subscriptions.push({
+    if (this.props.state.rooms.length > 0) {
+      this.props.state.rooms.map((room, i) => {
+        this.props.add_subscription({
           id: room.roomId,
           subscription: API.graphql(
             graphqlOperation(subscriptions.notificationMessage, {
@@ -122,6 +129,18 @@ class Home extends Component {
                 res.value.data.notificationMessage.username !==
                 this.state.user.username
               ) {
+                this.props.add_message({
+                  id: res.value.data.notificationMessage.id,
+                  text: res.value.data.notificationMessage.message,
+                  createdAt: res.value.data.notificationMessage.createdAt,
+                  chatId: res.value.data.notificationMessage.chatId,
+                  // sent: currentMessage.sent,
+                  user: {
+                    id: res.value.data.notificationMessage.username,
+                    name: res.value.data.notificationMessage.fullName,
+                    avatar: res.value.data.notificationMessage.profileImg,
+                  },
+                });
                 API.graphql(
                   graphqlOperation(queries.getUnreadMessage, {
                     id: res.value.data.notificationMessage.id,
@@ -142,6 +161,9 @@ class Home extends Component {
           }),
         });
       });
+      if (this.props.match.params.id) {
+        this.props.change_room(JSON.parse(this.props.match.params.id));
+      }
     }
   };
   getRooms = async () => {
@@ -158,7 +180,7 @@ class Home extends Component {
       );
       rooms = rooms.map((room) => {
         room.users = JSON.parse(room.users).filter(
-          (i) => i.username !== this.state.username
+          (i) => i.username !== this.props.state.user.username
         );
         if (room.users.length === 1) {
           room.title = room.users[0].fullName;
@@ -177,9 +199,32 @@ class Home extends Component {
         return room;
       });
       if (rooms.length > 0) {
-        this.setState({
-          rooms: rooms,
+        this.props.set_rooms(rooms);
+        this.props.state.rooms.map((room) => {
+          const lastMessage = API.graphql(
+            graphqlOperation(queries.getLastMessage, {
+              chatId: room.roomId,
+            })
+          ).then((res) => {
+            console.log(res);
+            if (res.data.getLastMessage) {
+              this.props.add_message({
+                id: res.data.getLastMessage.id,
+                text: res.data.getLastMessage.message,
+                createdAt: res.data.getLastMessage.createdAt,
+                chatId: res.data.getLastMessage.chatId,
+                // sent: currentMessage.sent,
+                user: {
+                  id: res.data.getLastMessage.username,
+                  name: res.data.getLastMessage.fullName,
+                  avatar: res.data.getLastMessage.profileImg,
+                },
+              });
+            }
+          });
         });
+
+        console.log(this.props.state);
       }
     }
   };
@@ -194,7 +239,10 @@ class Home extends Component {
   }
   logout = () => {
     Auth.signOut()
-      .then((data) => this.props.history.push("/login"))
+      .then((data) => {
+        this.props.clear_state();
+        this.props.history.push("/login");
+      })
       .catch((err) => console.log(err));
   };
   closeModal = () => {
@@ -314,9 +362,10 @@ class Home extends Component {
                         )}
                       />
                       <Route
-                        path={`${this.props.match.path}/inbox/`}
-                        render={() => (
+                        path={`${this.props.match.path}/inbox/:id?`}
+                        render={(props) => (
                           <Inbox
+                            {...props}
                             onChange={(selectedItem) =>
                               this.setState({ selectedItem })
                             }
@@ -324,7 +373,7 @@ class Home extends Component {
                             modal={() => this.setState({ chatModal: true })}
                             newChat={this.state.newChat}
                             updateNotifications={(id) => {
-                              console.log("we here")
+                              console.log("we here");
                               let notificationsArray = this.state.notifications;
                               notificationsArray.filter(function (el) {
                                 return el.recepient_group_id !== id;
@@ -370,4 +419,26 @@ class Home extends Component {
   }
 }
 
-export default withRouter(Home);
+function mapStateToProps(state) {
+  return {
+    state: state,
+  };
+}
+function mapDispatchToProps(dispatch) {
+  return {
+    set_rooms: (rooms) => dispatch({ type: "SET_ROOMS", rooms: rooms }),
+    add_room: (room) => dispatch({ type: "ADD_ROOM", room: room }),
+    remove_room: (id) => dispatch({ type: "REMOVE_ROOM", id, id }),
+    add_subscription: (subscription) =>
+      dispatch({ type: "ADD_SUBSCRIPTION", subscription: subscription }),
+    remove_subscription: (id) =>
+      dispatch({ type: "REMOVE_SUBSCRIPTION", id: id }),
+    add_message: (message) =>
+      dispatch({ type: "ADD_MESSAGE", message: message }),
+    change_room: (id) => dispatch({ type: "CHANGE_ROOM", id: id }),
+    add_user: (user) => dispatch({ type: "ADD_USER", user: user }),
+    clear_state: () => dispatch({ type: "CLEAR_STATE" }),
+  };
+}
+
+export default withRouter(connect(mapStateToProps, mapDispatchToProps)(Home));

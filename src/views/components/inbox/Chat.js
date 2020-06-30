@@ -17,6 +17,7 @@ import { GiftedChat, Bubble, Time, InputToolbar } from "react-web-gifted-chat";
 import blankProfile from "../../../img/blank-profile.png";
 import { v4 as uuidv4 } from "uuid";
 import Messages from "./chatComponents/Messages";
+import { connect } from "react-redux";
 const blinking = {
   from: {
     opacity: 1,
@@ -129,13 +130,11 @@ const styles = StyleSheet.create({
     },
   },
 });
-let subscription;
 class Chat extends Component {
   constructor() {
     super();
     this.state = {
       username: "",
-      messages: [],
       id: null,
       users: [],
       title: "",
@@ -149,87 +148,6 @@ class Chat extends Component {
     this.setState({
       username: username,
     });
-    if (subscription) {
-      subscription.unsubscribe();
-    }
-    if (this.props && this.isMobile()) {
-      this.setState(
-        {
-          profileImg: this.props.profileImg,
-          fullName: this.props.fullName,
-          id: this.props.id,
-          users: this.props.users,
-          title: this.props.title,
-        },
-        () => {
-          subscription = API.graphql(
-            graphqlOperation(subscriptions.addMessage, {
-              chatId: this.state.id,
-            })
-          ).subscribe({
-            next: (res) => {
-              let currentMessage = res.value.data.addMessage;
-              if (currentMessage.username === this.state.username) {
-                let messages = this.state.messages;
-                for (let i = messages.length; i > 0; i--) {
-                  if (messages[i].user.id === currentMessage.username) {
-                    // messages[i].sent = currentMessage.sent;
-                    break;
-                  }
-                }
-                this.setState({ messages: messages });
-              } else if (currentMessage.username !== this.state.username) {
-                if (currentMessage.profileImg === "null") {
-                  currentMessage.profileImg = blankProfile;
-                }
-                this.setState((prevState) => ({
-                  messages: [
-                    {
-                      id: currentMessage.id,
-                      text: currentMessage.message,
-                      createdAt: currentMessage.createdAt,
-                      // sent: currentMessage.sent,
-                      user: {
-                        id: currentMessage.username,
-                        name: currentMessage.fullName,
-                        avatar: currentMessage.profileImg,
-                      },
-                    },
-                    ...prevState.messages,
-                  ],
-                }));
-              }
-            },
-          });
-        }
-      );
-      API.graphql(
-        graphqlOperation(queries.getMessages, {
-          id: this.props.id,
-        })
-      ).then((res) => {
-        let messageObjects = [];
-        res.data.getMessages.map((message) => {
-          if (message.profileImg === "null") {
-            message.profileImg = blankProfile;
-          }
-          messageObjects.push({
-            id: message.id,
-            text: message.message,
-            createdAt: message.createdAt,
-            // sent: message.sent,
-            user: {
-              id: message.username,
-              name: message.fullName,
-              avatar: message.profileImg,
-            },
-          });
-        });
-        this.setState({
-          messages: messageObjects,
-        });
-      });
-    }
   };
   isMobile = () => {
     if (
@@ -242,63 +160,16 @@ class Chat extends Component {
       return false;
     }
   };
-  componentWillReceiveProps = (props) => {
-    if (props && !this.isMobile()) {
-      let currentProps = props;
-      if (subscription) {
-        subscription.unsubscribe();
-      }
-      this.setState(
-        {
-          profileImg: currentProps.profileImg,
-          fullName: currentProps.fullName,
-          id: currentProps.id,
-          users: currentProps.users,
-          title: currentProps.title,
-        },
-        () => {
-          subscription = API.graphql(
-            graphqlOperation(subscriptions.addMessage, {
-              chatId: this.state.id,
-            })
-          ).subscribe({
-            next: (res) => {
-              let currentMessage = res.value.data.addMessage;
-              if (currentMessage.username === this.state.username) {
-                // let messages = this.state.messages;
-                // for (let i = messages.length - 1; i >= 0; i--) {
-                //   if (messages[i].sent === currentMessage.username) {
-                //     messages[i] = currentMessage;
-                //     break;
-                //   }
-                // }
-                // this.setState({ messages: messages });
-              } else if (currentMessage.username !== this.state.username) {
-                if (currentMessage.profileImg === "null") {
-                  currentMessage.profileImg = blankProfile;
-                }
-
-                this.setState((prevState) => ({
-                  messages: [
-                    {
-                      id: currentMessage.id,
-                      text: currentMessage.message,
-                      createdAt: currentMessage.createdAt,
-                      // sent: currentMessage.sent,
-                      user: {
-                        id: currentMessage.username,
-                        name: currentMessage.fullName,
-                        avatar: currentMessage.profileImg,
-                      },
-                    },
-                    ...prevState.messages,
-                  ],
-                }));
-              }
-            },
-          });
-        }
-      );
+  componentDidUpdate = (prevProps) => {
+    console.log(this.props);
+    if (prevProps.state.selectedRoom !== this.props.state.selectedRoom) {
+      // this.setState({
+      //   profileImg: this.props.profileImg,
+      //   fullName: this.props.fullName,
+      //   id: this.props.id,
+      //   users: this.props.users,
+      //   title: this.props.title,
+      // });
       // API.graphql(
       //   graphqlOperation(mutations.changeReadStatus, {
       //     id: this.props.id,
@@ -308,65 +179,62 @@ class Chat extends Component {
       //   console.log(res);
       //   this.props.updateNotifications(this.props.id);
       // });
-      API.graphql(
-        graphqlOperation(queries.getMessages, {
-          id: props.id,
-        })
-      ).then((res) => {
-        let messageObjects = [];
-        res.data.getMessages.map((message) => {
-          if (message.profileImg === "null") {
-            message.profileImg = blankProfile;
-          }
-          messageObjects.push({
-            id: message.id,
-            text: message.message,
-            createdAt: message.createdAt,
-            // sent: message.sent,
-            user: {
-              id: message.username,
-              name: message.fullName,
-              avatar: message.profileImg,
-            },
+      if (this.props.state.selectedRoom) {
+        API.graphql(
+          graphqlOperation(queries.getMessages, {
+            id: this.props.state.selectedRoom.roomId,
+          })
+        ).then((res) => {
+          let messageObjects = [];
+          console.log(res.data.getMessages);
+          res.data.getMessages.map((message) => {
+            messageObjects.push({
+              id: message.id,
+              text: message.message,
+              createdAt: message.createdAt,
+              chatId: message.chatId,
+              // sent: message.sent,
+              user: {
+                id: message.username,
+                name: message.fullName,
+                avatar: message.profileImg,
+              },
+            });
           });
+          console.log(messageObjects);
+          this.props.set_messages(messageObjects);
         });
-        this.setState({
-          messages: messageObjects,
-        });
-      });
+      }
     }
   };
-
-  componentWillUnmount() {
-    subscription.unsubscribe();
-  }
   onSend = async (message) => {
     // Analytics.record({ name: "Chat MSG Sent" });
     if (message.length === 0 || !message.trim()) {
     } else {
-      this.setState((prevState) => ({
-        messages: [
-          {
-            id: uuidv4(),
-            text: message,
-            createdAt: new Date().YYYYMMDDHHMMSS(),
-            // sent: false,
-            user: {
-              id: this.state.username,
-            },
-          },
-          ...prevState.messages,
-        ],
-      }));
+      console.log(JSON.parse(this.props.state.selectedRoom.roomId));
       await API.graphql(
         graphqlOperation(mutations.createMessage, {
-          chatId: this.state.id,
+          chatId: JSON.parse(this.props.state.selectedRoom.roomId),
           body: message,
-          username: this.state.username,
-          fullName: this.state.fullName,
-          profileImg: this.state.profileImg,
+          username: this.props.state.user.username,
+          fullName: this.props.state.user.fullName,
+          profileImg: this.props.state.user.profileImg,
         })
-      ).then((res) => {});
+      ).then((res) => {
+        console.log(res);
+        this.props.add_message({
+          id: res.data.createMessage.id,
+          text: res.data.createMessage.message,
+          createdAt: res.data.createMessage.createdAt,
+          chatId: res.data.createMessage.chatId,
+          // sent: currentMessage.sent,
+          user: {
+            id: res.data.createMessage.username,
+            name: res.data.createMessage.fullName,
+            avatar: res.data.createMessage.profileImg,
+          },
+        });
+      });
     }
   };
   customBubble = (props) => {
@@ -407,7 +275,7 @@ class Chat extends Component {
   render() {
     return (
       <div className={css(styles.container)}>
-        {this.state.id ? (
+        {this.props.state.selectedRoom ? (
           <div className={css(styles.headerContainer)}>
             {this.isMobile() && (
               <button
@@ -419,12 +287,13 @@ class Chat extends Component {
             )}
 
             <h3 className={css(styles.headerName)}>
-              {this.state.title}{" "}
-              {this.state.users.length < 2 && this.state.users.length > 0 && (
-                <span
-                  className={css(styles.headerUser)}
-                >{`@${this.state.users[0].username}`}</span>
-              )}
+              {this.props.state.selectedRoom.title}{" "}
+              {this.props.state.selectedRoom.length < 2 &&
+                this.props.state.selectedRoom.length > 0 && (
+                  <span
+                    className={css(styles.headerUser)}
+                  >{`@${this.props.state.selectedRoom.users[0].username}`}</span>
+                )}
             </h3>
             {this.isMobile() && (
               <button
@@ -438,8 +307,8 @@ class Chat extends Component {
         ) : (
           ""
         )}
-        {this.state.id ? (
-          <Messages messages={this.state.messages} onSend={this.onSend} />
+        {this.props.state.selectedRoom ? (
+          <Messages onSend={this.onSend} />
         ) : (
           <div className={css(styles.emptyChat)}>
             Inget rum vald. Välj ett rum eller
@@ -468,4 +337,25 @@ Object.defineProperty(Date.prototype, "YYYYMMDDHHMMSS", {
   },
 });
 
-export default Chat;
+function mapStateToProps(state) {
+  return {
+    state: state,
+  };
+}
+function mapDispatchToProps(dispatch) {
+  return {
+    set_rooms: (rooms) => dispatch({ type: "SET_ROOMS", rooms: rooms }),
+    add_room: (room) => dispatch({ type: "ADD_ROOM", room: room }),
+    remove_room: (id) => dispatch({ type: "REMOVE_ROOM", id, id }),
+    add_subscription: (subscription) =>
+      dispatch({ type: "ADD_SUBSCRIPTION", subscription: subscription }),
+    remove_subscription: (id) =>
+      dispatch({ type: "REMOVE_SUBSCRIPTION", id: id }),
+    add_message: (message) =>
+      dispatch({ type: "ADD_MESSAGE", message: message }),
+    set_messages: (messages) =>
+      dispatch({ type: "SET_MESSAGES", messages: messages }),
+  };
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)(Chat);

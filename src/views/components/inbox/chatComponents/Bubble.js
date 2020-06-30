@@ -5,6 +5,7 @@ import { Auth, graphqlOperation, API, Analytics } from "aws-amplify";
 import * as queries from "../../../../graphql/queries";
 import * as mutations from "../../../../graphql/mutations";
 import * as subscriptions from "../../../../graphql/subscriptions";
+import blankProfile from "../../../../img/blank-profile.png";
 
 const styles = StyleSheet.create({
   container: {
@@ -76,7 +77,7 @@ class Bubble extends Component {
     });
   };
   componentDidUpdate = (prevProps) => {
-    if (prevProps !== this.props) {
+    if (prevProps.message !== this.props.message) {
       this.setState({
         message: this.props.message,
         prevMessage: this.props.prevMessage,
@@ -125,7 +126,6 @@ class Bubble extends Component {
     }
   };
   compareDate = (date, prevDate) => {
-    console.log(date);
     if (date && prevDate) {
       let messageDate = new Date(Date.parse(date.replace(" ", "T")));
       let prevMessageDate = new Date(Date.parse(prevDate.replace(" ", "T")));
@@ -173,7 +173,11 @@ class Bubble extends Component {
                   );
                 }}
                 className={css(styles.profileImg)}
-                src={this.state.message.user.avatar}
+                src={
+                  JSON.parse(this.state.message.user.avatar)
+                    ? this.state.message.user.avatar
+                    : blankProfile
+                }
               ></img>
             ) : (
               ""
