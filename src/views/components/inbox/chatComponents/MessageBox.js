@@ -7,20 +7,23 @@ import * as mutations from "../../../../graphql/mutations";
 import * as subscriptions from "../../../../graphql/subscriptions";
 import Bubble from "./Bubble";
 import { connect } from "react-redux";
+import $ from "jquery";
 
 const styles = StyleSheet.create({
   container: {
-    flex: 100,
-    overflow: "auto",
+    overflowY: "auto",
+    display: "flex",
   },
   bigtext: {
     fontSize: 100,
   },
   bubbleContainer: {
     overflow: "auto",
-    height: "100%",
     display: "flex",
+    flex: "1 1 auto",
     flexDirection: "column-reverse",
+    "-webkit-flex-direction": "column-reverse",
+    margin: "0",
   },
 });
 class MessageBox extends Component {
@@ -35,7 +38,9 @@ class MessageBox extends Component {
     console.log(this.props.state);
     return (
       <div ref={this.bubbleContainerRef} className={css(styles.container)}>
-        <div className={css(styles.bubbleContainer)}>
+        <div
+          className={css(styles.bubbleContainer) + " testing"}
+        >
           {this.props.state.selectedRoom.messages &&
             this.props.state.selectedRoom.messages.map((message, i) => (
               <Bubble

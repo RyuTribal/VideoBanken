@@ -10,7 +10,7 @@ import MessageBox from "./MessageBox";
 
 const styles = StyleSheet.create({
   container: {
-    height: "100vh",
+    height: "100%",
     display: "flex",
     flexDirection: "column",
     width: "100%",

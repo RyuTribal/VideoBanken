@@ -8,18 +8,12 @@ import * as subscriptions from "../../../../graphql/subscriptions";
 import blankProfile from "../../../../img/blank-profile.png";
 
 const styles = StyleSheet.create({
-  container: {
-    display: "flex",
-  },
+  container: {},
   bubbleContainer: {
     padding: 10,
     display: "flex",
     width: "100%",
-    flexDirection: "column",
-    "@supports (-webkit-overflow-scrolling: touch)": {
-      display: "flex",
-      alignContent: "stretch",
-    },
+    flexDirection: "column-reverse",
   },
   profileContainer: {},
   yourContainer: {
@@ -147,75 +141,78 @@ class Bubble extends Component {
   render() {
     return (
       <div className={css(styles.container)}>
-        <div className={css(styles.bubbleContainer)}>
-          {!this.state.prevMessage ||
-          !this.compareDate(
-            this.state.message.createdAt,
-            this.state.prevMessage.createdAt
-          ) ? (
-            <div className={css(styles.dateWrapper)}>
-              {this.getDate(this.state.message.createdAt)}
-            </div>
-          ) : (
-            ""
-          )}
-          <div
-            className={css(
-              styles.profileContainer,
-              this.state.message.user &&
-                this.state.message.user.id === this.state.username
-                ? styles.yourContainer
-                : ""
-            )}
-          >
-            {this.state.message.user &&
-            this.state.message.user.id !== this.state.username ? (
-              <img
-                onClick={() => {
-                  this.props.history.push(
-                    `/home/users/${this.state.message.user.id}`
-                  );
-                }}
-                className={css(styles.profileImg)}
-                src={
-                  JSON.parse(this.state.message.user.avatar)
-                    ? this.state.message.user.avatar
-                    : blankProfile
-                }
-              ></img>
-            ) : (
-              ""
-            )}
-
-            <div
-              className={css(
-                styles.bubble,
-                this.state.message.user &&
-                  this.state.message.user.id === this.state.username
-                  ? styles.yourBubble
-                  : ""
+        {this.state.prevMessage &&
+          this.state.message.id !== this.state.prevMessage.id && (
+            <div className={css(styles.bubbleContainer)}>
+              {!this.state.prevMessage ||
+              !this.compareDate(
+                this.state.message.createdAt,
+                this.state.prevMessage.createdAt
+              ) ? (
+                <div className={css(styles.dateWrapper)}>
+                  {this.getDate(this.state.message.createdAt)}
+                </div>
+              ) : (
+                ""
               )}
-            >
-              {this.state.message.text}
               <div
                 className={css(
-                  styles.timeWrapper,
+                  styles.profileContainer,
                   this.state.message.user &&
-                    this.state.message.user.id !== this.state.username
-                    ? styles.otherTime
+                    this.state.message.user.id === this.state.username
+                    ? styles.yourContainer
                     : ""
                 )}
               >
-                {`${
-                  this.state.message.user &&
-                  this.state.message.user.id !== this.state.username
-                    ? `~ ${this.state.message.user.name}`
-                    : ""
-                } ${this.getTime(this.state.message.createdAt)}`}
+                {this.state.message.user &&
+                this.state.message.user.id !== this.state.username ? (
+                  <img
+                    onClick={() => {
+                      this.props.history.push(
+                        `/home/users/${this.state.message.user.id}`
+                      );
+                    }}
+                    className={css(styles.profileImg)}
+                    src={
+                      JSON.parse(this.state.message.user.avatar)
+                        ? this.state.message.user.avatar
+                        : blankProfile
+                    }
+                  ></img>
+                ) : (
+                  ""
+                )}
+
+                <div
+                  className={css(
+                    styles.bubble,
+                    this.state.message.user &&
+                      this.state.message.user.id === this.state.username
+                      ? styles.yourBubble
+                      : ""
+                  )}
+                >
+                  {this.state.message.text}
+                  <div
+                    className={css(
+                      styles.timeWrapper,
+                      this.state.message.user &&
+                        this.state.message.user.id !== this.state.username
+                        ? styles.otherTime
+                        : ""
+                    )}
+                  >
+                    {`${
+                      this.state.message.user &&
+                      this.state.message.user.id !== this.state.username
+                        ? `~ ${this.state.message.user.name}`
+                        : ""
+                    } ${this.getTime(this.state.message.createdAt)}`}
+                  </div>
+                </div>
               </div>
             </div>
-          </div>
-        </div>
+          )}
       </div>
     );
   }

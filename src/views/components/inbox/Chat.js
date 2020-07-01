@@ -160,8 +160,12 @@ class Chat extends Component {
       return false;
     }
   };
+  scrollToBottom = () => {
+    document.getElementsByClassName("test")[0].scrollIntoView();
+  };
   componentDidUpdate = (prevProps) => {
     console.log(this.props);
+    this.scrollToBottom();
     if (prevProps.state.selectedRoom !== this.props.state.selectedRoom) {
       // this.setState({
       //   profileImg: this.props.profileImg,
@@ -274,7 +278,7 @@ class Chat extends Component {
   };
   render() {
     return (
-      <div className={css(styles.container)}>
+      <div className={css(styles.container)  + " test"}>
         {this.props.state.selectedRoom ? (
           <div className={css(styles.headerContainer)}>
             {this.isMobile() && (

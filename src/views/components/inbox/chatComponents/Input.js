@@ -11,6 +11,7 @@ const styles = StyleSheet.create({
   container: {
     width: "100%",
     borderTop: "1px solid rgb(230, 236, 240)",
+    marginTop: "auto"
   },
   inputWrapper: {
     padding: "13px 5px",
