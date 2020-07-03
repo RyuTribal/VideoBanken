@@ -129,18 +129,21 @@ class Home extends Component {
                 res.value.data.notificationMessage.username !==
                 this.state.user.username
               ) {
-                this.props.add_message({
-                  id: res.value.data.notificationMessage.id,
-                  text: res.value.data.notificationMessage.message,
-                  createdAt: res.value.data.notificationMessage.createdAt,
-                  chatId: res.value.data.notificationMessage.chatId,
-                  // sent: currentMessage.sent,
-                  user: {
-                    id: res.value.data.notificationMessage.username,
-                    name: res.value.data.notificationMessage.fullName,
-                    avatar: res.value.data.notificationMessage.profileImg,
+                this.props.add_message(
+                  {
+                    id: res.value.data.notificationMessage.id,
+                    text: res.value.data.notificationMessage.message,
+                    createdAt: res.value.data.notificationMessage.createdAt,
+                    chatId: res.value.data.notificationMessage.chatId,
+                    // sent: currentMessage.sent,
+                    user: {
+                      id: res.value.data.notificationMessage.username,
+                      name: res.value.data.notificationMessage.fullName,
+                      avatar: res.value.data.notificationMessage.profileImg,
+                    },
                   },
-                });
+                  true
+                );
                 API.graphql(
                   graphqlOperation(queries.getUnreadMessage, {
                     id: res.value.data.notificationMessage.id,
@@ -208,18 +211,21 @@ class Home extends Component {
           ).then((res) => {
             console.log(res);
             if (res.data.getLastMessage) {
-              this.props.add_message({
-                id: res.data.getLastMessage.id,
-                text: res.data.getLastMessage.message,
-                createdAt: res.data.getLastMessage.createdAt,
-                chatId: res.data.getLastMessage.chatId,
-                // sent: currentMessage.sent,
-                user: {
-                  id: res.data.getLastMessage.username,
-                  name: res.data.getLastMessage.fullName,
-                  avatar: res.data.getLastMessage.profileImg,
+              this.props.add_message(
+                {
+                  id: res.data.getLastMessage.id,
+                  text: res.data.getLastMessage.message,
+                  createdAt: res.data.getLastMessage.createdAt,
+                  chatId: res.data.getLastMessage.chatId,
+                  // sent: currentMessage.sent,
+                  user: {
+                    id: res.data.getLastMessage.username,
+                    name: res.data.getLastMessage.fullName,
+                    avatar: res.data.getLastMessage.profileImg,
+                  },
                 },
-              });
+                false
+              );
             }
           });
         });
@@ -259,9 +265,12 @@ class Home extends Component {
       <BrowserRouter>
         {this.state.chatModal && (
           <ChatModal
-            closeModal={(newChat) =>
-              this.setState({ chatModal: false, newChat: newChat })
-            }
+            closeModal={(newChat) => {
+              if (newChat === true) {
+                this.getRooms();
+              }
+              this.setState({ chatModal: false });
+            }}
           />
         )}
         {this.state.videoModal === true && !isMobile && (
@@ -371,7 +380,6 @@ class Home extends Component {
                             }
                             isMobile={isMobile}
                             modal={() => this.setState({ chatModal: true })}
-                            newChat={this.state.newChat}
                             updateNotifications={(id) => {
                               console.log("we here");
                               let notificationsArray = this.state.notifications;
@@ -433,8 +441,8 @@ function mapDispatchToProps(dispatch) {
       dispatch({ type: "ADD_SUBSCRIPTION", subscription: subscription }),
     remove_subscription: (id) =>
       dispatch({ type: "REMOVE_SUBSCRIPTION", id: id }),
-    add_message: (message) =>
-      dispatch({ type: "ADD_MESSAGE", message: message }),
+    add_message: (message, settingLast) =>
+      dispatch({ type: "ADD_MESSAGE", message: message, settingLast: true }),
     change_room: (id) => dispatch({ type: "CHANGE_ROOM", id: id }),
     add_user: (user) => dispatch({ type: "ADD_USER", user: user }),
     clear_state: () => dispatch({ type: "CLEAR_STATE" }),

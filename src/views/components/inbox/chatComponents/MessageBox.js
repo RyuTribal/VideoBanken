@@ -45,7 +45,7 @@ class MessageBox extends Component {
             this.props.state.selectedRoom.messages.map((message, i) => (
               <Bubble
                 message={message}
-                prevMessage={this.props.state.selectedRoom.messages[i + 1]}
+                prevMessage={this.props.state.selectedRoom.messages[i + 1] && this.props.state.selectedRoom.messages[i + 1]}
                 key={i}
               />
             ))}

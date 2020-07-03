@@ -76,7 +76,9 @@ const states = (state = initialState, action) => {
           if (!room.messages) {
             room.messages = [];
           }
-          room.messages.unshift(action.message);
+          if (action.settingLast === true) {
+            room.messages.unshift(action.message);
+          }
           room.lastMessage = action.message;
         }
       });

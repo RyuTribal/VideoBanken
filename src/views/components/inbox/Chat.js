@@ -160,12 +160,8 @@ class Chat extends Component {
       return false;
     }
   };
-  scrollToBottom = () => {
-    document.getElementsByClassName("test")[0].scrollIntoView();
-  };
   componentDidUpdate = (prevProps) => {
     console.log(this.props);
-    this.scrollToBottom();
     if (prevProps.state.selectedRoom !== this.props.state.selectedRoom) {
       // this.setState({
       //   profileImg: this.props.profileImg,
@@ -237,7 +233,7 @@ class Chat extends Component {
             name: res.data.createMessage.fullName,
             avatar: res.data.createMessage.profileImg,
           },
-        });
+        }, true);
       });
     }
   };
@@ -355,8 +351,8 @@ function mapDispatchToProps(dispatch) {
       dispatch({ type: "ADD_SUBSCRIPTION", subscription: subscription }),
     remove_subscription: (id) =>
       dispatch({ type: "REMOVE_SUBSCRIPTION", id: id }),
-    add_message: (message) =>
-      dispatch({ type: "ADD_MESSAGE", message: message }),
+    add_message: (message, settingLast) =>
+      dispatch({ type: "ADD_MESSAGE", message: message, settingLast: settingLast }),
     set_messages: (messages) =>
       dispatch({ type: "SET_MESSAGES", messages: messages }),
   };
