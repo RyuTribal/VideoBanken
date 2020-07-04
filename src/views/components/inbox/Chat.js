@@ -201,6 +201,15 @@ class Chat extends Component {
           });
           this.props.set_messages(messageObjects);
         });
+        API.graphql(
+          graphqlOperation(mutations.changeReadStatus, {
+            username: this.props.state.user.username,
+            id: this.props.state.selectedRoom.roomId,
+          })
+        ).then((res) => {
+          console.log(res);
+          this.props.remove_notifications(this.props.state.selectedRoom.roomId);
+        });
       }
     }
   };
@@ -271,16 +280,6 @@ class Chat extends Component {
     );
   };
   render() {
-    if (this.props.state.selectedRoom) {
-      API.graphql(
-        graphqlOperation(mutations.changeReadStatus, {
-          username: this.props.state.user.username,
-          id: this.props.state.selectedRoom.roomId,
-        })
-      ).then((res) => {
-        this.props.remove_notifications(this.props.state.selectedRoom.roomId);
-      });
-    }
     return (
       <div className={css(styles.container) + " test"}>
         {this.props.state.selectedRoom ? (

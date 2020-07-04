@@ -81,10 +81,7 @@ class Inbox extends Component {
         {!this.isMobile() ? (
           <div className={css(styles.viewContainer)}>
             <Messages modal={this.props.modal} isMobile={this.props.isMobile} />
-            <Chat
-              isMobile={this.props.isMobile}
-              modal={this.props.modal}
-            />
+            <Chat isMobile={this.props.isMobile} modal={this.props.modal} />
             {/* <Search isMobile={this.props.isMobile} /> */}
           </div>
         ) : (

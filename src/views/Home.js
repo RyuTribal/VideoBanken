@@ -149,7 +149,11 @@ class Home extends Component {
                   })
                 ).then((res) => {
                   console.log(res);
-                  if (res.data.getUnreadMessage) {
+                  if (
+                    res.data.getUnreadMessage &&
+                    JSON.parse(res.data.getUnreadMessage.recepient_group_id) !==
+                      this.props.state.selectedRoom.roomId
+                  ) {
                     this.props.add_notification(res.data.getUnreadMessage);
                   }
                 });

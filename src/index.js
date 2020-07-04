@@ -14,8 +14,6 @@ const initialState = {
   notifications: [],
 };
 const states = (state = initialState, action) => {
-  let currentState = state;
-  let updatedState = {};
   switch (action.type) {
     case "SET_ROOMS":
       let rooms = state.rooms;
@@ -109,13 +107,10 @@ const states = (state = initialState, action) => {
       };
     case "REMOVE_NOTIFICATIONS":
       console.log(action);
-      currentState.notifications = currentState.notifications.filter(function (
-        el
-      ) {
+      let notifications = state.notifications.filter(function (el) {
         return JSON.parse(el.recepient_group_id) !== action.id;
       });
-      console.log(currentState);
-      return currentState;
+      return { ...state, notifications: notifications };
     default:
       return state;
   }
