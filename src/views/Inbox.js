@@ -84,7 +84,6 @@ class Inbox extends Component {
             <Chat
               isMobile={this.props.isMobile}
               modal={this.props.modal}
-              updateNotifications={(id) => this.props.updateNotifications(id)}
             />
             {/* <Search isMobile={this.props.isMobile} /> */}
           </div>

@@ -99,6 +99,10 @@ function MenuItemComponent(props) {
     notifications,
     ...otherProps
   } = props;
+  if (hasNotifications) {
+    console.log(notifications);
+  }
+
   return (
     <Link className={css(styles.link)} to={link}>
       {hasNotifications === true && notifications > 0 ? (

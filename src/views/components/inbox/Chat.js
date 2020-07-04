@@ -161,7 +161,6 @@ class Chat extends Component {
     }
   };
   componentDidUpdate = (prevProps) => {
-    console.log(this.props);
     if (prevProps.state.selectedRoom !== this.props.state.selectedRoom) {
       // this.setState({
       //   profileImg: this.props.profileImg,
@@ -186,7 +185,6 @@ class Chat extends Component {
           })
         ).then((res) => {
           let messageObjects = [];
-          console.log(res.data.getMessages);
           res.data.getMessages.map((message) => {
             messageObjects.push({
               id: message.id,
@@ -201,7 +199,6 @@ class Chat extends Component {
               },
             });
           });
-          console.log(messageObjects);
           this.props.set_messages(messageObjects);
         });
       }
@@ -211,7 +208,6 @@ class Chat extends Component {
     // Analytics.record({ name: "Chat MSG Sent" });
     if (message.length === 0 || !message.trim()) {
     } else {
-      console.log(JSON.parse(this.props.state.selectedRoom.roomId));
       await API.graphql(
         graphqlOperation(mutations.createMessage, {
           chatId: JSON.parse(this.props.state.selectedRoom.roomId),
@@ -221,19 +217,21 @@ class Chat extends Component {
           profileImg: this.props.state.user.profileImg,
         })
       ).then((res) => {
-        console.log(res);
-        this.props.add_message({
-          id: res.data.createMessage.id,
-          text: res.data.createMessage.message,
-          createdAt: res.data.createMessage.createdAt,
-          chatId: res.data.createMessage.chatId,
-          // sent: currentMessage.sent,
-          user: {
-            id: res.data.createMessage.username,
-            name: res.data.createMessage.fullName,
-            avatar: res.data.createMessage.profileImg,
+        this.props.add_message(
+          {
+            id: res.data.createMessage.id,
+            text: res.data.createMessage.message,
+            createdAt: res.data.createMessage.createdAt,
+            chatId: res.data.createMessage.chatId,
+            // sent: currentMessage.sent,
+            user: {
+              id: res.data.createMessage.username,
+              name: res.data.createMessage.fullName,
+              avatar: res.data.createMessage.profileImg,
+            },
           },
-        }, true);
+          true
+        );
       });
     }
   };
@@ -273,8 +271,18 @@ class Chat extends Component {
     );
   };
   render() {
+    if (this.props.state.selectedRoom) {
+      API.graphql(
+        graphqlOperation(mutations.changeReadStatus, {
+          username: this.props.state.user.username,
+          id: this.props.state.selectedRoom.roomId,
+        })
+      ).then((res) => {
+        this.props.remove_notifications(this.props.state.selectedRoom.roomId);
+      });
+    }
     return (
-      <div className={css(styles.container)  + " test"}>
+      <div className={css(styles.container) + " test"}>
         {this.props.state.selectedRoom ? (
           <div className={css(styles.headerContainer)}>
             {this.isMobile() && (
@@ -352,9 +360,15 @@ function mapDispatchToProps(dispatch) {
     remove_subscription: (id) =>
       dispatch({ type: "REMOVE_SUBSCRIPTION", id: id }),
     add_message: (message, settingLast) =>
-      dispatch({ type: "ADD_MESSAGE", message: message, settingLast: settingLast }),
+      dispatch({
+        type: "ADD_MESSAGE",
+        message: message,
+        settingLast: settingLast,
+      }),
     set_messages: (messages) =>
       dispatch({ type: "SET_MESSAGES", messages: messages }),
+    remove_notifications: (id) =>
+      dispatch({ type: "REMOVE_NOTIFICATIONS", id: id }),
   };
 }
 

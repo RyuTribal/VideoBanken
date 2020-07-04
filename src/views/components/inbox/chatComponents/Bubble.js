@@ -143,7 +143,6 @@ class Bubble extends Component {
     }
   };
   render() {
-    console.log(this.state.message);
     return (
       <div className={css(styles.container)}>
         <div className={css(styles.bubbleContainer)}>

@@ -118,7 +118,6 @@ class Messages extends Component {
     }
   };
   render() {
-    console.log(this.props.state);
     return (
       <div className={css(styles.container)}>
         <div className={css(styles.headerContainer)}>
@@ -162,24 +161,20 @@ class MessageBox extends Component {
     };
   }
   componentDidMount = async () => {
-    console.log(this.props.chosenChat);
     const currentUser = await Auth.currentAuthenticatedUser();
     this.setState({ user: currentUser.username });
-    console.log(this.props.chosen);
     if (this.props.chosen && this.props.chosen === this.props.chat.roomId) {
       this.setState({ active: true });
     } else {
       this.setState({ active: false });
     }
     if (this.props.lastMessage) {
-      console.log(this.props.lastMessage);
       API.graphql(
         graphqlOperation(queries.getUnreadMessage, {
           id: this.props.lastMessage.id,
           username: this.state.user,
         })
       ).then((res) => {
-        console.log(res);
         if (
           res.data.getUnreadMessage &&
           res.data.getUnreadMessage.isRead === false
@@ -190,26 +185,26 @@ class MessageBox extends Component {
     }
   };
   componentDidUpdate = (prevProps) => {
+    if (this.state.active === true && this.state.isRead === false) {
+      this.setState({ isRead: true });
+    }
     if (
       this.props.chat.lastMessage !== prevProps.chat.lastMessage ||
       this.props.chosen !== prevProps.chosen ||
       this.props.lastMessage !== prevProps.lastMessage
     ) {
-      console.log(this.props.chat);
       if (this.props.chosen === this.props.chat.roomId) {
         this.setState({ active: true });
       } else {
         this.setState({ active: false });
       }
       if (this.props.lastMessage) {
-        console.log(this.props.lastMessage);
         API.graphql(
           graphqlOperation(queries.getUnreadMessage, {
             id: this.props.lastMessage.id,
             username: this.state.user,
           })
         ).then((res) => {
-          console.log(res);
           if (
             res.data.getUnreadMessage &&
             res.data.getUnreadMessage.isRead === false
@@ -234,7 +229,10 @@ class MessageBox extends Component {
   render() {
     return (
       <div
-        onClick={() => this.props.onClick()}
+        onClick={() => {
+          this.props.onClick();
+          this.setState({ isRead: true });
+        }}
         className={css(styles.messageBox)}
       >
         <img className={css(styles.image)} src={blankProfile}></img>

@@ -3,6 +3,7 @@ import { Column, Row } from "simple-flexbox";
 import { StyleSheet, css } from "aphrodite";
 import LogoComponent from "./LogoComponent";
 import MenuItemsComponent from "./MenuItemsComponent";
+import { connect } from "react-redux";
 
 const styles = StyleSheet.create({
   container: {
@@ -156,7 +157,7 @@ class SidebarComponent extends React.Component {
                 title="Inbox"
                 icon="fas fa-envelope"
                 hasNotifications={true}
-                notifications={this.props.notifications.length}
+                notifications={this.props.state.notifications.length}
                 username={this.props.username}
                 onClick={() => this.onItemClicked("Inbox")}
                 active={this.props.selectedItem === "Inbox"}
@@ -231,4 +232,32 @@ class SidebarComponent extends React.Component {
   }
 }
 
-export default SidebarComponent;
+function mapStateToProps(state) {
+  return {
+    state: state,
+  };
+}
+function mapDispatchToProps(dispatch) {
+  return {
+    set_rooms: (rooms) => dispatch({ type: "SET_ROOMS", rooms: rooms }),
+    add_room: (room) => dispatch({ type: "ADD_ROOM", room: room }),
+    remove_room: (id) => dispatch({ type: "REMOVE_ROOM", id, id }),
+    add_subscription: (subscription) =>
+      dispatch({ type: "ADD_SUBSCRIPTION", subscription: subscription }),
+    remove_subscription: (id) =>
+      dispatch({ type: "REMOVE_SUBSCRIPTION", id: id }),
+    add_message: (message, settingLast) =>
+      dispatch({ type: "ADD_MESSAGE", message: message, settingLast: true }),
+    change_room: (id) => dispatch({ type: "CHANGE_ROOM", id: id }),
+    add_user: (user) => dispatch({ type: "ADD_USER", user: user }),
+    clear_state: () => dispatch({ type: "CLEAR_STATE" }),
+    set_notifications: (notifications) =>
+      dispatch({ type: "SET_NOTIFICATIONS", notifications: notifications }),
+    add_notification: (notification) =>
+      dispatch({ type: "ADD_NOTIFICATION", notification: notification }),
+    remove_notifications: (id) =>
+      dispatch({ type: "REMOVE_NOTIFICATIONS", id: id }),
+  };
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)(SidebarComponent);

@@ -61,7 +61,6 @@ class Home extends Component {
       mobileVideo: "",
       chatModal: false,
       newChat: false,
-      notifications: [],
       rooms: [],
     };
     this.subscriptions = [];
@@ -77,7 +76,6 @@ class Home extends Component {
         });
       })
       .catch((err) => {
-        console.log(err);
         this.props.history.push("/login");
       });
     await API.graphql(
@@ -112,7 +110,7 @@ class Home extends Component {
         username: this.state.user.username,
       })
     ).then((res) => {
-      this.setState({ notifications: res.data.getUnreadMessages });
+      this.props.set_notifications(res.data.getUnreadMessages);
     });
     await this.getRooms();
     if (this.props.state.rooms.length > 0) {
@@ -150,13 +148,9 @@ class Home extends Component {
                     username: this.state.user.username,
                   })
                 ).then((res) => {
+                  console.log(res);
                   if (res.data.getUnreadMessage) {
-                    this.setState((prevState) => ({
-                      notifications: [
-                        ...prevState.notifications,
-                        res.data.getUnreadMessage,
-                      ],
-                    }));
+                    this.props.add_notification(res.data.getUnreadMessage);
                   }
                 });
               }
@@ -209,7 +203,6 @@ class Home extends Component {
               chatId: room.roomId,
             })
           ).then((res) => {
-            console.log(res);
             if (res.data.getLastMessage) {
               this.props.add_message(
                 {
@@ -229,8 +222,6 @@ class Home extends Component {
             }
           });
         });
-
-        console.log(this.props.state);
       }
     }
   };
@@ -305,7 +296,6 @@ class Home extends Component {
             selectedItem={this.state.selectedItem}
             username={this.state.user.username}
             logout={this.logout}
-            notifications={this.state.notifications}
           />
           <Column flexGrow={1} className={css(styles.mainBlock)}>
             <HeaderComponent
@@ -380,16 +370,6 @@ class Home extends Component {
                             }
                             isMobile={isMobile}
                             modal={() => this.setState({ chatModal: true })}
-                            updateNotifications={(id) => {
-                              console.log("we here");
-                              let notificationsArray = this.state.notifications;
-                              notificationsArray.filter(function (el) {
-                                return el.recepient_group_id !== id;
-                              });
-                              this.setState({
-                                notifications: notificationsArray,
-                              });
-                            }}
                           />
                         )}
                       />
@@ -446,6 +426,12 @@ function mapDispatchToProps(dispatch) {
     change_room: (id) => dispatch({ type: "CHANGE_ROOM", id: id }),
     add_user: (user) => dispatch({ type: "ADD_USER", user: user }),
     clear_state: () => dispatch({ type: "CLEAR_STATE" }),
+    set_notifications: (notifications) =>
+      dispatch({ type: "SET_NOTIFICATIONS", notifications: notifications }),
+    add_notification: (notification) =>
+      dispatch({ type: "ADD_NOTIFICATION", notification: notification }),
+    remove_notifications: (id) =>
+      dispatch({ type: "REMOVE_NOTIFICATIONS", id: id }),
   };
 }
 
