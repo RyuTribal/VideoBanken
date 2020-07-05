@@ -24,8 +24,11 @@ const states = (state = initialState, action) => {
       state.rooms.push(action.room);
       return state;
     case "REMOVE_ROOM":
-      state.rooms = state.rooms.filter((room) => room.roomId !== action.id);
-      return state;
+      state.rooms.map((room) => {
+        if (room.roomId === action.id) {
+          room.subscription.unsubscribe();
+        }
+      });
     case "CHANGE_ROOM":
       console.log(action.id);
       console.log(state.rooms);
@@ -42,23 +45,33 @@ const states = (state = initialState, action) => {
       state.messageSubs.push(action.subscription);
       return state;
     case "REMOVE_SUBSCRIPTION":
+      console.log(action.id);
       const subscription = state.messageSubs.filter(
         (sub) => sub.id === action.id
       );
-      subscription.subscription.unsubscribe();
-      state.messageSubs = state.messageSubs.filter(
-        (sub) => sub.id !== action.id
-      );
+      console.log(subscription);
+      let messageSubs = state.messageSubs;
+      if (subscription[0].subscription) {
+        subscription[0].subscription.unsubscribe();
+        messageSubs = state.messageSubs.filter((sub) => sub.id !== action.id);
+      }
+      return { ...state, messageSubs: messageSubs };
     case "SET_MESSAGES":
       let messagesRooms = state.rooms;
       let messageSelectedRoom = state.selectedRoom;
-      console.log(action.messages);
-      messagesRooms.map((room, i) => {
-        if (action.messages[0] && room.roomId === action.messages[0].chatId) {
-          messagesRooms[i].messages = action.messages;
-          messagesRooms[i].lastMessage = action.messages[0];
-        }
-      });
+      console.log(messagesRooms);
+      if (messagesRooms) {
+        messagesRooms.map((room, i) => {
+          if (
+            action.messages &&
+            action.messages[0] &&
+            room.roomId === action.messages[0].chatId
+          ) {
+            messagesRooms[i].messages = action.messages;
+            messagesRooms[i].lastMessage = action.messages[0];
+          }
+        });
+      }
       if (messageSelectedRoom) {
         messageSelectedRoom.messages = action.messages;
       }

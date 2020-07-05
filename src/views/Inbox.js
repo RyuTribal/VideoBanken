@@ -82,23 +82,37 @@ class Inbox extends Component {
           <div className={css(styles.viewContainer)}>
             <Messages modal={this.props.modal} isMobile={this.props.isMobile} />
             <Chat isMobile={this.props.isMobile} modal={this.props.modal} />
-            {/* <Search isMobile={this.props.isMobile} /> */}
+            <Search isMobile={this.props.isMobile} />
           </div>
         ) : (
           <div className={css(styles.viewContainer)}>
             {!this.props.match.params.id && (
               <Messages modal={this.props.modal} />
             )}
-            {this.props.match.params.id && (
+            {this.props.match.params.id && !this.props.match.params.settings && (
               <Chat
                 id={this.props.match.params.id}
                 back={() => {
                   this.props.history.push("/home/inbox/");
                   this.props.clear_selected_room();
                 }}
+                settingsOpen={() => {
+                  this.props.history.push(
+                    `/home/inbox/${this.props.state.selectedRoom.roomId}/settings`
+                  );
+                }}
               />
             )}
-            {this.state.chosenWindow === "settings" && <Search />}
+            {this.props.match.params.settings === "settings" &&
+              this.props.state.selectedRoom && (
+                <Search
+                  back={() => {
+                    this.props.history.push(
+                      `/home/inbox/${this.props.state.selectedRoom.roomId}/`
+                    );
+                  }}
+                />
+              )}
           </div>
         )}
       </div>

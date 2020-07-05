@@ -261,6 +261,8 @@ class ChatModal extends Component {
         users: JSON.stringify(userArray),
       })
     ).then((res) => {
+      console.log(res);
+      this.props.addSubscription(res.data.createRoom.id);
       this.props.closeModal(true);
     });
   };

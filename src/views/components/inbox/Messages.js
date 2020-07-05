@@ -101,6 +101,9 @@ class Messages extends Component {
       newestMessages: [],
     };
   }
+  componentDidMount = () =>{
+    
+  }
   changeChat = (chat) => {
     if (chat) {
       this.props.history.push("/home/inbox/" + chat.roomId);
@@ -235,7 +238,7 @@ class MessageBox extends Component {
         }}
         className={css(styles.messageBox)}
       >
-        <img className={css(styles.image)} src={blankProfile}></img>
+        <img className={css(styles.image)} src={this.props.chat.users.length < 2 ? blankProfile : blankProfile}></img>
         <div className={css(styles.nameMessageWrapper)}>
           <div className={css(styles.name)}>
             {this.props.chat.title}{" "}

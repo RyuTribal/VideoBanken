@@ -63,7 +63,7 @@ class Home extends Component {
       newChat: false,
       rooms: [],
     };
-    this.subscriptions = [];
+    this.roomSubscription = "";
   }
   componentDidMount = async () => {
     window.addEventListener("resize", this.resize);
@@ -78,6 +78,20 @@ class Home extends Component {
       .catch((err) => {
         this.props.history.push("/login");
       });
+    this.roomSubscription = await API.graphql(
+      graphqlOperation(subscriptions.deleteChatUser, {
+        username: this.state.user.username,
+      })
+    ).subscribe({
+      next: (res) => {
+        this.props.history.push("/home/inbox");
+        console.log(res);
+        this.props.clear_selected_room();
+        this.props.remove_subscription(res.value.data.deleteChatUser.roomId);
+        this.props.remove_notifications(res.value.data.deleteChatUser.roomId);
+        this.getRooms();
+      },
+    });
     await API.graphql(
       graphqlOperation(queries.getUser, {
         username: this.state.user.username,
@@ -150,11 +164,17 @@ class Home extends Component {
                 ).then((res) => {
                   console.log(res);
                   if (
+                    this.props.selectedRoom &&
                     res.data.getUnreadMessage &&
                     JSON.parse(res.data.getUnreadMessage.recepient_group_id) !==
                       this.props.state.selectedRoom.roomId
                   ) {
                     this.props.add_notification(res.data.getUnreadMessage);
+                  }
+                  if (this.props.state.selectedRoom) {
+                    this.props.remove_notifications(
+                      this.props.state.selectedRoom.roomId
+                    );
                   }
                 });
               }
@@ -175,6 +195,7 @@ class Home extends Component {
     ).then((res) => {
       return res.data.getRooms;
     });
+    console.log(rooms);
     if (rooms.length > 0) {
       const currentUserInfo = JSON.parse(rooms[0].users).filter(
         (i) => i.username === this.state.username
@@ -197,10 +218,18 @@ class Home extends Component {
         } else if (room.users.length < 1) {
           room.title = "Jag";
         }
+        room.subscription = API.graphql(
+          graphqlOperation(subscriptions.detectChangeUser, {
+            roomId: room.roomId,
+          })
+        ).subscribe({
+          next: (res) => {
+            this.getRooms();
+          },
+        });
         return room;
       });
       if (rooms.length > 0) {
-        this.props.set_rooms(rooms);
         this.props.state.rooms.map((room) => {
           const lastMessage = API.graphql(
             graphqlOperation(queries.getLastMessage, {
@@ -228,6 +257,7 @@ class Home extends Component {
         });
       }
     }
+    this.props.set_rooms(rooms);
   };
   resize = () => {
     this.forceUpdate();
@@ -256,6 +286,7 @@ class Home extends Component {
     this.setState({ videoModal: false, playing: false });
   };
   render() {
+    console.log(this.props.state);
     return (
       <BrowserRouter>
         {this.state.chatModal && (
@@ -265,6 +296,65 @@ class Home extends Component {
                 this.getRooms();
               }
               this.setState({ chatModal: false });
+            }}
+            addSubscription={(id) => {
+              this.props.add_subscription({
+                id: id,
+                subscription: API.graphql(
+                  graphqlOperation(subscriptions.notificationMessage, {
+                    chatId: id,
+                  })
+                ).subscribe({
+                  next: (res) => {
+                    if (
+                      res.value.data.notificationMessage.username !==
+                      this.state.user.username
+                    ) {
+                      this.props.add_message(
+                        {
+                          id: res.value.data.notificationMessage.id,
+                          text: res.value.data.notificationMessage.message,
+                          createdAt:
+                            res.value.data.notificationMessage.createdAt,
+                          chatId: res.value.data.notificationMessage.chatId,
+                          // sent: currentMessage.sent,
+                          user: {
+                            id: res.value.data.notificationMessage.username,
+                            name: res.value.data.notificationMessage.fullName,
+                            avatar:
+                              res.value.data.notificationMessage.profileImg,
+                          },
+                        },
+                        true
+                      );
+                      API.graphql(
+                        graphqlOperation(queries.getUnreadMessage, {
+                          id: res.value.data.notificationMessage.id,
+                          username: this.state.user.username,
+                        })
+                      ).then((res) => {
+                        console.log(res);
+                        if (
+                          this.props.selectedRoom &&
+                          res.data.getUnreadMessage &&
+                          JSON.parse(
+                            res.data.getUnreadMessage.recepient_group_id
+                          ) !== this.props.state.selectedRoom.roomId
+                        ) {
+                          this.props.add_notification(
+                            res.data.getUnreadMessage
+                          );
+                        }
+                        if (this.props.state.selectedRoom) {
+                          this.props.remove_notifications(
+                            this.props.state.selectedRoom.roomId
+                          );
+                        }
+                      });
+                    }
+                  },
+                }),
+              });
             }}
           />
         )}
@@ -365,7 +455,7 @@ class Home extends Component {
                         )}
                       />
                       <Route
-                        path={`${this.props.match.path}/inbox/:id?`}
+                        path={`${this.props.match.path}/inbox/:id?/:settings?`}
                         render={(props) => (
                           <Inbox
                             {...props}
@@ -436,6 +526,7 @@ function mapDispatchToProps(dispatch) {
       dispatch({ type: "ADD_NOTIFICATION", notification: notification }),
     remove_notifications: (id) =>
       dispatch({ type: "REMOVE_NOTIFICATIONS", id: id }),
+    clear_selected_room: () => dispatch({ type: "CLEAR_SELECTED_ROOM" }),
   };
 }
 

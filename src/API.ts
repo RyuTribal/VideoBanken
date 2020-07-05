@@ -487,6 +487,20 @@ export type ChangeReadStatusMutation = {
   } | null,
 };
 
+export type RemoveChatUserMutationVariables = {
+  username: string,
+  roomId: number,
+};
+
+export type RemoveChatUserMutation = {
+  removeChatUser:  {
+    __typename: "ChatUsers",
+    username: string | null,
+    roomId: number | null,
+    id: number | null,
+  } | null,
+};
+
 export type GetVideosQueryVariables = {
   offset?: number | null,
 };
@@ -865,5 +879,31 @@ export type NotificationMessageSubscription = {
     profileImg: string | null,
     fullName: string | null,
     sent: boolean | null,
+  } | null,
+};
+
+export type DeleteChatUserSubscriptionVariables = {
+  username?: string | null,
+};
+
+export type DeleteChatUserSubscription = {
+  deleteChatUser:  {
+    __typename: "ChatUsers",
+    username: string | null,
+    roomId: number | null,
+    id: number | null,
+  } | null,
+};
+
+export type DetectChangeUserSubscriptionVariables = {
+  roomId?: number | null,
+};
+
+export type DetectChangeUserSubscription = {
+  detectChangeUser:  {
+    __typename: "ChatUsers",
+    username: string | null,
+    roomId: number | null,
+    id: number | null,
   } | null,
 };

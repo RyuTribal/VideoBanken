@@ -148,6 +148,39 @@ class Chat extends Component {
     this.setState({
       username: username,
     });
+    if (this.isMobile() && this.props.state.selectedRoom) {
+      API.graphql(
+        graphqlOperation(queries.getMessages, {
+          id: this.props.state.selectedRoom.roomId,
+        })
+      ).then((res) => {
+        let messageObjects = [];
+        res.data.getMessages.map((message) => {
+          messageObjects.push({
+            id: message.id,
+            text: message.message,
+            createdAt: message.createdAt,
+            chatId: message.chatId,
+            // sent: message.sent,
+            user: {
+              id: message.username,
+              name: message.fullName,
+              avatar: message.profileImg,
+            },
+          });
+        });
+        this.props.set_messages(messageObjects);
+      });
+      API.graphql(
+        graphqlOperation(mutations.changeReadStatus, {
+          username: this.props.state.user.username,
+          id: this.props.state.selectedRoom.roomId,
+        })
+      ).then((res) => {
+        console.log(res);
+        this.props.remove_notifications(this.props.state.selectedRoom.roomId);
+      });
+    }
   };
   isMobile = () => {
     if (
@@ -226,6 +259,7 @@ class Chat extends Component {
           profileImg: this.props.state.user.profileImg,
         })
       ).then((res) => {
+        console.log(res)
         this.props.add_message(
           {
             id: res.data.createMessage.id,
@@ -304,7 +338,7 @@ class Chat extends Component {
             </h3>
             {this.isMobile() && (
               <button
-                onClick={this.props.back}
+                onClick={this.props.settingsOpen}
                 className={css(styles.headerRightButton)}
               >
                 <i className="fas fa-cog"></i>

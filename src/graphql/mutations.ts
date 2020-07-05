@@ -290,3 +290,11 @@ export const changeReadStatus = `mutation ChangeReadStatus($id: Int!, $username:
   }
 }
 `;
+export const removeChatUser = `mutation RemoveChatUser($username: String!, $roomId: Int!) {
+  removeChatUser(username: $username, roomId: $roomId) {
+    username
+    roomId
+    id
+  }
+}
+`;

@@ -40,3 +40,19 @@ export const notificationMessage = `subscription NotificationMessage($chatId: In
   }
 }
 `;
+export const deleteChatUser = `subscription DeleteChatUser($username: String) {
+  deleteChatUser(username: $username) {
+    username
+    roomId
+    id
+  }
+}
+`;
+export const detectChangeUser = `subscription DetectChangeUser($roomId: Int) {
+  detectChangeUser(roomId: $roomId) {
+    username
+    roomId
+    id
+  }
+}
+`;
