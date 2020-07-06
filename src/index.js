@@ -42,8 +42,8 @@ const states = (state = initialState, action) => {
       const clearedRoomState = { ...state, selectedRoom: null };
       return clearedRoomState;
     case "ADD_SUBSCRIPTION":
-      state.messageSubs.push(action.subscription);
-      return state;
+      console.log("adding subs")
+      return {...state, messageSubs: [...state.messageSubs, action.subscription]};
     case "REMOVE_SUBSCRIPTION":
       console.log(action.id);
       const subscription = state.messageSubs.filter(

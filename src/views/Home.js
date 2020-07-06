@@ -285,76 +285,73 @@ class Home extends Component {
     }
     this.setState({ videoModal: false, playing: false });
   };
+  addSubcription = (id) => {
+    this.props.add_subscription({
+      id: id,
+      subscription: API.graphql(
+        graphqlOperation(subscriptions.notificationMessage, {
+          chatId: id,
+        })
+      ).subscribe({
+        next: (res) => {
+          console.log(res);
+          if (
+            res.value.data.notificationMessage.username !==
+            this.state.user.username
+          ) {
+            this.props.add_message(
+              {
+                id: res.value.data.notificationMessage.id,
+                text: res.value.data.notificationMessage.message,
+                createdAt: res.value.data.notificationMessage.createdAt,
+                chatId: res.value.data.notificationMessage.chatId,
+                // sent: currentMessage.sent,
+                user: {
+                  id: res.value.data.notificationMessage.username,
+                  name: res.value.data.notificationMessage.fullName,
+                  avatar: res.value.data.notificationMessage.profileImg,
+                },
+              },
+              true
+            );
+            API.graphql(
+              graphqlOperation(queries.getUnreadMessage, {
+                id: res.value.data.notificationMessage.id,
+                username: this.state.user.username,
+              })
+            ).then((res) => {
+              console.log(res);
+              if (
+                this.props.selectedRoom &&
+                res.data.getUnreadMessage &&
+                JSON.parse(res.data.getUnreadMessage.recepient_group_id) !==
+                  this.props.state.selectedRoom.roomId
+              ) {
+                this.props.add_notification(res.data.getUnreadMessage);
+              }
+              if (this.props.state.selectedRoom) {
+                this.props.remove_notifications(
+                  this.props.state.selectedRoom.roomId
+                );
+              }
+            });
+          }
+        },
+      }),
+    });
+  };
   render() {
     console.log(this.props.state);
     return (
       <BrowserRouter>
         {this.state.chatModal && (
           <ChatModal
-            closeModal={(newChat) => {
+            closeModal={(newChat, id) => {
               if (newChat === true) {
                 this.getRooms();
+                this.addSubcription(id);
               }
               this.setState({ chatModal: false });
-            }}
-            addSubscription={(id) => {
-              this.props.add_subscription({
-                id: id,
-                subscription: API.graphql(
-                  graphqlOperation(subscriptions.notificationMessage, {
-                    chatId: id,
-                  })
-                ).subscribe({
-                  next: (res) => {
-                    if (
-                      res.value.data.notificationMessage.username !==
-                      this.state.user.username
-                    ) {
-                      this.props.add_message(
-                        {
-                          id: res.value.data.notificationMessage.id,
-                          text: res.value.data.notificationMessage.message,
-                          createdAt:
-                            res.value.data.notificationMessage.createdAt,
-                          chatId: res.value.data.notificationMessage.chatId,
-                          // sent: currentMessage.sent,
-                          user: {
-                            id: res.value.data.notificationMessage.username,
-                            name: res.value.data.notificationMessage.fullName,
-                            avatar:
-                              res.value.data.notificationMessage.profileImg,
-                          },
-                        },
-                        true
-                      );
-                      API.graphql(
-                        graphqlOperation(queries.getUnreadMessage, {
-                          id: res.value.data.notificationMessage.id,
-                          username: this.state.user.username,
-                        })
-                      ).then((res) => {
-                        console.log(res);
-                        if (
-                          this.props.selectedRoom &&
-                          res.data.getUnreadMessage &&
-                          JSON.parse(
-                            res.data.getUnreadMessage.recepient_group_id
-                          ) !== this.props.state.selectedRoom.roomId
-                        ) {
-                          this.props.add_notification(
-                            res.data.getUnreadMessage
-                          );
-                        }
-                        if (this.props.state.selectedRoom) {
-                          this.props.remove_notifications(
-                            this.props.state.selectedRoom.roomId
-                          );
-                        }
-                      });
-                    }
-                  },
-                }),
-              });
             }}
           />
         )}

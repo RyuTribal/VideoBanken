@@ -149,28 +149,7 @@ class Chat extends Component {
       username: username,
     });
     if (this.isMobile() && this.props.state.selectedRoom) {
-      API.graphql(
-        graphqlOperation(queries.getMessages, {
-          id: this.props.state.selectedRoom.roomId,
-        })
-      ).then((res) => {
-        let messageObjects = [];
-        res.data.getMessages.map((message) => {
-          messageObjects.push({
-            id: message.id,
-            text: message.message,
-            createdAt: message.createdAt,
-            chatId: message.chatId,
-            // sent: message.sent,
-            user: {
-              id: message.username,
-              name: message.fullName,
-              avatar: message.profileImg,
-            },
-          });
-        });
-        this.props.set_messages(messageObjects);
-      });
+      this.getMessages();
       API.graphql(
         graphqlOperation(mutations.changeReadStatus, {
           username: this.props.state.user.username,
@@ -212,28 +191,7 @@ class Chat extends Component {
       //   this.props.updateNotifications(this.props.id);
       // });
       if (this.props.state.selectedRoom) {
-        API.graphql(
-          graphqlOperation(queries.getMessages, {
-            id: this.props.state.selectedRoom.roomId,
-          })
-        ).then((res) => {
-          let messageObjects = [];
-          res.data.getMessages.map((message) => {
-            messageObjects.push({
-              id: message.id,
-              text: message.message,
-              createdAt: message.createdAt,
-              chatId: message.chatId,
-              // sent: message.sent,
-              user: {
-                id: message.username,
-                name: message.fullName,
-                avatar: message.profileImg,
-              },
-            });
-          });
-          this.props.set_messages(messageObjects);
-        });
+        this.getMessages();
         API.graphql(
           graphqlOperation(mutations.changeReadStatus, {
             username: this.props.state.user.username,
@@ -245,6 +203,44 @@ class Chat extends Component {
         });
       }
     }
+    if (
+      this.props.state.selectedRoom &&
+      this.props.state.rooms !== prevProps.state.rooms
+    ) {
+      for (let i = 0; i < this.props.state.rooms.length; i++) {
+        if (
+          this.props.state.rooms[i].roomId ===
+          this.props.state.selectedRoom.roomId
+        ) {
+          this.props.state.selectedRoom = this.props.state.rooms[i];
+          this.getMessages();
+        }
+      }
+    }
+  };
+  getMessages = async () => {
+    API.graphql(
+      graphqlOperation(queries.getMessages, {
+        id: this.props.state.selectedRoom.roomId,
+      })
+    ).then((res) => {
+      let messageObjects = [];
+      res.data.getMessages.map((message) => {
+        messageObjects.push({
+          id: message.id,
+          text: message.message,
+          createdAt: message.createdAt,
+          chatId: message.chatId,
+          // sent: message.sent,
+          user: {
+            id: message.username,
+            name: message.fullName,
+            avatar: message.profileImg,
+          },
+        });
+      });
+      this.props.set_messages(messageObjects);
+    });
   };
   onSend = async (message) => {
     // Analytics.record({ name: "Chat MSG Sent" });
@@ -259,7 +255,7 @@ class Chat extends Component {
           profileImg: this.props.state.user.profileImg,
         })
       ).then((res) => {
-        console.log(res)
+        console.log(res);
         this.props.add_message(
           {
             id: res.data.createMessage.id,
