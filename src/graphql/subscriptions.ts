@@ -56,3 +56,12 @@ export const detectChangeUser = `subscription DetectChangeUser($roomId: Int) {
   }
 }
 `;
+export const detectRoomChange = `subscription DetectRoomChange($id: Int) {
+  detectRoomChange(id: $id) {
+    id
+    name
+    createdAt
+    chatImg
+  }
+}
+`;

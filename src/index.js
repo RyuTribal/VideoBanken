@@ -40,8 +40,11 @@ const states = (state = initialState, action) => {
     case "CLEAR_SELECTED_ROOM":
       return { ...state, selectedRoom: null };
     case "ADD_SUBSCRIPTION":
-      console.log("adding subs")
-      return {...state, messageSubs: [...state.messageSubs, action.subscription]};
+      console.log("adding subs");
+      return {
+        ...state,
+        messageSubs: [...state.messageSubs, action.subscription],
+      };
     case "REMOVE_SUBSCRIPTION":
       console.log(action.id);
       const subscription = state.messageSubs.filter(
@@ -106,13 +109,19 @@ const states = (state = initialState, action) => {
           sub.subscription.unsubscribe();
         });
       }
+      if (state.rooms.lengt > 0) {
+        state.rooms.map((room) => {
+          room.subscription.unsubscribe();
+          room.changeSub.unsubscribe();
+        });
+      }
       return initialState;
     case "SET_NOTIFICATIONS":
       let notificationState = state;
       notificationState.notifications = action.notifications;
       return notificationState;
     case "ADD_NOTIFICATION":
-      console.log("adding notification")
+      console.log("adding notification");
       return {
         ...state,
         notifications: [...state.notifications, action.notification],

@@ -152,6 +152,38 @@ const styles = StyleSheet.create({
   cursorAuto: {
     cursor: "auto",
   },
+  changeName: {
+    fontWeight: "normal",
+    width: "100%",
+    padding: "10px 20px",
+    boxsizing: "border-box",
+    fontSize: 15,
+    background: "none",
+    border: "0.5px solid #a18e78",
+    borderRadius: 5,
+    color: "#263040",
+    backgroundColor: "rgb(245, 244, 242)",
+    position: "relative",
+    "::placeholder": {
+      color: "#999999",
+      transition: "0.3s",
+    },
+    ":hover": {
+      border: "0.5px solid #263040",
+      backgroundColor: "transparent",
+      transition: "0.5s",
+    },
+    ":focus": {
+      outline: "rgba(0, 0, 0, 0)",
+      border: "0.5px solid #263040",
+      backgroundColor: "transparent",
+      transition: "0.5s",
+      "::placeholder": {
+        transition: "0.3s",
+        color: "transparent",
+      },
+    },
+  },
 });
 
 class Search extends Component {
@@ -160,6 +192,7 @@ class Search extends Component {
     this.state = {
       clickedUsername: "",
       isOpen: false,
+      newName: "",
     };
   }
   componentDidMount = async () => {};
@@ -203,6 +236,18 @@ class Search extends Component {
       console.log(res);
     });
   };
+  saveNewName = async () => {
+    API.graphql(
+      graphqlOperation(mutations.editChatRoom, {
+        roomId: this.props.state.selectedRoom.roomId,
+        title: this.state.newName,
+        chatImg: null,
+      })
+    ).then((res) => {
+      this.setState({ newName: "" });
+      this.props.getRooms();
+    });
+  };
   render() {
     console.log(this.props.state.selectedRoom);
     return (
@@ -242,8 +287,18 @@ class Search extends Component {
               </div>
             </div>
             <div className={css(styles.settingsButtonsWrapper)}>
-              <div className={css(styles.settingsButton)}>
-                Redigera chattens namn
+              <div className={css(styles.settingsButton, styles.cursorAuto)}>
+                <input
+                  className={css(styles.changeName)}
+                  value={this.state.newName}
+                  placeholder="Ändra gruppens namn..."
+                  onChange={(e) => this.setState({ newName: e.target.value })}
+                  onKeyDown={(e) => {
+                    if (e.keyCode === 13) {
+                      this.saveNewName();
+                    }
+                  }}
+                />
               </div>
               <div className={css(styles.chatUserWrapper)}>
                 <div

@@ -153,20 +153,34 @@ class Home extends Component {
         room.users = JSON.parse(room.users).filter(
           (i) => i.username !== this.props.state.user.username
         );
-        if (room.users.length === 1) {
-          room.title = room.users[0].fullName;
-        } else if (room.users.length > 1) {
-          let nameArray = [];
-          room.users.map((user) => {
-            nameArray.push(user.fullName.split(" ")[0]);
-          });
-          room.title =
-            nameArray.join(", ").length > 50
-              ? nameArray.join(", ").substr(0, 50 - 1) + "..."
-              : nameArray.join(", ");
-        } else if (room.users.length < 1) {
-          room.title = "Jag";
+        if (room.title.length !== 0 || room.title.trim()) {
+          room.hasTitle = true;
+        } else {
+          room.hasTitle = false;
+          if (room.users.length === 1) {
+            room.title = room.users[0].fullName;
+          } else if (room.users.length > 1) {
+            let nameArray = [];
+            room.users.map((user) => {
+              nameArray.push(user.fullName.split(" ")[0]);
+            });
+            room.title =
+              nameArray.join(", ").length > 50
+                ? nameArray.join(", ").substr(0, 50 - 1) + "..."
+                : nameArray.join(", ");
+          } else if (room.users.length < 1) {
+            room.title = "Jag";
+          }
         }
+        room.changeSub = API.graphql(
+          graphqlOperation(subscriptions.detectRoomChange, {
+            roomId: room.roomId,
+          })
+        ).subscribe({
+          next: (res) => {
+            this.getRooms();
+          },
+        });
         room.subscription = API.graphql(
           graphqlOperation(subscriptions.detectChangeUser, {
             roomId: room.roomId,
@@ -213,6 +227,7 @@ class Home extends Component {
     this.subscriptions.map((subscription) => {
       subscription.subscription.unsubscribe();
     });
+    this.roomSubscription.unsubscribe();
   }
   logout = () => {
     Auth.signOut()

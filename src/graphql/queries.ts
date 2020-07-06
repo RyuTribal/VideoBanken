@@ -200,6 +200,8 @@ export const getLastMessage = `query GetLastMessage($chatId: Int) {
 `;
 export const getRooms = `query GetRooms($username: String!) {
   getRooms(username: $username) {
+    title
+    chatImg
     roomId
     users
   }

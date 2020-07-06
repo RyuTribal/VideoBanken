@@ -468,6 +468,7 @@ export type CreateRoomMutation = {
     id: string | null,
     name: string | null,
     createdAt: string | null,
+    chatImg: string | null,
   },
 };
 
@@ -498,6 +499,22 @@ export type RemoveChatUserMutation = {
     username: string | null,
     roomId: number | null,
     id: number | null,
+  } | null,
+};
+
+export type EditChatRoomMutationVariables = {
+  title?: string | null,
+  chatImg?: string | null,
+  roomId?: number | null,
+};
+
+export type EditChatRoomMutation = {
+  editChatRoom:  {
+    __typename: "Room",
+    id: string | null,
+    name: string | null,
+    createdAt: string | null,
+    chatImg: string | null,
   } | null,
 };
 
@@ -792,6 +809,8 @@ export type GetRoomsQueryVariables = {
 export type GetRoomsQuery = {
   getRooms:  Array< {
     __typename: "UserRoom",
+    title: string | null,
+    chatImg: string | null,
     roomId: number | null,
     users: string | null,
   } | null >,
@@ -905,5 +924,19 @@ export type DetectChangeUserSubscription = {
     username: string | null,
     roomId: number | null,
     id: number | null,
+  } | null,
+};
+
+export type DetectRoomChangeSubscriptionVariables = {
+  id?: number | null,
+};
+
+export type DetectRoomChangeSubscription = {
+  detectRoomChange:  {
+    __typename: "Room",
+    id: string | null,
+    name: string | null,
+    createdAt: string | null,
+    chatImg: string | null,
   } | null,
 };

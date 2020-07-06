@@ -277,6 +277,7 @@ export const createRoom = `mutation CreateRoom($users: AWSJSON!) {
     id
     name
     createdAt
+    chatImg
   }
 }
 `;
@@ -295,6 +296,15 @@ export const removeChatUser = `mutation RemoveChatUser($username: String!, $room
     username
     roomId
     id
+  }
+}
+`;
+export const editChatRoom = `mutation EditChatRoom($title: String, $chatImg: String, $roomId: Int) {
+  editChatRoom(title: $title, chatImg: $chatImg, roomId: $roomId) {
+    id
+    name
+    createdAt
+    chatImg
   }
 }
 `;
