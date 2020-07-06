@@ -246,6 +246,9 @@ class Search extends Component {
     ).then((res) => {
       this.setState({ newName: "" });
       this.props.getRooms();
+      if (this.isMobile()) {
+        this.props.back();
+      }
     });
   };
   render() {
