@@ -76,19 +76,27 @@ class Inbox extends Component {
     }
   };
   render() {
+    console.log(this.props.match.params);
     return (
       <div className={css(styles.container)}>
         {!this.isMobile() ? (
           <div className={css(styles.viewContainer)}>
             <Messages modal={this.props.modal} isMobile={this.props.isMobile} />
             <Chat isMobile={this.props.isMobile} modal={this.props.modal} />
-            <Search isMobile={this.props.isMobile} />
+            <Search
+              isMobile={this.props.isMobile}
+              getRooms={this.props.getRooms}
+              redirectToProfile={(username) => {
+                this.props.history.push("/home/users/" + username);
+              }}
+            />
           </div>
         ) : (
           <div className={css(styles.viewContainer)}>
-            {!this.props.match.params.id && (
-              <Messages modal={this.props.modal} />
-            )}
+            {!this.props.match.params.id &&
+              !this.props.match.params.settings && (
+                <Messages modal={this.props.modal} />
+              )}
             {this.props.match.params.id && !this.props.match.params.settings && (
               <Chat
                 id={this.props.match.params.id}
@@ -110,6 +118,13 @@ class Inbox extends Component {
                     this.props.history.push(
                       `/home/inbox/${this.props.state.selectedRoom.roomId}/`
                     );
+                  }}
+                  removeChat={() => {
+                    this.props.history.push(`/home/inbox/`);
+                  }}
+                  getRooms={this.props.getRooms}
+                  redirectToProfile={(username) => {
+                    this.props.history.push("/home/users/" + username);
                   }}
                 />
               )}

@@ -25,6 +25,7 @@ const styles = StyleSheet.create({
     "@media (max-width: 1025px) and (orientation: landscape)": {
       borderLeft: "none",
     },
+    position: "relative",
   },
   headerContainer: {
     borderTop: "1px solid rgb(191, 156, 150)",
@@ -92,12 +93,74 @@ const styles = StyleSheet.create({
     borderBottom: "1px solid rgb(191, 156, 150)",
     color: "#f44336",
   },
+  chatUserWrapper: {
+    borderTop: "1px solid rgb(191, 156, 150)",
+    maxHeight: "100%",
+    width: "100%",
+    flexDirection: "column",
+  },
+  chatUser: {
+    padding: 10,
+    display: "flex",
+    flexDirection: "row",
+    cursor: "pointer",
+  },
+  userImg: {
+    height: 50,
+    width: 50,
+    borderRadius: "50%",
+  },
+  userNames: {
+    fontSize: 15,
+    fontWeight: "bold",
+    height: 50,
+    display: "flex",
+    alignItems: "center",
+    marginLeft: 10,
+    flexDirection: "column",
+  },
+  userHandle: {
+    fontSize: 12,
+    color: "rgb(102, 102, 102)",
+    fontWeight: "normal",
+  },
+  profilePop: {
+    display: "flex",
+    flexDirection: "column",
+    position: "absolute",
+    width: "100%",
+    bottom: 0,
+    boxShadow: "1px 4px 8px rgba(0, 0, 0, 0.5)",
+    zIndex: 5,
+    background: "rgb(247, 248, 252)",
+  },
+  optionBtn: {
+    padding: 20,
+    borderTop: "1px solid rgb(191, 156, 150)",
+    width: "100%",
+    textAlign: "center",
+    fontWeight: "bold",
+    cursor: "pointer",
+  },
+  overlay: {
+    position: "absolute",
+    height: "100%",
+    width: "100%",
+    background: "rgba(0, 0, 0, 0.5)",
+    zIndex: 1,
+  },
+  cursorAuto: {
+    cursor: "auto",
+  },
 });
 
 class Search extends Component {
   constructor() {
     super();
-    this.state = {};
+    this.state = {
+      clickedUsername: "",
+      isOpen: false,
+    };
   }
   componentDidMount = async () => {};
 
@@ -121,6 +184,22 @@ class Search extends Component {
       })
     ).then((res) => {
       this.props.remove_room(res.data.removeChatUser.roomId);
+      if (this.isMobile()) {
+        this.props.removeChat();
+      }
+      this.setState({ isOpen: false });
+      console.log(res);
+    });
+  };
+  removeUser = async () => {
+    API.graphql(
+      graphqlOperation(mutations.removeChatUser, {
+        username: this.state.clickedUsername,
+        roomId: this.props.state.selectedRoom.roomId,
+      })
+    ).then((res) => {
+      this.props.getRooms();
+      this.setState({ isOpen: false });
       console.log(res);
     });
   };
@@ -128,6 +207,14 @@ class Search extends Component {
     console.log(this.props.state.selectedRoom);
     return (
       <div className={css(styles.container)}>
+        {this.state.isOpen === true && (
+          <div
+            onClick={() => {
+              this.setState({ isOpen: false });
+            }}
+            className={css(styles.overlay)}
+          ></div>
+        )}
         <div className={css(styles.headerContainer)}>
           {this.isMobile() && (
             <button
@@ -158,12 +245,88 @@ class Search extends Component {
               <div className={css(styles.settingsButton)}>
                 Redigera chattens namn
               </div>
-              <div
+              <div className={css(styles.chatUserWrapper)}>
+                <div
+                  onClick={() => {
+                    this.setState({
+                      clickedUsername: this.props.state.user.username,
+                      isOpen: true,
+                    });
+                  }}
+                  className={css(styles.chatUser)}
+                >
+                  <img
+                    src={
+                      this.props.state.user.profileImg
+                        ? this.props.state.user.profileImg
+                        : blankProfile
+                    }
+                    className={css(styles.userImg)}
+                  ></img>
+                  <div className={css(styles.userNames)}>Jag</div>
+                </div>
+                {this.props.state.selectedRoom.users.map((user) => (
+                  <div
+                    onClick={() => {
+                      this.setState({
+                        clickedUsername: user.username,
+                        isOpen: true,
+                      });
+                    }}
+                    className={css(styles.chatUser)}
+                  >
+                    <img
+                      src={user.profileImg ? user.profileImg : blankProfile}
+                      className={css(styles.userImg)}
+                    ></img>
+                    <div className={css(styles.userNames)}>
+                      {user.fullName}
+                      <div
+                        className={css(styles.userHandle)}
+                      >{`@${user.username}`}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              {/* <div
                 onClick={this.leaveChat}
                 className={css(styles.leaveConvo, styles.settingsButton)}
               >
                 Lämna chatten
-              </div>
+              </div> */}
+            </div>
+          </div>
+        )}
+        {this.state.isOpen === true && (
+          <div className={css(styles.profilePop)}>
+            <div
+              className={css(
+                styles.optionBtn,
+                styles.userHandle,
+                styles.cursorAuto
+              )}
+            >
+              {`@${this.state.clickedUsername}`}
+            </div>
+            <div
+              onClick={() =>
+                this.props.redirectToProfile(this.state.clickedUsername)
+              }
+              className={css(styles.optionBtn)}
+            >
+              Se Profil
+            </div>
+            <div
+              onClick={
+                this.state.clickedUsername === this.props.state.user.username
+                  ? this.leaveChat
+                  : this.removeUser
+              }
+              className={css(styles.optionBtn, styles.leaveConvo)}
+            >
+              {this.state.clickedUsername === this.props.state.user.username
+                ? "Lämna gruppen"
+                : "Ta bort från gruppen"}
             </div>
           </div>
         )}

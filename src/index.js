@@ -36,11 +36,9 @@ const states = (state = initialState, action) => {
       let selectedRoom = selectedRooms.filter(
         (room) => room.roomId === action.id
       )[0];
-      const selectedState = { ...state, selectedRoom: selectedRoom };
-      return selectedState;
+      return { ...state, selectedRoom: selectedRoom };
     case "CLEAR_SELECTED_ROOM":
-      const clearedRoomState = { ...state, selectedRoom: null };
-      return clearedRoomState;
+      return { ...state, selectedRoom: null };
     case "ADD_SUBSCRIPTION":
       console.log("adding subs")
       return {...state, messageSubs: [...state.messageSubs, action.subscription]};
@@ -114,6 +112,7 @@ const states = (state = initialState, action) => {
       notificationState.notifications = action.notifications;
       return notificationState;
     case "ADD_NOTIFICATION":
+      console.log("adding notification")
       return {
         ...state,
         notifications: [...state.notifications, action.notification],

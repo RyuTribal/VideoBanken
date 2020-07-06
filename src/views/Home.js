@@ -129,58 +129,7 @@ class Home extends Component {
     await this.getRooms();
     if (this.props.state.rooms.length > 0) {
       this.props.state.rooms.map((room, i) => {
-        this.props.add_subscription({
-          id: room.roomId,
-          subscription: API.graphql(
-            graphqlOperation(subscriptions.notificationMessage, {
-              chatId: room.roomId,
-            })
-          ).subscribe({
-            next: (res) => {
-              if (
-                res.value.data.notificationMessage.username !==
-                this.state.user.username
-              ) {
-                this.props.add_message(
-                  {
-                    id: res.value.data.notificationMessage.id,
-                    text: res.value.data.notificationMessage.message,
-                    createdAt: res.value.data.notificationMessage.createdAt,
-                    chatId: res.value.data.notificationMessage.chatId,
-                    // sent: currentMessage.sent,
-                    user: {
-                      id: res.value.data.notificationMessage.username,
-                      name: res.value.data.notificationMessage.fullName,
-                      avatar: res.value.data.notificationMessage.profileImg,
-                    },
-                  },
-                  true
-                );
-                API.graphql(
-                  graphqlOperation(queries.getUnreadMessage, {
-                    id: res.value.data.notificationMessage.id,
-                    username: this.state.user.username,
-                  })
-                ).then((res) => {
-                  console.log(res);
-                  if (
-                    this.props.selectedRoom &&
-                    res.data.getUnreadMessage &&
-                    JSON.parse(res.data.getUnreadMessage.recepient_group_id) !==
-                      this.props.state.selectedRoom.roomId
-                  ) {
-                    this.props.add_notification(res.data.getUnreadMessage);
-                  }
-                  if (this.props.state.selectedRoom) {
-                    this.props.remove_notifications(
-                      this.props.state.selectedRoom.roomId
-                    );
-                  }
-                });
-              }
-            },
-          }),
-        });
+        this.addSubcription(room.roomId);
       });
       if (this.props.match.params.id) {
         this.props.change_room(JSON.parse(this.props.match.params.id));
@@ -227,35 +176,32 @@ class Home extends Component {
             this.getRooms();
           },
         });
+        const lastMessage = API.graphql(
+          graphqlOperation(queries.getLastMessage, {
+            chatId: room.roomId,
+          })
+        ).then((res) => {
+          console.log(res);
+          if (res.data.getLastMessage) {
+            this.props.add_message(
+              {
+                id: res.data.getLastMessage.id,
+                text: res.data.getLastMessage.message,
+                createdAt: res.data.getLastMessage.createdAt,
+                chatId: res.data.getLastMessage.chatId,
+                // sent: currentMessage.sent,
+                user: {
+                  id: res.data.getLastMessage.username,
+                  name: res.data.getLastMessage.fullName,
+                  avatar: res.data.getLastMessage.profileImg,
+                },
+              },
+              false
+            );
+          }
+        });
         return room;
       });
-      if (rooms.length > 0) {
-        this.props.state.rooms.map((room) => {
-          const lastMessage = API.graphql(
-            graphqlOperation(queries.getLastMessage, {
-              chatId: room.roomId,
-            })
-          ).then((res) => {
-            if (res.data.getLastMessage) {
-              this.props.add_message(
-                {
-                  id: res.data.getLastMessage.id,
-                  text: res.data.getLastMessage.message,
-                  createdAt: res.data.getLastMessage.createdAt,
-                  chatId: res.data.getLastMessage.chatId,
-                  // sent: currentMessage.sent,
-                  user: {
-                    id: res.data.getLastMessage.username,
-                    name: res.data.getLastMessage.fullName,
-                    avatar: res.data.getLastMessage.profileImg,
-                  },
-                },
-                false
-              );
-            }
-          });
-        });
-      }
     }
     this.props.set_rooms(rooms);
   };
@@ -314,22 +260,20 @@ class Home extends Component {
               },
               true
             );
+            const unreadId = res.value.data.notificationMessage.id;
             API.graphql(
               graphqlOperation(queries.getUnreadMessage, {
-                id: res.value.data.notificationMessage.id,
+                id: unreadId,
                 username: this.state.user.username,
               })
             ).then((res) => {
               console.log(res);
               if (
-                this.props.selectedRoom &&
                 res.data.getUnreadMessage &&
-                JSON.parse(res.data.getUnreadMessage.recepient_group_id) !==
-                  this.props.state.selectedRoom.roomId
+                res.data.getUnreadMessage.isRead === false
               ) {
                 this.props.add_notification(res.data.getUnreadMessage);
-              }
-              if (this.props.state.selectedRoom) {
+              } else if (this.props.state.selectedRoom) {
                 this.props.remove_notifications(
                   this.props.state.selectedRoom.roomId
                 );
@@ -461,6 +405,7 @@ class Home extends Component {
                             }
                             isMobile={isMobile}
                             modal={() => this.setState({ chatModal: true })}
+                            getRooms={() => this.getRooms()}
                           />
                         )}
                       />
