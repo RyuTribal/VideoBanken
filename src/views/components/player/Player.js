@@ -21,6 +21,7 @@ class Player extends Component {
     this.state = {
       play: true,
       pause: false,
+      video: "",
       videoDuration: 0,
       videoWatched: 0,
       videoLoaded: 0,
@@ -46,7 +47,7 @@ class Player extends Component {
     this.idleTimer = null;
     this.wrapperRef = React.createRef();
   }
-  componentDidMount = () => {
+  componentDidMount = async () => {
     this._isMounted = true;
     document.addEventListener("fullscreenchange", (event) => {
       if (document.fullscreenElement && this._isMounted) {
@@ -93,6 +94,27 @@ class Player extends Component {
       "keydown",
       this.handleVideoShortcuts
     );
+  };
+  componentDidUpdate = async (prevProps) => {
+    if (prevProps.videoID !== this.props.videoID) {
+      await Storage.vault
+        .get(
+          `${this.props.videoID}_Mp4_Avc_Aac_16x9_1920x1080p_24Hz_6Mbps_qvbr.mp4`,
+          {
+            bucket: "vod-destination-1uukav97fprkq",
+            level: "public",
+            customPrefix: {
+              public: `${this.props.videoID}/mp4/`,
+            },
+          }
+        )
+        .then((res) => {
+          console.log(res);
+          this.setState({
+            video: res,
+          });
+        });
+    }
   };
   componentWillUnmount = () => {
     this._isMounted = false;
@@ -1039,7 +1061,7 @@ class Player extends Component {
             ref={this.ref}
             playing={this.state.play}
             className="video-player"
-            url={this.props.video}
+            url={this.state.video}
             onClick={() => this.startVideo()}
             onReady={() => this.handleReadyPlayer()}
             onProgress={this.updateProgress}
@@ -1176,13 +1198,44 @@ class Player extends Component {
                                 <i className="fas fa-chevron-right"></i>
                               </div>
                             </div>
-                            <div className="cog-options">
+                            <div
+                              className="cog-options"
+                              onClick={() =>
+                                this.setState({
+                                  speedOpen: false,
+                                  qualityOpen: true,
+                                })
+                              }
+                            >
                               {`Kvalite`}
                               <div className="tooltip-prompt">
-                                {"480p"}
+                                {this.state.selectedQuality}
                                 <i className="fas fa-chevron-right"></i>
                               </div>
                             </div>
+                          </div>
+                        )}
+                      {this.state.speedOpen === false &&
+                        this.state.qualityOpen === true && (
+                          <div className="cog-options-wrapper">
+                            <div
+                              className="cog-options cog-header"
+                              onClick={() =>
+                                this.setState({ qualityOpen: false })
+                              }
+                            >
+                              <i className="fas fa-chevron-left"></i>
+                              <div className="cog-title">{`Kvalite`}</div>
+                            </div>
+                            <div
+                              className="cog-options"
+                              onClick={() =>
+                                this.setState({
+                                  qualityOpen: false,
+                                  // selectedQuality: quality
+                                })
+                              }
+                            ></div>
                           </div>
                         )}
                       {this.state.speedOpen === true &&

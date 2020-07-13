@@ -57,7 +57,6 @@ class Watch extends Component {
     console.log(this.props);
     videoID = this.props.match.params.video;
     let videoDetails = {};
-    let videoUrl = "";
     let videoTags = {};
     if (this._isMounted) {
       this.setState({
@@ -82,9 +81,6 @@ class Watch extends Component {
       })
     ).then((result) => {
       videoTags = result.data.getTags;
-    });
-    await Storage.get(`uploads/${videoID}.mp4`).then(function (result) {
-      videoUrl = result;
     });
     if (videoDetails.views == null) {
       videoDetails.views = "0";
@@ -150,7 +146,6 @@ class Watch extends Component {
     });
     if (this._isMounted) {
       this.setState({
-        video: videoUrl,
         videoDetails: videoDetails,
         tags: videoTags,
         comments: comments,
@@ -464,7 +459,6 @@ class Watch extends Component {
       <div className="video-container">
         <Player
           ref={this.playerRef}
-          video={this.state.video}
           videoID={this.state.key}
           playerRef={this.props.playerRef}
         />
@@ -526,8 +520,8 @@ class Watch extends Component {
             <div className="username-description-wrap">
               <div className="username-wrapper">
                 <Link to={`profile/${this.state.videoDetails.username}`}>
-                <div className="username-profile-picture"></div>
-                                    {this.state.videoDetails.username}
+                  <div className="username-profile-picture"></div>
+                  {this.state.videoDetails.username}
                 </Link>
               </div>
               <div className="description-wrapper">

@@ -15,6 +15,7 @@ export const addVideo = `mutation AddVideo($input: VideoInput!) {
     dislikes
     views
     ammountComments
+    connection
   }
 }
 `;
@@ -32,6 +33,7 @@ export const deleteVideo = `mutation DeleteVideo($input: VideoInput!) {
     dislikes
     views
     ammountComments
+    connection
   }
 }
 `;
@@ -49,6 +51,7 @@ export const editVideo = `mutation EditVideo($input: VideoInput!) {
     dislikes
     views
     ammountComments
+    connection
   }
 }
 `;
@@ -66,6 +69,7 @@ export const sendView = `mutation SendView($id: ID!) {
     dislikes
     views
     ammountComments
+    connection
   }
 }
 `;

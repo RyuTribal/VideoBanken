@@ -15,6 +15,7 @@ export const getVideos = `query GetVideos($offset: Int) {
     dislikes
     views
     ammountComments
+    connection
   }
 }
 `;
@@ -32,6 +33,25 @@ export const getVideo = `query GetVideo($input: VideoInput!) {
     dislikes
     views
     ammountComments
+    connection
+  }
+}
+`;
+export const getConnections = `query GetConnections($id: Int) {
+  getConnections(id: $id) {
+    id
+    title
+    description
+    username
+    thumbnail
+    category
+    tags
+    createdAt
+    likes
+    dislikes
+    views
+    ammountComments
+    connection
   }
 }
 `;

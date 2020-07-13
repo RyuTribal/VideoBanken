@@ -6,6 +6,9 @@ import { StyleSheet, css } from "aphrodite";
 import Player from "../vanilla-player/Player";
 import TagsInput from "react-tagsinput";
 import { Auth, Hub, Storage, API, graphqlOperation } from "aws-amplify";
+import * as queries from "../../../graphql/queries";
+import * as mutations from "../../../graphql/mutations";
+import { connect } from "react-redux";
 const styles = StyleSheet.create({
   modal: {
     minHeight: "720px",
@@ -201,7 +204,6 @@ function validate(title, desc, tags, connect) {
     title: title.length === 0,
     desc: desc.length === 0,
     tags: tags.length === 0,
-    connect: connect.length === 0,
   };
 }
 
@@ -228,7 +230,6 @@ class Modal extends Component {
         title: false,
         desc: false,
         tags: false,
-        connect: false,
       },
       titleErrorMessage: "Detta fält kan inte vara tomt",
       titleError: false,
@@ -236,8 +237,6 @@ class Modal extends Component {
       descError: false,
       tagsErrorMessage: "Detta fält kan inte vara tomt",
       tagsError: false,
-      connectErrorMessage: "Detta fält kan inte vara tomt",
-      connectError: false,
     };
     this.playerRef = React.createRef();
   }
@@ -366,6 +365,7 @@ class Modal extends Component {
     this.setState(
       {
         video: URL.createObjectURL(e.target.files[0]),
+        videoBlob: e.target.files[0],
         videoMounted: true,
       },
       () => {
@@ -385,8 +385,7 @@ class Modal extends Component {
     const hasError = validate(
       this.state.title,
       this.state.desc,
-      this.state.tags,
-      this.state.connect
+      this.state.tags
     )[field];
     const shouldShow = this.state.touched[field];
     return hasError ? shouldShow : false;
@@ -432,11 +431,35 @@ class Modal extends Component {
     );
   }
   uploadVideo = async () => {
-    Storage.put(`input/hello.mp4`, this.state.video, {
-      progressCallback(progress) {
-        console.log(`Uploaded: ${progress.loaded}/${progress.total}`);
-      },
-    }).then((result) => {});
+    console.log(this.state.videoBlob);
+    API.graphql(
+      graphqlOperation(mutations.addVideo, {
+        input: {
+          title: this.state.title,
+          description: this.state.desc,
+          username: this.props.state.user.username,
+          category: this.state.category,
+          connection: this.state.connect,
+        },
+      })
+    ).then((res) => {
+      Storage.put(`${res.data.addVideo.id}.mp4`, this.state.videoBlob, {
+        progressCallback(progress) {
+          console.log(`Uploaded: ${progress.loaded}/${progress.total}`);
+        },
+      }).then((result) => {
+        Storage.vault
+          .get(
+            `${res.data.addVideo.id}/mp4/${res.data.addVideo.id}_Mp4_Hevc_Aac_16x9_3840x2160p_24Hz_20Mbps_qvbr.mp4`,
+            {
+              bucket: "vod-destination-1uukav97fprkq",
+            }
+          )
+          .then((res) => {
+            console.log(res);
+          });
+      });
+    });
   };
   closeModal = () => {
     this.setState({
@@ -454,7 +477,6 @@ class Modal extends Component {
       tags: [],
       everFocusedTags: false,
       connect: "",
-      everFocusedConnect: false,
       touched: {
         title: false,
         desc: false,
@@ -473,12 +495,7 @@ class Modal extends Component {
     this.props.closeModal();
   };
   render() {
-    const errors = validate(
-      this.state.title,
-      this.state.desc,
-      this.state.tags,
-      this.state.connect
-    );
+    const errors = validate(this.state.title, this.state.desc, this.state.tags);
     const isDisabled = Object.keys(errors).some((x) => errors[x]);
     return (
       <div className={css(styles.overlay)}>
@@ -719,4 +736,24 @@ class Modal extends Component {
   }
 }
 
-export default Modal;
+function mapStateToProps(state) {
+  return {
+    state: state,
+  };
+}
+function mapDispatchToProps(dispatch) {
+  return {
+    set_rooms: (rooms) => dispatch({ type: "SET_ROOMS", rooms: rooms }),
+    add_room: (room) => dispatch({ type: "ADD_ROOM", room: room }),
+    remove_room: (id) => dispatch({ type: "REMOVE_ROOM", id, id }),
+    add_subscription: (subscription) =>
+      dispatch({ type: "ADD_SUBSCRIPTION", subscription: subscription }),
+    remove_subscription: (id) =>
+      dispatch({ type: "REMOVE_SUBSCRIPTION", id: id }),
+    add_message: (message) =>
+      dispatch({ type: "ADD_MESSAGE", message: message }),
+    change_room: (id) => dispatch({ type: "CHANGE_ROOM", id: id }),
+    clear_selected_room: () => dispatch({ type: "CLEAR_SELECTED_ROOM" }),
+  };
+}
+export default connect(mapStateToProps, mapDispatchToProps)(Modal);

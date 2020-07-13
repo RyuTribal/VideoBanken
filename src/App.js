@@ -25,7 +25,7 @@ Amplify.configure({
   },
   Storage: {
     AWSS3: {
-      bucket: "video-bank-video-storage", //REQUIRED -  Amazon S3 bucket
+      bucket: "vod-source-t835rdmjfxx2", //REQUIRED -  Amazon S3 bucket
       region: "eu-west-1", //OPTIONAL -  Amazon service region
     },
   },

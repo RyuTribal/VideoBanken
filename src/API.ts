@@ -13,6 +13,7 @@ export type VideoInput = {
   dislikes?: number | null,
   views?: number | null,
   createdAt?: string | null,
+  connection?: string | null,
 };
 
 export type VideoLikesInput = {
@@ -109,6 +110,7 @@ export type AddVideoMutation = {
     dislikes: number | null,
     views: number | null,
     ammountComments: number | null,
+    connection: string | null,
   } | null,
 };
 
@@ -131,6 +133,7 @@ export type DeleteVideoMutation = {
     dislikes: number | null,
     views: number | null,
     ammountComments: number | null,
+    connection: string | null,
   } | null,
 };
 
@@ -153,6 +156,7 @@ export type EditVideoMutation = {
     dislikes: number | null,
     views: number | null,
     ammountComments: number | null,
+    connection: string | null,
   } | null,
 };
 
@@ -175,6 +179,7 @@ export type SendViewMutation = {
     dislikes: number | null,
     views: number | null,
     ammountComments: number | null,
+    connection: string | null,
   } | null,
 };
 
@@ -537,6 +542,7 @@ export type GetVideosQuery = {
     dislikes: number | null,
     views: number | null,
     ammountComments: number | null,
+    connection: string | null,
   } | null > | null,
 };
 
@@ -559,7 +565,31 @@ export type GetVideoQuery = {
     dislikes: number | null,
     views: number | null,
     ammountComments: number | null,
+    connection: string | null,
   } | null,
+};
+
+export type GetConnectionsQueryVariables = {
+  id?: number | null,
+};
+
+export type GetConnectionsQuery = {
+  getConnections:  Array< {
+    __typename: "Video",
+    id: string,
+    title: string | null,
+    description: string | null,
+    username: string | null,
+    thumbnail: string | null,
+    category: string | null,
+    tags: string | null,
+    createdAt: string | null,
+    likes: number | null,
+    dislikes: number | null,
+    views: number | null,
+    ammountComments: number | null,
+    connection: string | null,
+  } | null > | null,
 };
 
 export type GetLikesQueryVariables = {
