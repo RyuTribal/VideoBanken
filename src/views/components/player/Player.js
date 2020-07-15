@@ -40,6 +40,8 @@ class Player extends Component {
       outsideClicked: false,
       qualityOpen: false,
       speedOpen: false,
+      selectedQuality: "",
+      qualties: [],
       isTimedOut: true,
       mouseOver: false,
       replay: false,
@@ -98,22 +100,33 @@ class Player extends Component {
   componentDidUpdate = async (prevProps) => {
     if (prevProps.videoID !== this.props.videoID) {
       await Storage.vault
-        .get(
-          `${this.props.videoID}_Mp4_Avc_Aac_16x9_1920x1080p_24Hz_6Mbps_qvbr.mp4`,
-          {
-            bucket: "vod-destination-1uukav97fprkq",
-            level: "public",
-            customPrefix: {
-              public: `${this.props.videoID}/mp4/`,
-            },
-          }
-        )
+        .list(`mp4/`, {
+          bucket: "vod-destination-1uukav97fprkq",
+          level: "public",
+          customPrefix: {
+            public: `${this.props.videoID}/`,
+          },
+        })
         .then((res) => {
           console.log(res);
+          let qualityArr = [{qualityTitle: "360p", keyEnding: ""}, "480p"];
+          if (res.length > 0) {
+            for (let i = 0; i < res.length; i++) {
+              if (i === 0) {
+                qualityArr.push("720p");
+              } else if (i === 1) {
+                qualityArr.push("1080p");
+              } else if (i === 2) {
+                qualityArr.push("4k");
+              }
+            }
+          }
           this.setState({
-            video: res,
+            qualties: qualityArr,
+            selectedQuality: qualityArr[qualityArr.length - 1],
           });
         });
+      this.setQuality();
     }
   };
   componentWillUnmount = () => {
@@ -152,6 +165,25 @@ class Player extends Component {
       this.handleVideoShortcuts
     );
     clearInterval();
+  };
+  setQuality = async () => {
+    await Storage.vault
+      .get(
+        `${this.props.videoID}_Mp4_Avc_Aac_16x9_1920x1080p_24Hz_6Mbps_qvbr.mp4`,
+        {
+          bucket: "vod-destination-1uukav97fprkq",
+          level: "public",
+          customPrefix: {
+            public: `${this.props.videoID}/mp4/`,
+          },
+        }
+      )
+      .then((res) => {
+        console.log(res);
+        this.setState({
+          video: res,
+        });
+      });
   };
   handleVideoShortcuts = (event) => {
     const player = this.player.getInternalPlayer();
@@ -1061,7 +1093,7 @@ class Player extends Component {
             ref={this.ref}
             playing={this.state.play}
             className="video-player"
-            url={this.state.video}
+            url="http://d2pfjxfjra8lmf.cloudfront.net/19/hls/19.m3u8"
             onClick={() => this.startVideo()}
             onReady={() => this.handleReadyPlayer()}
             onProgress={this.updateProgress}
@@ -1232,7 +1264,7 @@ class Player extends Component {
                               onClick={() =>
                                 this.setState({
                                   qualityOpen: false,
-                                  // selectedQuality: quality
+                                  // selectedQuality: quality,
                                 })
                               }
                             ></div>
