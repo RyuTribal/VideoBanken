@@ -46,6 +46,7 @@ class Player extends Component {
       isTimedOut: true,
       mouseOver: false,
       replay: false,
+      thumbs: [],
     };
     this.idleTimer = null;
     this.wrapperRef = React.createRef();
@@ -100,7 +101,40 @@ class Player extends Component {
   };
   componentDidUpdate = async (prevProps) => {
     if (prevProps.videoID !== this.props.videoID) {
-      this.setQuality();
+      await this.setQuality();
+      if (this.state.thumbs.length === 0) {
+        let thumbs = await Storage.vault
+          .list("thumbnails/", {
+            bucket: "vod-destination-1uukav97fprkq",
+            level: "public",
+            customPrefix: { public: `${this.props.videoID}/` },
+          })
+          .then((res) => {
+            return res;
+          });
+        for (let i = 0; i < thumbs.length; i++) {
+          await Storage.vault
+            .get(thumbs[i].key, {
+              bucket: "vod-destination-1uukav97fprkq",
+              level: "public",
+              customPrefix: { public: `${this.props.videoID}/` },
+            })
+            .then((res) => {
+              const videoDuration = this.player.getDuration();
+              this.setState({
+                thumbs: [
+                  ...this.state.thumbs,
+                  {
+                    link: res,
+                    start: (videoDuration / thumbs.length) * i,
+                    end: (videoDuration / thumbs.length) * (i + 1),
+                  },
+                ],
+              });
+            });
+          console.log(this.state.thumbs);
+        }
+      }
     }
   };
   componentWillUnmount = () => {
@@ -1062,7 +1096,16 @@ class Player extends Component {
             className="video-time"
             style={{ right: `${this.state.hoveredPos}%` }}
           >
-            <div className="frame-image"></div>
+            <div className="frame-image">
+              {this.state.thumbs.map((thumb) => {
+                return this.state.hoveredTime >= thumb.start &&
+                  this.state.hoveredTime < thumb.end ? (
+                  <img src={thumb.link}></img>
+                ) : (
+                  ""
+                );
+              })}
+            </div>
             <FormattedTime numSeconds={this.state.hoveredTime} />
           </div>
         )}
