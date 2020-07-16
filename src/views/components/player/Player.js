@@ -22,6 +22,7 @@ class Player extends Component {
       play: true,
       pause: false,
       video: "",
+      videoCurrentTime: 0,
       videoDuration: 0,
       videoWatched: 0,
       videoLoaded: 0,
@@ -40,8 +41,8 @@ class Player extends Component {
       outsideClicked: false,
       qualityOpen: false,
       speedOpen: false,
-      selectedQuality: "",
-      qualties: [],
+      selectedQuality: "auto",
+      qualities: ["auto", "360p", "540p", "720p", "1080p"],
       isTimedOut: true,
       mouseOver: false,
       replay: false,
@@ -99,33 +100,6 @@ class Player extends Component {
   };
   componentDidUpdate = async (prevProps) => {
     if (prevProps.videoID !== this.props.videoID) {
-      await Storage.vault
-        .list(`mp4/`, {
-          bucket: "vod-destination-1uukav97fprkq",
-          level: "public",
-          customPrefix: {
-            public: `${this.props.videoID}/`,
-          },
-        })
-        .then((res) => {
-          console.log(res);
-          let qualityArr = [{qualityTitle: "360p", keyEnding: ""}, "480p"];
-          if (res.length > 0) {
-            for (let i = 0; i < res.length; i++) {
-              if (i === 0) {
-                qualityArr.push("720p");
-              } else if (i === 1) {
-                qualityArr.push("1080p");
-              } else if (i === 2) {
-                qualityArr.push("4k");
-              }
-            }
-          }
-          this.setState({
-            qualties: qualityArr,
-            selectedQuality: qualityArr[qualityArr.length - 1],
-          });
-        });
       this.setQuality();
     }
   };
@@ -167,23 +141,27 @@ class Player extends Component {
     clearInterval();
   };
   setQuality = async () => {
-    await Storage.vault
-      .get(
-        `${this.props.videoID}_Mp4_Avc_Aac_16x9_1920x1080p_24Hz_6Mbps_qvbr.mp4`,
-        {
-          bucket: "vod-destination-1uukav97fprkq",
-          level: "public",
-          customPrefix: {
-            public: `${this.props.videoID}/mp4/`,
-          },
-        }
-      )
-      .then((res) => {
-        console.log(res);
-        this.setState({
-          video: res,
-        });
+    if (this.state.selectedQuality === "auto") {
+      this.setState({
+        video: `http://d2pfjxfjra8lmf.cloudfront.net/${this.props.videoID}/hls/${this.props.videoID}.m3u8`,
       });
+    } else if (this.state.selectedQuality === "360p") {
+      this.setState({
+        video: `http://d2pfjxfjra8lmf.cloudfront.net/${this.props.videoID}/hls/${this.props.videoID}_Ott_Hls_Ts_Avc_Aac_16x9_640x360p_30Hz_1.2Mbps_qvbr.m3u8`,
+      });
+    } else if (this.state.selectedQuality === "540p") {
+      this.setState({
+        video: `http://d2pfjxfjra8lmf.cloudfront.net/${this.props.videoID}/hls/${this.props.videoID}_Ott_Hls_Ts_Avc_Aac_16x9_960x540p_30Hz_3.5Mbps_qvbr.m3u8`,
+      });
+    } else if (this.state.selectedQuality === "720p") {
+      this.setState({
+        video: `http://d2pfjxfjra8lmf.cloudfront.net/${this.props.videoID}/hls/${this.props.videoID}_Ott_Hls_Ts_Avc_Aac_16x9_1280x720p_30Hz_5.0Mbps_qvbr.m3u8`,
+      });
+    } else if (this.state.selectedQuality === "1080p") {
+      this.setState({
+        video: `http://d2pfjxfjra8lmf.cloudfront.net/${this.props.videoID}/hls/${this.props.videoID}_Ott_Hls_Ts_Avc_Aac_16x9_1920x1080p_30Hz_8.5Mbps_qvbr.m3u8`,
+      });
+    }
   };
   handleVideoShortcuts = (event) => {
     const player = this.player.getInternalPlayer();
@@ -1093,7 +1071,7 @@ class Player extends Component {
             ref={this.ref}
             playing={this.state.play}
             className="video-player"
-            url="http://d2pfjxfjra8lmf.cloudfront.net/19/hls/19.m3u8"
+            url={this.state.video}
             onClick={() => this.startVideo()}
             onReady={() => this.handleReadyPlayer()}
             onProgress={this.updateProgress}
@@ -1104,10 +1082,22 @@ class Player extends Component {
             controls={false}
             playsinline={true}
             onEnded={() =>
-              this.setState({ play: false, pause: false, replay: true })
+              this.setState({
+                play: false,
+                pause: false,
+                replay: true,
+                videoCurrentTime: 0,
+              })
             }
             playbackRate={this.state.playBackRate}
             pip={this.state.pip}
+            config={{
+              file: {
+                hlsOptions: {
+                  startPosition: this.state.videoCurrentTime,
+                },
+              },
+            }}
           />
           <div
             className={`player-controls ${
@@ -1259,15 +1249,28 @@ class Player extends Component {
                               <i className="fas fa-chevron-left"></i>
                               <div className="cog-title">{`Kvalite`}</div>
                             </div>
-                            <div
-                              className="cog-options"
-                              onClick={() =>
-                                this.setState({
-                                  qualityOpen: false,
-                                  // selectedQuality: quality,
-                                })
-                              }
-                            ></div>
+                            {this.state.qualities.map((quality) => (
+                              <div
+                                className="cog-options"
+                                onClick={() => {
+                                  this.setState(
+                                    {
+                                      qualityOpen: false,
+                                      selectedQuality: quality,
+                                      videoCurrentTime: this.player.getCurrentTime(),
+                                    },
+                                    () => {
+                                      this.setQuality();
+                                    }
+                                  );
+                                }}
+                              >
+                                {this.state.selectedQuality === quality && (
+                                  <i className="fas fa-check"></i>
+                                )}
+                                <div className="cog-title">{quality}</div>
+                              </div>
+                            ))}
                           </div>
                         )}
                       {this.state.speedOpen === true &&
