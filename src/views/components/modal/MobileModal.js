@@ -5,6 +5,7 @@ import { Column, Row } from "simple-flexbox";
 import { StyleSheet, css } from "aphrodite";
 import TagsInput from "react-tagsinput";
 import { Auth, Hub, Storage, API, graphqlOperation } from "aws-amplify";
+import * as mutations from "../../../graphql/mutations";
 import Player from "../vanilla-player/Player";
 const styles = StyleSheet.create({
   modal: {
@@ -117,12 +118,11 @@ const styles = StyleSheet.create({
   },
 });
 
-function validate(title, desc, tags, connect) {
+function validate(title, desc, tags) {
   return {
     title: title.length === 0,
     desc: desc.length === 0,
     tags: tags.length === 0,
-    connect: connect.length === 0,
   };
 }
 
@@ -166,8 +166,7 @@ class MobileModal extends Component {
     const hasError = validate(
       this.state.title,
       this.state.desc,
-      this.state.tags,
-      this.state.connect
+      this.state.tags
     )[field];
     const shouldShow = this.state.touched[field];
     return hasError ? shouldShow : false;
@@ -195,6 +194,7 @@ class MobileModal extends Component {
     e.stopPropagation();
     this.setState({
       thumbnail: URL.createObjectURL(e.target.files[0]),
+      thumbBlob: e.target.files[0],
       thumbnailMounted: true,
     });
   };
@@ -221,11 +221,41 @@ class MobileModal extends Component {
     );
   }
   uploadVideo = async () => {
-    Storage.put(`input/hello.mp4`, this.state.video, {
-      progressCallback(progress) {
-        console.log(`Uploaded: ${progress.loaded}/${progress.total}`);
-      },
-    }).then((result) => {});
+    if (
+      this.state.title.replace(/\s/g, "") !== "" &&
+      this.state.videoMounted &&
+      this.state.thumbnailMounted
+    ) {
+      API.graphql(
+        graphqlOperation(mutations.addVideo, {
+          input: {
+            title: this.state.title,
+            description: this.state.desc,
+            username: this.props.state.user.username,
+            connection: this.state.connect,
+          },
+        })
+      ).then((res) => {
+        Storage.put(`${res.data.addVideo.id}.mp4`, this.state.videoBlob, {
+          progressCallback(progress) {
+            console.log(`Uploaded: ${progress.loaded}/${progress.total}`);
+          },
+        });
+        Storage.vault.put(
+          `thumbnails/customThumbnail.jpg`,
+          this.state.thumbBlob,
+          {
+            bucket: "vod-destination-1uukav97fprkq",
+            level: "public",
+            customPrefix: { public: `${res.data.addVideo.id}/` },
+            progressCallback(progress) {
+              console.log(`Uploaded: ${progress.loaded}/${progress.total}`);
+            },
+          }
+        );
+      });
+      this.closeModal();
+    }
   };
   closeModal = () => {
     this.setState({
@@ -269,12 +299,7 @@ class MobileModal extends Component {
     }
   };
   render() {
-    const errors = validate(
-      this.state.title,
-      this.state.desc,
-      this.state.tags,
-      this.state.connect
-    );
+    const errors = validate(this.state.title, this.state.desc, this.state.tags);
     const isDisabled = Object.keys(errors).some((x) => errors[x]);
     return (
       <div className={css(styles.modal)}>
@@ -282,7 +307,10 @@ class MobileModal extends Component {
           <button onClick={this.closeModal} className={css(styles.cancel)}>
             <i className="fas fa-chevron-left"></i>
           </button>
-          <button disabled={isDisabled} className={css(styles.upload)}>
+          <button
+            disabled={isDisabled || !this.state.thumbnailMounted ? true : false}
+            className={css(styles.upload)}
+          >
             <i className="fas fa-check"></i>
           </button>
         </div>
@@ -294,7 +322,7 @@ class MobileModal extends Component {
             fullscreen={false}
             timeThumb={false}
             ref={this.playerRef}
-            video={this.props.video}
+            video={URL.createObjectURL(this.props.video)}
             thumbnailCreator={false}
             mobileControls={true}
           />

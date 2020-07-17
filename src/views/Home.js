@@ -335,7 +335,7 @@ class Home extends Component {
               if (e.target.files[0]) {
                 this.setState({
                   videoModal: true,
-                  mobileVideo: URL.createObjectURL(e.target.files[0]),
+                  mobileVideo: e.target.files[0],
                 });
               }
             }}

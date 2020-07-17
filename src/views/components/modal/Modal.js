@@ -309,6 +309,7 @@ class Modal extends Component {
     if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
       this.setState({
         thumbnail: URL.createObjectURL(e.dataTransfer.files[0]),
+        thumbBlob: e.target.files[0],
         thumbnailMounted: true,
       });
       e.dataTransfer.clearData();
@@ -343,6 +344,7 @@ class Modal extends Component {
       this.setState(
         {
           video: URL.createObjectURL(e.dataTransfer.files[0]),
+          videoBlob: e.target.files[0],
           videoMounted: true,
         },
         () => {
@@ -378,6 +380,7 @@ class Modal extends Component {
     e.stopPropagation();
     this.setState({
       thumbnail: URL.createObjectURL(e.target.files[0]),
+      thumbBlob: e.target.files[0],
       thumbnailMounted: true,
     });
   };
@@ -432,34 +435,41 @@ class Modal extends Component {
   }
   uploadVideo = async () => {
     console.log(this.state.videoBlob);
-    API.graphql(
-      graphqlOperation(mutations.addVideo, {
-        input: {
-          title: this.state.title,
-          description: this.state.desc,
-          username: this.props.state.user.username,
-          category: this.state.category,
-          connection: this.state.connect,
-        },
-      })
-    ).then((res) => {
-      Storage.put(`${res.data.addVideo.id}.mp4`, this.state.videoBlob, {
-        progressCallback(progress) {
-          console.log(`Uploaded: ${progress.loaded}/${progress.total}`);
-        },
-      }).then((result) => {
-        Storage.vault
-          .get(
-            `${res.data.addVideo.id}/mp4/${res.data.addVideo.id}_Mp4_Hevc_Aac_16x9_3840x2160p_24Hz_20Mbps_qvbr.mp4`,
-            {
-              bucket: "vod-destination-1uukav97fprkq",
-            }
-          )
-          .then((res) => {
-            console.log(res);
-          });
+    if (
+      this.state.title.replace(/\s/g, "") !== "" &&
+      this.state.videoMounted &&
+      this.state.thumbnailMounted
+    ) {
+      API.graphql(
+        graphqlOperation(mutations.addVideo, {
+          input: {
+            title: this.state.title,
+            description: this.state.desc,
+            username: this.props.state.user.username,
+            connection: this.state.connect,
+          },
+        })
+      ).then((res) => {
+        Storage.put(`${res.data.addVideo.id}.mp4`, this.state.videoBlob, {
+          progressCallback(progress) {
+            console.log(`Uploaded: ${progress.loaded}/${progress.total}`);
+          },
+        });
+        Storage.vault.put(
+          `thumbnails/customThumbnail.jpg`,
+          this.state.thumbBlob,
+          {
+            bucket: "vod-destination-1uukav97fprkq",
+            level: "public",
+            customPrefix: { public: `${res.data.addVideo.id}/` },
+            progressCallback(progress) {
+              console.log(`Uploaded: ${progress.loaded}/${progress.total}`);
+            },
+          }
+        );
       });
-    });
+      this.closeModal();
+    }
   };
   closeModal = () => {
     this.setState({
@@ -722,7 +732,13 @@ class Modal extends Component {
             </div>
             <div className={css(styles.buttonContainer)}>
               <button
-                disabled={isDisabled}
+                disabled={
+                  isDisabled ||
+                  !this.state.thumbnailMounted ||
+                  !this.state.videoMounted
+                    ? true
+                    : false
+                }
                 onClick={this.uploadVideo}
                 className={css(styles.confirmButton)}
               >

@@ -132,7 +132,6 @@ class Player extends Component {
                 ],
               });
             });
-          console.log(this.state.thumbs);
         }
       }
     }

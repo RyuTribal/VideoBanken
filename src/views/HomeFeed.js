@@ -1,5 +1,11 @@
 import React, { Component } from "react";
-import { BrowserRouter, Switch, Route, Link, withRouter } from "react-router-dom";
+import {
+  BrowserRouter,
+  Switch,
+  Route,
+  Link,
+  withRouter,
+} from "react-router-dom";
 import { Auth, Hub, Storage, API, graphqlOperation } from "aws-amplify";
 import $ from "jquery";
 import * as queries from "../graphql/queries";
@@ -34,7 +40,12 @@ class HomeFeed extends Component {
       }
     });
     for (let i = 0; i < videos.length; i++) {
-      await Storage.get(`uploads/${videos[i].thumbnail}.png`)
+      await Storage.vault
+        .get("customThumbnail.jpg", {
+          bucket: "vod-destination-1uukav97fprkq",
+          level: "public",
+          customPrefix: { public: `${videos[i].id}/thumbnails/` },
+        })
         .then(function (result) {
           videos[i].thumbnail = result;
           if (videos[i].views == null) {
@@ -75,14 +86,14 @@ class HomeFeed extends Component {
       <section className="feed-container">
         {this.state.details.map((details, i) => (
           <div
-            onClick={() =>
-              this.props.history.push(`/home/watch/${details.id}`)
-            }
+            onClick={() => this.props.history.push(`/home/watch/${details.id}`)}
             key={i}
             className="video-preview"
           >
-  
-            <div className="video-thumbnail" styles={{background: `url(${details.thumbnail})`}}></div>
+            <div
+              className="video-thumbnail"
+              style={{ backgroundImage: `url(${details.thumbnail})`, backgroundSize: "cover" }}
+            ></div>
             <div className="video-details">
               <div className="video-title-wrap">
                 <h3 className="video-title">{details.title}</h3>
