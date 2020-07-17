@@ -37,6 +37,13 @@ export const getVideo = `query GetVideo($input: VideoInput!) {
   }
 }
 `;
+export const getVideoSize = `query GetVideoSize($guid: ID) {
+  getVideoSize(guid: $guid) {
+    guid
+    srcHeight
+  }
+}
+`;
 export const getConnections = `query GetConnections($id: Int) {
   getConnections(id: $id) {
     id

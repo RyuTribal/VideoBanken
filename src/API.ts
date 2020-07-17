@@ -569,6 +569,18 @@ export type GetVideoQuery = {
   } | null,
 };
 
+export type GetVideoSizeQueryVariables = {
+  guid?: string | null,
+};
+
+export type GetVideoSizeQuery = {
+  getVideoSize:  {
+    __typename: "VideoSize",
+    guid: string | null,
+    srcHeight: number | null,
+  } | null,
+};
+
 export type GetConnectionsQueryVariables = {
   id?: number | null,
 };

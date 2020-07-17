@@ -101,6 +101,15 @@ class Player extends Component {
   };
   componentDidUpdate = async (prevProps) => {
     if (prevProps.videoID !== this.props.videoID) {
+      API.graphql(
+        graphqlOperation(queries.getVideoSize, {
+          guid: this.props.videoID,
+        })
+      ).then((res) => {
+        if (res.data.getVideoSize.srcHeight === 720) {
+          this.setState({ qualities: ["auto", "360p", "540p", "720p"] });
+        }
+      });
       await this.setQuality();
       if (this.state.thumbs.length === 0) {
         let thumbs = await Storage.vault
