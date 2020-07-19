@@ -197,6 +197,33 @@ const styles = StyleSheet.create({
       width: "100%",
     },
   },
+  modalCenter: {
+    minHeight: 720,
+    width: "100%",
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  uploadBarWrapper: {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 20,
+    width: "100%",
+  },
+  uploadBar: {
+    width: "100%",
+    height: 25,
+    border: "1px solid rgb(191, 156, 150)",
+    borderRadius: 12,
+    overflow: "hidden",
+  },
+  uploadProgress: {
+    backgroundColor: "rgb(234, 58, 58)",
+    transition: "width 2s",
+    height: "100%",
+  },
 });
 
 function validate(title, desc, tags, connect) {
@@ -237,6 +264,8 @@ class Modal extends Component {
       descError: false,
       tagsErrorMessage: "Detta fält kan inte vara tomt",
       tagsError: false,
+      uploadBar: false,
+      uploadPercent: 0,
     };
     this.playerRef = React.createRef();
   }
@@ -441,34 +470,46 @@ class Modal extends Component {
       this.state.thumbnailMounted
     ) {
       API.graphql(
-        graphqlOperation(mutations.addVideo, {
-          input: {
-            title: this.state.title,
-            description: this.state.desc,
-            username: this.props.state.user.username,
-            connection: this.state.connect,
-          },
-        })
+        graphqlOperation(queries.getTableIncrement, { table: "Videos" })
       ).then((res) => {
-        Storage.put(`${res.data.addVideo.id}.mp4`, this.state.videoBlob, {
-          progressCallback(progress) {
-            console.log(`Uploaded: ${progress.loaded}/${progress.total}`);
-          },
-        });
-        Storage.vault.put(
-          `thumbnails/customThumbnail.jpg`,
-          this.state.thumbBlob,
+        console.log(res)
+        this.setState({ uploadBar: true });
+        let that = this;
+        Storage.put(
+          `${res.data.getTableIncrement.AUTO_INCREMENT}.mp4`,
+          this.state.videoBlob,
           {
-            bucket: "vod-destination-1uukav97fprkq",
-            level: "public",
-            customPrefix: { public: `${res.data.addVideo.id}/` },
             progressCallback(progress) {
-              console.log(`Uploaded: ${progress.loaded}/${progress.total}`);
+              let loadedPer = (progress.loaded / progress.total) * 100;
+              that.setState({ uploadPercent: loadedPer });
             },
           }
-        );
+        ).then(() => {
+          Storage.vault
+            .put(`thumbnails/customThumbnail.jpg`, this.state.thumbBlob, {
+              bucket: "vod-destination-1uukav97fprkq",
+              level: "public",
+              customPrefix: { public: `${res.data.getTableIncrement.AUTO_INCREMENT}/` },
+              progressCallback(progress) {
+                console.log(`Uploaded: ${progress.loaded}/${progress.total}`);
+              },
+            })
+            .then(() => {
+              API.graphql(
+                graphqlOperation(mutations.addVideo, {
+                  input: {
+                    title: this.state.title,
+                    description: this.state.desc,
+                    username: this.props.state.user.username,
+                    connection: this.state.connect,
+                  },
+                })
+              ).then(() => {
+                this.closeModal();
+              });
+            });
+        });
       });
-      this.closeModal();
     }
   };
   closeModal = () => {
@@ -505,247 +546,268 @@ class Modal extends Component {
     this.props.closeModal();
   };
   render() {
+    console.log(this.state.uploadPercent);
     const errors = validate(this.state.title, this.state.desc, this.state.tags);
     const isDisabled = Object.keys(errors).some((x) => errors[x]);
     return (
       <div className={css(styles.overlay)}>
         <div className={css(styles.modal)}>
-          <div className={css(styles.modalContent)}>
-            <div className={css(styles.modalInnerContent)}>
-              <h1>Ladda upp video</h1>
-              <div
-                ref={this.dropRef}
-                className={css(
-                  styles.videoUploadContainer,
-                  this.state.dragging === true && styles.videoUploadDragging
-                )}
-              >
+          {!this.state.uploadBar ? (
+            <div className={css(styles.modalContent)}>
+              <div className={css(styles.modalInnerContent)}>
+                <h1>Ladda upp video</h1>
                 <div
+                  ref={this.dropRef}
                   className={css(
-                    styles.innerVideoUploadContainer,
-                    this.state.videoMounted === false &&
-                      styles.unmountedContainer
+                    styles.videoUploadContainer,
+                    this.state.dragging === true && styles.videoUploadDragging
                   )}
                 >
-                  {this.state.videoMounted === true ? (
-                    <Player
-                      shortcuts={false}
-                      settings={false}
-                      pip={false}
-                      fullscreen={false}
-                      timeThumb={false}
-                      ref={this.playerRef}
-                      video={this.state.video}
-                      thumbnailCreator={true}
-                      sendThumbnail={(dataURL) =>
-                        this.setState({
-                          thumbnail: dataURL,
-                          thumbnailMounted: true,
-                        })
-                      }
-                    />
-                  ) : (
-                    <div className={css(styles.dragVideo)}>
-                      <i
-                        onClick={this.handleVideoClick}
-                        className="fas fa-film"
-                        style={{ fontSize: 50, cursor: "pointer" }}
-                      ></i>
-                      <p style={{ fontSize: 15, fontWeight: 1000 }}>
-                        Droppa din fil här
-                      </p>
-                      <p style={{ fontSize: 13, color: "#bf9c96" }}>eller</p>
-                      <button
-                        onClick={this.handleVideoClick}
-                        className={css(styles.submitButton)}
-                      >
-                        Bläddra
-                      </button>
-                    </div>
-                  )}
-                  <input
-                    id="video-uploader"
-                    type="file"
-                    className="upload"
-                    accept="video/*"
-                    style={{ display: "none" }}
-                    ref="fileUploader"
-                    onChange={this.handleVideoUpload}
-                  ></input>
-                  <input
-                    id="image-uploader"
-                    type="file"
-                    className="upload"
-                    accept="image/*"
-                    style={{ display: "none" }}
-                    ref="imageUploader"
-                    onChange={this.handleImageUpload}
-                  ></input>
-                </div>
-              </div>
-              {this.state.videoMounted === true && (
-                <div className={css(styles.thumbnailWrapper)}>
-                  <p className={css(styles.notice)}>
-                    För att byta video droppa en ny fil på nuvarande videon
-                    eller {` `}
-                    <span
-                      className={css(styles.link)}
-                      onClick={this.handleVideoClick}
-                    >
-                      Bläddra
-                    </span>
-                  </p>
-                  <div className={css(styles.thumbnailContainer)}>
-                    <div
-                      ref={this.imageDropRef}
-                      className={css(
-                        styles.thumbnail,
-                        this.state.imageDragging && styles.videoUploadDragging
-                      )}
-                    >
-                      {this.state.thumbnailMounted && (
-                        <img
-                          style={{ maxWidth: "100%", maxHeight: "100%" }}
-                          src={this.state.thumbnail}
-                        ></img>
-                      )}
-                    </div>
-                    <span
-                      className={css(styles.link)}
-                      onClick={this.handleImageClick}
-                      style={{ marginTop: "1.5rem" }}
-                    >
-                      Bläddra thumbnails
-                    </span>
+                  <div
+                    className={css(
+                      styles.innerVideoUploadContainer,
+                      this.state.videoMounted === false &&
+                        styles.unmountedContainer
+                    )}
+                  >
+                    {this.state.videoMounted === true ? (
+                      <Player
+                        shortcuts={false}
+                        settings={false}
+                        pip={false}
+                        fullscreen={false}
+                        timeThumb={false}
+                        ref={this.playerRef}
+                        video={this.state.video}
+                        thumbnailCreator={true}
+                        sendThumbnail={(dataURL) =>
+                          this.setState({
+                            thumbnail: dataURL,
+                            thumbnailMounted: true,
+                          })
+                        }
+                      />
+                    ) : (
+                      <div className={css(styles.dragVideo)}>
+                        <i
+                          onClick={this.handleVideoClick}
+                          className="fas fa-film"
+                          style={{ fontSize: 50, cursor: "pointer" }}
+                        ></i>
+                        <p style={{ fontSize: 15, fontWeight: 1000 }}>
+                          Droppa din fil här
+                        </p>
+                        <p style={{ fontSize: 13, color: "#bf9c96" }}>eller</p>
+                        <button
+                          onClick={this.handleVideoClick}
+                          className={css(styles.submitButton)}
+                        >
+                          Bläddra
+                        </button>
+                      </div>
+                    )}
+                    <input
+                      id="video-uploader"
+                      type="file"
+                      className="upload"
+                      accept="video/*"
+                      style={{ display: "none" }}
+                      ref="fileUploader"
+                      onChange={this.handleVideoUpload}
+                    ></input>
+                    <input
+                      id="image-uploader"
+                      type="file"
+                      className="upload"
+                      accept="image/*"
+                      style={{ display: "none" }}
+                      ref="imageUploader"
+                      onChange={this.handleImageUpload}
+                    ></input>
                   </div>
                 </div>
-              )}
+                {this.state.videoMounted === true && (
+                  <div className={css(styles.thumbnailWrapper)}>
+                    <p className={css(styles.notice)}>
+                      För att byta video droppa en ny fil på nuvarande videon
+                      eller {` `}
+                      <span
+                        className={css(styles.link)}
+                        onClick={this.handleVideoClick}
+                      >
+                        Bläddra
+                      </span>
+                    </p>
+                    <div className={css(styles.thumbnailContainer)}>
+                      <div
+                        ref={this.imageDropRef}
+                        className={css(
+                          styles.thumbnail,
+                          this.state.imageDragging && styles.videoUploadDragging
+                        )}
+                      >
+                        {this.state.thumbnailMounted && (
+                          <img
+                            style={{ maxWidth: "100%", maxHeight: "100%" }}
+                            src={this.state.thumbnail}
+                          ></img>
+                        )}
+                      </div>
+                      <span
+                        className={css(styles.link)}
+                        onClick={this.handleImageClick}
+                        style={{ marginTop: "1.5rem" }}
+                      >
+                        Bläddra thumbnails
+                      </span>
+                    </div>
+                  </div>
+                )}
+              </div>
+              <div className={css(styles.modalInnerContent)}>
+                <h1
+                  onClick={this.closeModal}
+                  className={css(styles.closeModal)}
+                >
+                  <i className="fas fa-times"></i>
+                </h1>
+                <div style={{ marginTop: 10 }} className="input-wrappers">
+                  <lable for="title">Titel</lable>
+                  <input
+                    type="text"
+                    className={
+                      this.shouldMarkError("title") ||
+                      this.state.titleError === true
+                        ? "input-error custom-input"
+                        : "custom-input"
+                    }
+                    id="title"
+                    value={this.state.title}
+                    onChange={this.handleTitleChange}
+                    onBlur={this.handleBlur("title")}
+                    onKeyDown={this.checkForEnter}
+                    autoFocus
+                  ></input>
+                  {this.state.titleError ||
+                    (this.shouldMarkError("title") && (
+                      <p className="input-error-message">
+                        {this.state.titleErrorMessage}
+                      </p>
+                    ))}
+                </div>
+                <div style={{ marginTop: 10 }} className="input-wrappers">
+                  <lable for="desc">Beskrivning</lable>
+                  <textarea
+                    className={
+                      this.shouldMarkError("desc") ||
+                      this.state.descError === true
+                        ? "input-error custom-input"
+                        : "custom-input"
+                    }
+                    id="desc"
+                    value={this.state.desc}
+                    onChange={this.handleDescChange}
+                    onBlur={this.handleBlur("desc")}
+                    onKeyDown={this.checkForEnter}
+                  ></textarea>
+                  {this.state.descError ||
+                    (this.shouldMarkError("desc") && (
+                      <p className="input-error-message">
+                        {this.state.descErrorMessage}
+                      </p>
+                    ))}
+                </div>
+                <div
+                  onBlur={this.handleBlur("tags")}
+                  style={{ marginTop: 10 }}
+                  className="input-wrappers"
+                >
+                  <lable for="tags">Taggar</lable>
+                  <TagsInput
+                    className={
+                      this.shouldMarkError("tags") ||
+                      this.state.tagsError === true
+                        ? "input-error custom-input"
+                        : "custom-input"
+                    }
+                    tagProps={{
+                      className: css(styles.tagWrapper),
+                      classNameRemove: css(styles.tagsRemove),
+                    }}
+                    inputProps={{
+                      placeholder: "",
+                      className: css(styles.tagInput),
+                    }}
+                    addKeys={[32]}
+                    id="tags"
+                    onlyUnique={true}
+                    onChange={this.handleTagsChange}
+                    value={this.state.tags}
+                    renderTag={this.customRenderTag}
+                  />
+                  {this.state.tagsError ||
+                    (this.shouldMarkError("tags") && (
+                      <p className="input-error-message">
+                        {this.state.tagsErrorMessage}
+                      </p>
+                    ))}
+                </div>
+                <div style={{ marginTop: 10 }} className="input-wrappers">
+                  <lable for="connect">Connections</lable>
+                  <input
+                    type="text"
+                    className={
+                      this.shouldMarkError("connect") ||
+                      this.state.connectError === true
+                        ? "input-error custom-input"
+                        : "custom-input"
+                    }
+                    id="connect"
+                    value={this.state.connect}
+                    onChange={this.handleConnectChange}
+                    onBlur={this.handleBlur("connect")}
+                    onKeyDown={this.checkForEnter}
+                  ></input>
+                  {this.state.connectError ||
+                    (this.shouldMarkError("connect") && (
+                      <p className="input-error-message">
+                        {this.state.connectErrorMessage}
+                      </p>
+                    ))}
+                </div>
+              </div>
+              <div className={css(styles.buttonContainer)}>
+                <button
+                  disabled={
+                    isDisabled ||
+                    !this.state.thumbnailMounted ||
+                    !this.state.videoMounted
+                      ? true
+                      : false
+                  }
+                  onClick={this.uploadVideo}
+                  className={css(styles.confirmButton)}
+                >
+                  Ladda upp
+                </button>
+              </div>
             </div>
-            <div className={css(styles.modalInnerContent)}>
-              <h1 onClick={this.closeModal} className={css(styles.closeModal)}>
-                <i className="fas fa-times"></i>
-              </h1>
-              <div style={{ marginTop: 10 }} className="input-wrappers">
-                <lable for="title">Titel</lable>
-                <input
-                  type="text"
-                  className={
-                    this.shouldMarkError("title") ||
-                    this.state.titleError === true
-                      ? "input-error custom-input"
-                      : "custom-input"
-                  }
-                  id="title"
-                  value={this.state.title}
-                  onChange={this.handleTitleChange}
-                  onBlur={this.handleBlur("title")}
-                  onKeyDown={this.checkForEnter}
-                  autoFocus
-                ></input>
-                {this.state.titleError ||
-                  (this.shouldMarkError("title") && (
-                    <p className="input-error-message">
-                      {this.state.titleErrorMessage}
-                    </p>
-                  ))}
-              </div>
-              <div style={{ marginTop: 10 }} className="input-wrappers">
-                <lable for="desc">Beskrivning</lable>
-                <textarea
-                  className={
-                    this.shouldMarkError("desc") ||
-                    this.state.descError === true
-                      ? "input-error custom-input"
-                      : "custom-input"
-                  }
-                  id="desc"
-                  value={this.state.desc}
-                  onChange={this.handleDescChange}
-                  onBlur={this.handleBlur("desc")}
-                  onKeyDown={this.checkForEnter}
-                ></textarea>
-                {this.state.descError ||
-                  (this.shouldMarkError("desc") && (
-                    <p className="input-error-message">
-                      {this.state.descErrorMessage}
-                    </p>
-                  ))}
-              </div>
-              <div
-                onBlur={this.handleBlur("tags")}
-                style={{ marginTop: 10 }}
-                className="input-wrappers"
-              >
-                <lable for="tags">Taggar</lable>
-                <TagsInput
-                  className={
-                    this.shouldMarkError("tags") ||
-                    this.state.tagsError === true
-                      ? "input-error custom-input"
-                      : "custom-input"
-                  }
-                  tagProps={{
-                    className: css(styles.tagWrapper),
-                    classNameRemove: css(styles.tagsRemove),
-                  }}
-                  inputProps={{
-                    placeholder: "",
-                    className: css(styles.tagInput),
-                  }}
-                  addKeys={[32]}
-                  id="tags"
-                  onlyUnique={true}
-                  onChange={this.handleTagsChange}
-                  value={this.state.tags}
-                  renderTag={this.customRenderTag}
-                />
-                {this.state.tagsError ||
-                  (this.shouldMarkError("tags") && (
-                    <p className="input-error-message">
-                      {this.state.tagsErrorMessage}
-                    </p>
-                  ))}
-              </div>
-              <div style={{ marginTop: 10 }} className="input-wrappers">
-                <lable for="connect">Connections</lable>
-                <input
-                  type="text"
-                  className={
-                    this.shouldMarkError("connect") ||
-                    this.state.connectError === true
-                      ? "input-error custom-input"
-                      : "custom-input"
-                  }
-                  id="connect"
-                  value={this.state.connect}
-                  onChange={this.handleConnectChange}
-                  onBlur={this.handleBlur("connect")}
-                  onKeyDown={this.checkForEnter}
-                ></input>
-                {this.state.connectError ||
-                  (this.shouldMarkError("connect") && (
-                    <p className="input-error-message">
-                      {this.state.connectErrorMessage}
-                    </p>
-                  ))}
+          ) : (
+            <div className={css(styles.modalCenter)}>
+              <div className={css(styles.uploadBarWrapper)}>
+                <h3>Uppladdning pågår</h3>
+                <div className={css(styles.uploadBar)}>
+                  <div
+                    style={{ width: `${this.state.uploadPercent}%` }}
+                    className={css(styles.uploadProgress)}
+                  ></div>
+                </div>
+                <div className={css(styles.uploadPercent)}>
+                  {`${Math.floor(this.state.uploadPercent)} %`}
+                </div>
               </div>
             </div>
-            <div className={css(styles.buttonContainer)}>
-              <button
-                disabled={
-                  isDisabled ||
-                  !this.state.thumbnailMounted ||
-                  !this.state.videoMounted
-                    ? true
-                    : false
-                }
-                onClick={this.uploadVideo}
-                className={css(styles.confirmButton)}
-              >
-                Ladda upp
-              </button>
-            </div>
-          </div>
+          )}
         </div>
       </div>
     );

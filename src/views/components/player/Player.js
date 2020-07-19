@@ -135,8 +135,10 @@ class Player extends Component {
                   ...this.state.thumbs,
                   {
                     link: res,
+                    key: thumbs[i].key,
                     start: (videoDuration / thumbs.length) * i,
                     end: (videoDuration / thumbs.length) * (i + 1),
+                    index: i,
                   },
                 ],
               });
@@ -181,6 +183,20 @@ class Player extends Component {
       this.handleVideoShortcuts
     );
     clearInterval();
+  };
+  replaceThumb = async (key, index) => {
+    let oldArray = this.state.thumbs;
+    const newLink = await Storage.vault
+      .get(key, {
+        bucket: "vod-destination-1uukav97fprkq",
+        level: "public",
+        customPrefix: { public: `${this.props.videoID}/` },
+      })
+      .then((res) => {
+        return res;
+      });
+    oldArray[index].link = newLink;
+    this.setState({ thumbs: oldArray });
   };
   setQuality = async () => {
     if (this.state.selectedQuality === "auto") {
@@ -1108,7 +1124,12 @@ class Player extends Component {
               {this.state.thumbs.map((thumb) => {
                 return this.state.hoveredTime >= thumb.start &&
                   this.state.hoveredTime < thumb.end ? (
-                  <img src={thumb.link}></img>
+                  <img
+                    onError={() => {
+                      this.replaceThumb(thumb.key, thumb.index);
+                    }}
+                    src={thumb.link}
+                  ></img>
                 ) : (
                   ""
                 );

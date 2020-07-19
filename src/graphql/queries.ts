@@ -44,6 +44,12 @@ export const getVideoSize = `query GetVideoSize($guid: ID) {
   }
 }
 `;
+export const getTableIncrement = `query GetTableIncrement($table: String) {
+  getTableIncrement(table: $table) {
+    AUTO_INCREMENT
+  }
+}
+`;
 export const getConnections = `query GetConnections($id: Int) {
   getConnections(id: $id) {
     id

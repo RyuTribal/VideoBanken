@@ -581,6 +581,17 @@ export type GetVideoSizeQuery = {
   } | null,
 };
 
+export type GetTableIncrementQueryVariables = {
+  table?: string | null,
+};
+
+export type GetTableIncrementQuery = {
+  getTableIncrement:  {
+    __typename: "TableIncrement",
+    AUTO_INCREMENT: number | null,
+  } | null,
+};
+
 export type GetConnectionsQueryVariables = {
   id?: number | null,
 };
