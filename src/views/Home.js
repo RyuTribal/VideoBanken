@@ -387,16 +387,6 @@ class Home extends Component {
                         )}
                       />
                       <Route
-                        path={`${this.props.match.path}/video-upload`}
-                        render={() => (
-                          <VideoUpload
-                            onChange={(selectedItem) =>
-                              this.setState({ selectedItem: selectedItem })
-                            }
-                          />
-                        )}
-                      />
-                      <Route
                         path={`${this.props.match.path}/watch/:video`}
                         render={() => (
                           <Watch
