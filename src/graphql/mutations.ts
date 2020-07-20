@@ -1,6 +1,12 @@
 // tslint:disable
 // this is an auto generated file. This will be overwritten
 
+export const getTableIncrement = `mutation GetTableIncrement($table: String) {
+  getTableIncrement(table: $table) {
+    id
+  }
+}
+`;
 export const addVideo = `mutation AddVideo($input: VideoInput!) {
   addVideo(input: $input) {
     id
@@ -8,7 +14,6 @@ export const addVideo = `mutation AddVideo($input: VideoInput!) {
     description
     username
     thumbnail
-    category
     tags
     createdAt
     likes
@@ -26,7 +31,6 @@ export const deleteVideo = `mutation DeleteVideo($input: VideoInput!) {
     description
     username
     thumbnail
-    category
     tags
     createdAt
     likes
@@ -44,7 +48,6 @@ export const editVideo = `mutation EditVideo($input: VideoInput!) {
     description
     username
     thumbnail
-    category
     tags
     createdAt
     likes
@@ -62,7 +65,6 @@ export const sendView = `mutation SendView($id: ID!) {
     description
     username
     thumbnail
-    category
     tags
     createdAt
     likes

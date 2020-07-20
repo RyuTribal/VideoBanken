@@ -224,9 +224,6 @@ class Home extends Component {
   };
   componentWillUnmount() {
     window.removeEventListener("resize", this.resize);
-    this.subscriptions.map((subscription) => {
-      subscription.subscription.unsubscribe();
-    });
     this.roomSubscription.unsubscribe();
   }
   logout = () => {
@@ -237,7 +234,7 @@ class Home extends Component {
       })
       .catch((err) => console.log(err));
   };
-  closeModal = () => {
+  closeModal = (isUploaded) => {
     if (this.state.playing === true) {
       this.state.playerRef.getInternalPlayer().play();
     }
@@ -245,6 +242,12 @@ class Home extends Component {
       this.refs.fileUploader.value = "";
     }
     this.setState({ videoModal: false, playing: false });
+    console.log(isUploaded);
+    if (isUploaded) {
+      this.props.history.push(
+        `${this.props.match.path}/users/${this.props.state.user.username}/posts`
+      );
+    }
   };
   addSubcription = (id) => {
     this.props.add_subscription({
@@ -302,7 +305,7 @@ class Home extends Component {
   render() {
     console.log(this.props.state);
     return (
-      <BrowserRouter>
+      <div>
         {this.state.chatModal && (
           <ChatModal
             closeModal={(newChat, id) => {
@@ -315,11 +318,11 @@ class Home extends Component {
           />
         )}
         {this.state.videoModal === true && !isMobile && (
-          <Modal closeModal={this.closeModal} />
+          <Modal closeModal={(isUploaded) => this.closeModal(isUploaded)} />
         )}
         {this.state.videoModal === true && isMobile && (
           <MobileModal
-            closeModal={this.closeModal}
+            closeModal={(isUploaded) => this.closeModal(isUploaded)}
             video={this.state.mobileVideo}
           />
         )}
@@ -415,7 +418,7 @@ class Home extends Component {
                         )}
                       />
                       <Route
-                        path={`${this.props.match.path}/users/:user`}
+                        path={`${this.props.match.path}/users/:user/:tab?`}
                         render={() => (
                           <Profile
                             onChange={(selectedItem) =>
@@ -443,7 +446,7 @@ class Home extends Component {
             </div>
           </Column>
         </Row>
-      </BrowserRouter>
+      </div>
     );
   }
 }

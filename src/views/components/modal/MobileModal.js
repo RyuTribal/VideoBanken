@@ -146,11 +146,9 @@ const styles = StyleSheet.create({
   },
 });
 
-function validate(title, desc, tags) {
+function validate(title) {
   return {
     title: title.length === 0,
-    desc: desc.length === 0,
-    tags: tags.length === 0,
   };
 }
 
@@ -198,11 +196,7 @@ class MobileModal extends Component {
 
   componentWillUnmount() {}
   shouldMarkError = (field) => {
-    const hasError = validate(
-      this.state.title,
-      this.state.desc,
-      this.state.tags
-    )[field];
+    const hasError = validate(this.state.title)[field];
     const shouldShow = this.state.touched[field];
     return hasError ? shouldShow : false;
   };
@@ -261,27 +255,24 @@ class MobileModal extends Component {
       this.state.thumbnailMounted
     ) {
       await API.graphql(
-        graphqlOperation(queries.getTableIncrement, { table: "Videos" })
+        graphqlOperation(mutations.getTableIncrement, { table: "Videos" })
       ).then((res) => {
         console.log(res);
         this.setState({ uploadBar: true });
         let that = this;
-        Storage.put(
-          `${res.data.getTableIncrement.AUTO_INCREMENT}.mp4`,
-          this.state.videoBlob,
-          {
-            progressCallback(progress) {
-              let loadedPer = (progress.loaded / progress.total) * 100;
-              that.setState({ uploadPercent: loadedPer });
-            },
-          }
-        ).then(() => {
+        let videoID = res.data.getTableIncrement.id;
+        Storage.put(`${videoID}.mp4`, this.state.videoBlob, {
+          progressCallback(progress) {
+            let loadedPer = (progress.loaded / progress.total) * 100;
+            that.setState({ uploadPercent: loadedPer });
+          },
+        }).then(() => {
           Storage.vault
             .put(`thumbnails/customThumbnail.jpg`, this.state.thumbBlob, {
               bucket: "vod-destination-1uukav97fprkq",
               level: "public",
               customPrefix: {
-                public: `${res.data.getTableIncrement.AUTO_INCREMENT}/`,
+                public: `${videoID}/`,
               },
               progressCallback(progress) {
                 console.log(`Uploaded: ${progress.loaded}/${progress.total}`);
@@ -291,6 +282,7 @@ class MobileModal extends Component {
               API.graphql(
                 graphqlOperation(mutations.addVideo, {
                   input: {
+                    id: videoID,
                     title: this.state.title,
                     description: this.state.desc,
                     username: this.props.state.user.username,
@@ -298,14 +290,14 @@ class MobileModal extends Component {
                   },
                 })
               ).then(() => {
-                this.closeModal();
+                this.closeModal(true);
               });
             });
         });
       });
     }
   };
-  closeModal = () => {
+  closeModal = (isUploaded) => {
     this.setState({
       video: "",
       videoMounted: false,
@@ -335,17 +327,20 @@ class MobileModal extends Component {
       connectErrorMessage: "Detta fält kan inte vara tomt",
       connectError: false,
     });
-    this.props.closeModal();
+    this.props.closeModal(isUploaded);
   };
   render() {
-    const errors = validate(this.state.title, this.state.desc, this.state.tags);
+    const errors = validate(this.state.title);
     const isDisabled = Object.keys(errors).some((x) => errors[x]);
     return (
       <div className={css(styles.modal)}>
         {!this.state.uploadBar ? (
           <div>
             <div className={css(styles.navbar)}>
-              <button onClick={this.closeModal} className={css(styles.cancel)}>
+              <button
+                onClick={() => this.closeModal()}
+                className={css(styles.cancel)}
+              >
                 <i className="fas fa-chevron-left"></i>
               </button>
               <button

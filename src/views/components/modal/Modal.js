@@ -221,16 +221,13 @@ const styles = StyleSheet.create({
   },
   uploadProgress: {
     backgroundColor: "rgb(234, 58, 58)",
-    transition: "width 2s",
     height: "100%",
   },
 });
 
-function validate(title, desc, tags, connect) {
+function validate(title) {
   return {
     title: title.length === 0,
-    desc: desc.length === 0,
-    tags: tags.length === 0,
   };
 }
 
@@ -279,21 +276,7 @@ class Modal extends Component {
     div.addEventListener("dragover", this.handleDrag);
     div.addEventListener("drop", this.handleDrop);
   }
-  componentWillUnmount() {
-    let div = this.dropRef.current;
-    div.removeEventListener("dragenter", this.handleDragIn);
-    div.removeEventListener("dragleave", this.handleDragOut);
-    div.removeEventListener("dragover", this.handleDrag);
-    div.removeEventListener("drop", this.handleDrop);
-
-    let imageDiv = this.imageDropRef.current;
-    if (imageDiv) {
-      imageDiv.removeEventListener("dragenter", this.handleImageDragIn);
-      imageDiv.removeEventListener("dragleave", this.handleImageDragOut);
-      imageDiv.removeEventListener("dragover", this.handleImageDrag);
-      imageDiv.removeEventListener("drop", this.handleImageDrop);
-    }
-  }
+  componentWillUnmount() {}
 
   isMobile = () => {
     if (window.matchMedia("(max-width: 1281px)").matches) {
@@ -414,11 +397,7 @@ class Modal extends Component {
     });
   };
   shouldMarkError = (field) => {
-    const hasError = validate(
-      this.state.title,
-      this.state.desc,
-      this.state.tags
-    )[field];
+    const hasError = validate(this.state.title)[field];
     const shouldShow = this.state.touched[field];
     return hasError ? shouldShow : false;
   };
@@ -463,56 +442,69 @@ class Modal extends Component {
     );
   }
   uploadVideo = async () => {
-    console.log(this.state.videoBlob);
     if (
       this.state.title.replace(/\s/g, "") !== "" &&
       this.state.videoMounted &&
       this.state.thumbnailMounted
     ) {
-      API.graphql(
-        graphqlOperation(queries.getTableIncrement, { table: "Videos" })
-      ).then((res) => {
-        console.log(res)
-        this.setState({ uploadBar: true });
-        let that = this;
-        Storage.put(
-          `${res.data.getTableIncrement.AUTO_INCREMENT}.mp4`,
-          this.state.videoBlob,
-          {
-            progressCallback(progress) {
-              let loadedPer = (progress.loaded / progress.total) * 100;
-              that.setState({ uploadPercent: loadedPer });
-            },
-          }
-        ).then(() => {
-          Storage.vault
-            .put(`thumbnails/customThumbnail.jpg`, this.state.thumbBlob, {
-              bucket: "vod-destination-1uukav97fprkq",
-              level: "public",
-              customPrefix: { public: `${res.data.getTableIncrement.AUTO_INCREMENT}/` },
-              progressCallback(progress) {
-                console.log(`Uploaded: ${progress.loaded}/${progress.total}`);
-              },
-            })
-            .then(() => {
-              API.graphql(
-                graphqlOperation(mutations.addVideo, {
-                  input: {
-                    title: this.state.title,
-                    description: this.state.desc,
-                    username: this.props.state.user.username,
-                    connection: this.state.connect,
-                  },
-                })
-              ).then(() => {
-                this.closeModal();
-              });
-            });
-        });
-      });
+      this.closeModal(true);
+      // let div = this.dropRef.current;
+      // div.removeEventListener("dragenter", this.handleDragIn);
+      // div.removeEventListener("dragleave", this.handleDragOut);
+      // div.removeEventListener("dragover", this.handleDrag);
+      // div.removeEventListener("drop", this.handleDrop);
+
+      // let imageDiv = this.imageDropRef.current;
+      // if (imageDiv) {
+      //   imageDiv.removeEventListener("dragenter", this.handleImageDragIn);
+      //   imageDiv.removeEventListener("dragleave", this.handleImageDragOut);
+      //   imageDiv.removeEventListener("dragover", this.handleImageDrag);
+      //   imageDiv.removeEventListener("drop", this.handleImageDrop);
+      // }
+      // await API.graphql(
+      //   graphqlOperation(mutations.getTableIncrement, { table: "Videos" })
+      // ).then((res) => {
+      //   console.log(res);
+      //   this.setState({ uploadBar: true });
+      //   let that = this;
+      //   let videoID = res.data.getTableIncrement.id;
+      //   Storage.put(`${videoID}.mp4`, this.state.videoBlob, {
+      //     progressCallback(progress) {
+      //       let loadedPer = (progress.loaded / progress.total) * 100;
+      //       that.setState({ uploadPercent: loadedPer });
+      //     },
+      //   }).then(() => {
+      //     Storage.vault
+      //       .put(`thumbnails/customThumbnail.jpg`, this.state.thumbBlob, {
+      //         bucket: "vod-destination-1uukav97fprkq",
+      //         level: "public",
+      //         customPrefix: {
+      //           public: `${videoID}/`,
+      //         },
+      //         progressCallback(progress) {
+      //           console.log(`Uploaded: ${progress.loaded}/${progress.total}`);
+      //         },
+      //       })
+      //       .then(() => {
+      //         API.graphql(
+      //           graphqlOperation(mutations.addVideo, {
+      //             input: {
+      //               id: videoID,
+      //               title: this.state.title,
+      //               description: this.state.desc,
+      //               username: this.props.state.user.username,
+      //               connection: this.state.connect,
+      //             },
+      //           })
+      //         ).then(() => {
+      //           this.closeModal(true);
+      //         });
+      //       });
+      //   });
+      // });
     }
   };
-  closeModal = () => {
+  closeModal = (isUploaded) => {
     this.setState({
       dragging: false,
       imageDragging: false,
@@ -543,11 +535,24 @@ class Modal extends Component {
       connectErrorMessage: "Detta fält kan inte vara tomt",
       connectError: false,
     });
-    this.props.closeModal();
+    console.log(isUploaded);
+    this.props.closeModal(isUploaded);
+  };
+  dataURItoBlob = (dataURI) => {
+    let byteString = atob(dataURI.split(",")[1]);
+
+    let mimeString = dataURI.split(",")[0].split(":")[1].split(";")[0];
+
+    let ab = new ArrayBuffer(byteString.length);
+    let ia = new Uint8Array(ab);
+    for (let i = 0; i < byteString.length; i++) {
+      ia[i] = byteString.charCodeAt(i);
+    }
+    return new Blob([ab], { type: mimeString });
   };
   render() {
     console.log(this.state.uploadPercent);
-    const errors = validate(this.state.title, this.state.desc, this.state.tags);
+    const errors = validate(this.state.title);
     const isDisabled = Object.keys(errors).some((x) => errors[x]);
     return (
       <div className={css(styles.overlay)}>
@@ -580,12 +585,14 @@ class Modal extends Component {
                         ref={this.playerRef}
                         video={this.state.video}
                         thumbnailCreator={true}
-                        sendThumbnail={(dataURL) =>
+                        sendThumbnail={(dataURL) => {
+                          let dataBlob = this.dataURItoBlob(dataURL);
                           this.setState({
                             thumbnail: dataURL,
+                            thumbBlob: dataBlob,
                             thumbnailMounted: true,
-                          })
-                        }
+                          });
+                        }}
                       />
                     ) : (
                       <div className={css(styles.dragVideo)}>
@@ -666,7 +673,7 @@ class Modal extends Component {
               </div>
               <div className={css(styles.modalInnerContent)}>
                 <h1
-                  onClick={this.closeModal}
+                  onClick={() => this.closeModal()}
                   className={css(styles.closeModal)}
                 >
                   <i className="fas fa-times"></i>

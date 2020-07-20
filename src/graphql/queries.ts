@@ -8,7 +8,6 @@ export const getVideos = `query GetVideos($offset: Int) {
     description
     username
     thumbnail
-    category
     tags
     createdAt
     likes
@@ -26,7 +25,23 @@ export const getVideo = `query GetVideo($input: VideoInput!) {
     description
     username
     thumbnail
-    category
+    tags
+    createdAt
+    likes
+    dislikes
+    views
+    ammountComments
+    connection
+  }
+}
+`;
+export const getUserUploads = `query GetUserUploads($username: String, $offset: Int) {
+  getUserUploads(username: $username, offset: $offset) {
+    id
+    title
+    description
+    username
+    thumbnail
     tags
     createdAt
     likes
@@ -41,12 +56,7 @@ export const getVideoSize = `query GetVideoSize($guid: ID) {
   getVideoSize(guid: $guid) {
     guid
     srcHeight
-  }
-}
-`;
-export const getTableIncrement = `query GetTableIncrement($table: String) {
-  getTableIncrement(table: $table) {
-    AUTO_INCREMENT
+    workflowStatus
   }
 }
 `;
@@ -57,7 +67,6 @@ export const getConnections = `query GetConnections($id: Int) {
     description
     username
     thumbnail
-    category
     tags
     createdAt
     likes

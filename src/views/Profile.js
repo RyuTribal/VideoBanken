@@ -483,42 +483,54 @@ class Profile extends Component {
         <div className={css(styles.menuesWrapper)}>
           <div className={css(styles.menuNav)}>
             <div
-              onClick={() => this.setState({ activeMenu: "stats" })}
+              onClick={() =>
+                this.props.history.push(
+                  `/home/users/${this.props.match.params.user}/`
+                )
+              }
               className={css(
                 styles.menuItem,
-                this.state.activeMenu === "stats" && styles.active
+                this.props.match.params.tab === undefined && styles.active
               )}
             >
               Stats
             </div>
             <div
-              onClick={() => this.setState({ activeMenu: "games" })}
+              onClick={() =>
+                this.props.history.push(
+                  `/home/users/${this.props.match.params.user}/games`
+                )
+              }
               className={css(
                 styles.menuItem,
-                this.state.activeMenu === "games" && styles.active
+                this.props.match.params.tab === "games" && styles.active
               )}
             >
               Matcher
             </div>
             <div
-              onClick={() => this.setState({ activeMenu: "posts" })}
+              onClick={() =>
+                this.props.history.push(
+                  `/home/users/${this.props.match.params.user}/posts`
+                )
+              }
               className={css(
                 styles.menuItem,
-                this.state.activeMenu === "posts" && styles.active
+                this.props.match.params.tab === "posts" && styles.active
               )}
             >
               Posts
             </div>
           </div>
           <div className={css(styles.menuResults)}>
-            {this.state.activeMenu === "stats" && (
+            {this.props.match.params.tab === undefined && (
               <Stats username={this.state.userInfo.username} />
             )}
-            {this.state.activeMenu === "games" && (
+            {this.props.match.params.tab === "games" && (
               <Games username={this.state.userInfo.username} />
             )}
-            {this.state.activeMenu === "posts" && (
-              <Posts username={this.state.userInfo.username} />
+            {this.props.match.params.tab === "posts" && (
+              <Posts username={this.props.match.params.user} />
             )}
           </div>
         </div>

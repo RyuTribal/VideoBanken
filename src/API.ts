@@ -91,6 +91,17 @@ export type UserInput = {
   date_of_birth?: string | null,
 };
 
+export type GetTableIncrementMutationVariables = {
+  table?: string | null,
+};
+
+export type GetTableIncrementMutation = {
+  getTableIncrement:  {
+    __typename: "VideoIncrement",
+    id: number | null,
+  } | null,
+};
+
 export type AddVideoMutationVariables = {
   input: VideoInput,
 };
@@ -103,7 +114,6 @@ export type AddVideoMutation = {
     description: string | null,
     username: string | null,
     thumbnail: string | null,
-    category: string | null,
     tags: string | null,
     createdAt: string | null,
     likes: number | null,
@@ -126,7 +136,6 @@ export type DeleteVideoMutation = {
     description: string | null,
     username: string | null,
     thumbnail: string | null,
-    category: string | null,
     tags: string | null,
     createdAt: string | null,
     likes: number | null,
@@ -149,7 +158,6 @@ export type EditVideoMutation = {
     description: string | null,
     username: string | null,
     thumbnail: string | null,
-    category: string | null,
     tags: string | null,
     createdAt: string | null,
     likes: number | null,
@@ -172,7 +180,6 @@ export type SendViewMutation = {
     description: string | null,
     username: string | null,
     thumbnail: string | null,
-    category: string | null,
     tags: string | null,
     createdAt: string | null,
     likes: number | null,
@@ -535,7 +542,6 @@ export type GetVideosQuery = {
     description: string | null,
     username: string | null,
     thumbnail: string | null,
-    category: string | null,
     tags: string | null,
     createdAt: string | null,
     likes: number | null,
@@ -558,7 +564,6 @@ export type GetVideoQuery = {
     description: string | null,
     username: string | null,
     thumbnail: string | null,
-    category: string | null,
     tags: string | null,
     createdAt: string | null,
     likes: number | null,
@@ -567,6 +572,29 @@ export type GetVideoQuery = {
     ammountComments: number | null,
     connection: string | null,
   } | null,
+};
+
+export type GetUserUploadsQueryVariables = {
+  username?: string | null,
+  offset?: number | null,
+};
+
+export type GetUserUploadsQuery = {
+  getUserUploads:  Array< {
+    __typename: "Video",
+    id: string,
+    title: string | null,
+    description: string | null,
+    username: string | null,
+    thumbnail: string | null,
+    tags: string | null,
+    createdAt: string | null,
+    likes: number | null,
+    dislikes: number | null,
+    views: number | null,
+    ammountComments: number | null,
+    connection: string | null,
+  } | null > | null,
 };
 
 export type GetVideoSizeQueryVariables = {
@@ -578,17 +606,7 @@ export type GetVideoSizeQuery = {
     __typename: "VideoSize",
     guid: string | null,
     srcHeight: number | null,
-  } | null,
-};
-
-export type GetTableIncrementQueryVariables = {
-  table?: string | null,
-};
-
-export type GetTableIncrementQuery = {
-  getTableIncrement:  {
-    __typename: "TableIncrement",
-    AUTO_INCREMENT: number | null,
+    workflowStatus: string | null,
   } | null,
 };
 
@@ -604,7 +622,6 @@ export type GetConnectionsQuery = {
     description: string | null,
     username: string | null,
     thumbnail: string | null,
-    category: string | null,
     tags: string | null,
     createdAt: string | null,
     likes: number | null,

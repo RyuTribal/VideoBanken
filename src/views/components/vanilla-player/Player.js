@@ -987,7 +987,7 @@ class Player extends Component {
       })();
     }
   };
-  sendThumbnail = () => {
+  sendThumbnail = async () => {
     this.setState({ pause: true, play: false });
     let context = this.canvasRef.current.getContext("2d");
     this.canvasRef.current.width = this.player.getInternalPlayer().videoWidth;
@@ -1029,9 +1029,7 @@ class Player extends Component {
         {this.props.mobileControls && (
           <div
             className={`video-overlay ${
-              this.state.mobileVideoOverlay
-                ? "video-overlay-active"
-                : ""
+              this.state.mobileVideoOverlay ? "video-overlay-active" : ""
             }`}
             onClick={() => this.setState({ mobileVideoOverlay: false })}
           >
