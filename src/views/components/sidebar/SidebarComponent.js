@@ -27,7 +27,7 @@ const styles = StyleSheet.create({
     left: 24,
     top: 17,
     fontSize: 20,
-    zIndex: 10000,
+    zIndex: 5,
   },
   containerMobile: {
     transition: "left 0.2s, right 0.2s",

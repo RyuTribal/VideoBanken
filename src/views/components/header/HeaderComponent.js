@@ -10,7 +10,7 @@ import {
   withRouter,
 } from "react-router-dom";
 import blankProfile from "../../../img/blank-profile.png";
-import { Auth } from "aws-amplify";
+import { Auth, API, graphqlOperation, Storage } from "aws-amplify";
 
 const styles = StyleSheet.create({
   avatar: {
@@ -25,7 +25,7 @@ const styles = StyleSheet.create({
     padding: 30,
     paddingTop: 30,
     color: "#263040",
-    zIndex: 99
+    zIndex: 5,
   },
   cursorPointer: {
     cursor: "pointer",
@@ -83,6 +83,30 @@ const styles = StyleSheet.create({
 });
 
 class HeaderComponent extends Component {
+  constructor() {
+    super();
+    this.state = {
+      profileImg: null,
+    };
+  }
+  componentDidUpdate = async (prevProps) => {
+    if (prevProps.username !== this.props.username) {
+      await Storage.vault
+        .get(`profilePhoto.jpg`, {
+          bucket: "user-images-hermes",
+          level: "public",
+          customPrefix: {
+            public: `${this.props.username}/`,
+          },
+          progressCallback(progress) {
+            console.log(`Uploaded: ${progress.loaded}/${progress.total}`);
+          },
+        })
+        .then((res) => {
+          this.setState({ profileImage: res });
+        });
+    }
+  };
   onItemClick = (item) => {
     return this.props.onChange(item);
   };
@@ -121,9 +145,9 @@ class HeaderComponent extends Component {
                 {this.props.usernickname}
               </span>
               <img
-                src={blankProfile}
-                alt="avatar"
-                className={css(styles.avatar, styles.cursorPointer)}
+                onError={() => this.setState({ profileImage: blankProfile })}
+                src={this.state.profileImage}
+                className={css(styles.avatar)}
               />
             </Link>
           </Row>
