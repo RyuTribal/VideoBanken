@@ -70,6 +70,15 @@ class HomeFeed extends Component {
           }
         })
         .catch((err) => console.log(err));
+      await API.graphql(
+        graphqlOperation(queries.getVideoSize, {
+          guid: videos[i].id,
+        })
+      ).then((res) => {
+        if (res.data.getVideoSize.workflowStatus !== "Complete") {
+          videos.filter((video) => video.id !== videos[i].id);
+        }
+      });
     }
     this.setState({ details: videos, rows: rows });
   };
@@ -92,7 +101,10 @@ class HomeFeed extends Component {
           >
             <div
               className="video-thumbnail"
-              style={{ backgroundImage: `url(${details.thumbnail})`, backgroundSize: "cover" }}
+              style={{
+                backgroundImage: `url(${details.thumbnail})`,
+                backgroundSize: "cover",
+              }}
             ></div>
             <div className="video-details">
               <div className="video-title-wrap">

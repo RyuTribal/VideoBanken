@@ -28,6 +28,10 @@ import MobileModal from "./components/modal/MobileModal";
 import { connect } from "react-redux";
 
 const styles = StyleSheet.create({
+  wrapper: {
+    height: "100%",
+    minHeight: "100vh",
+  },
   container: {
     height: "100%",
     minHeight: "100vh",
@@ -305,7 +309,7 @@ class Home extends Component {
   render() {
     console.log(this.props.state);
     return (
-      <div>
+      <div className={css(styles.wrapper)}>
         {this.state.chatModal && (
           <ChatModal
             closeModal={(newChat, id) => {

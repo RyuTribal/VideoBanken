@@ -447,61 +447,60 @@ class Modal extends Component {
       this.state.videoMounted &&
       this.state.thumbnailMounted
     ) {
-      this.closeModal(true);
-      // let div = this.dropRef.current;
-      // div.removeEventListener("dragenter", this.handleDragIn);
-      // div.removeEventListener("dragleave", this.handleDragOut);
-      // div.removeEventListener("dragover", this.handleDrag);
-      // div.removeEventListener("drop", this.handleDrop);
+      let div = this.dropRef.current;
+      div.removeEventListener("dragenter", this.handleDragIn);
+      div.removeEventListener("dragleave", this.handleDragOut);
+      div.removeEventListener("dragover", this.handleDrag);
+      div.removeEventListener("drop", this.handleDrop);
 
-      // let imageDiv = this.imageDropRef.current;
-      // if (imageDiv) {
-      //   imageDiv.removeEventListener("dragenter", this.handleImageDragIn);
-      //   imageDiv.removeEventListener("dragleave", this.handleImageDragOut);
-      //   imageDiv.removeEventListener("dragover", this.handleImageDrag);
-      //   imageDiv.removeEventListener("drop", this.handleImageDrop);
-      // }
-      // await API.graphql(
-      //   graphqlOperation(mutations.getTableIncrement, { table: "Videos" })
-      // ).then((res) => {
-      //   console.log(res);
-      //   this.setState({ uploadBar: true });
-      //   let that = this;
-      //   let videoID = res.data.getTableIncrement.id;
-      //   Storage.put(`${videoID}.mp4`, this.state.videoBlob, {
-      //     progressCallback(progress) {
-      //       let loadedPer = (progress.loaded / progress.total) * 100;
-      //       that.setState({ uploadPercent: loadedPer });
-      //     },
-      //   }).then(() => {
-      //     Storage.vault
-      //       .put(`thumbnails/customThumbnail.jpg`, this.state.thumbBlob, {
-      //         bucket: "vod-destination-1uukav97fprkq",
-      //         level: "public",
-      //         customPrefix: {
-      //           public: `${videoID}/`,
-      //         },
-      //         progressCallback(progress) {
-      //           console.log(`Uploaded: ${progress.loaded}/${progress.total}`);
-      //         },
-      //       })
-      //       .then(() => {
-      //         API.graphql(
-      //           graphqlOperation(mutations.addVideo, {
-      //             input: {
-      //               id: videoID,
-      //               title: this.state.title,
-      //               description: this.state.desc,
-      //               username: this.props.state.user.username,
-      //               connection: this.state.connect,
-      //             },
-      //           })
-      //         ).then(() => {
-      //           this.closeModal(true);
-      //         });
-      //       });
-      //   });
-      // });
+      let imageDiv = this.imageDropRef.current;
+      if (imageDiv) {
+        imageDiv.removeEventListener("dragenter", this.handleImageDragIn);
+        imageDiv.removeEventListener("dragleave", this.handleImageDragOut);
+        imageDiv.removeEventListener("dragover", this.handleImageDrag);
+        imageDiv.removeEventListener("drop", this.handleImageDrop);
+      }
+      await API.graphql(
+        graphqlOperation(mutations.getTableIncrement, { table: "Videos" })
+      ).then((res) => {
+        console.log(res);
+        this.setState({ uploadBar: true });
+        let that = this;
+        let videoID = res.data.getTableIncrement.id;
+        Storage.put(`${videoID}.mp4`, this.state.videoBlob, {
+          progressCallback(progress) {
+            let loadedPer = (progress.loaded / progress.total) * 100;
+            that.setState({ uploadPercent: loadedPer });
+          },
+        }).then(() => {
+          Storage.vault
+            .put(`thumbnails/customThumbnail.jpg`, this.state.thumbBlob, {
+              bucket: "vod-destination-1uukav97fprkq",
+              level: "public",
+              customPrefix: {
+                public: `${videoID}/`,
+              },
+              progressCallback(progress) {
+                console.log(`Uploaded: ${progress.loaded}/${progress.total}`);
+              },
+            })
+            .then(() => {
+              API.graphql(
+                graphqlOperation(mutations.addVideo, {
+                  input: {
+                    id: videoID,
+                    title: this.state.title,
+                    description: this.state.desc,
+                    username: this.props.state.user.username,
+                    connection: this.state.connect,
+                  },
+                })
+              ).then(() => {
+                this.closeModal(true);
+              });
+            });
+        });
+      });
     }
   };
   closeModal = (isUploaded) => {

@@ -1115,6 +1115,7 @@ class Player extends Component {
             onEnded={() =>
               this.setState({ play: false, pause: false, replay: true })
             }
+            onBuffer={() => console.log("buffering")}
             playbackRate={this.state.playBackRate}
             pip={this.state.pip}
             controls={false}
