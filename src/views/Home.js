@@ -66,6 +66,7 @@ class Home extends Component {
       chatModal: false,
       newChat: false,
       rooms: [],
+      profileImg: null,
     };
     this.roomSubscription = "";
   }
@@ -362,6 +363,7 @@ class Home extends Component {
               onChange={(selectedItem) =>
                 this.setState({ selectedItem: selectedItem })
               }
+              profileImg={this.state.profileImg}
               videoModal={() => {
                 if (this.state.playerRef !== null) {
                   if (this.state.playerRef.player.props.playing === true) {
@@ -429,6 +431,15 @@ class Home extends Component {
                               this.setState({ selectedItem })
                             }
                             isMobile={isMobile}
+                            changeProfile={(profileImg, fullName) => {
+                              if(profileImg){
+                                this.setState({profileImg: profileImg});
+                              }
+                              else if(fullName){
+                                // this.setState({})
+                              }
+                              
+                            }}
                           />
                         )}
                       />

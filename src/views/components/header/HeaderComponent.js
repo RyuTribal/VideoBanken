@@ -86,31 +86,38 @@ class HeaderComponent extends Component {
   constructor() {
     super();
     this.state = {
-      profileImg: null,
+      profileImg: "",
     };
   }
-  componentDidUpdate = async (prevProps) => {
-    if (prevProps.username !== this.props.username) {
-      await Storage.vault
-        .get(`profilePhoto.jpg`, {
-          bucket: "user-images-hermes",
-          level: "public",
-          customPrefix: {
-            public: `${this.props.username}/`,
-          },
-          progressCallback(progress) {
-            console.log(`Uploaded: ${progress.loaded}/${progress.total}`);
-          },
-        })
-        .then((res) => {
-          this.setState({ profileImage: res });
-        });
+  componentDidUpdate = (prevProps) => {
+    if (prevProps.profileImg !== this.props.profileImg) {
+      this.setState({ profileImg: this.props.profileImg });
     }
+  };
+  getProfileImage = async () => {
+    await Storage.vault
+      .get(`profilePhoto.jpg`, {
+        bucket: "user-images-hermes",
+        level: "public",
+        customPrefix: {
+          public: `${this.props.username}/`,
+        },
+        progressCallback(progress) {
+          console.log(`Uploaded: ${progress.loaded}/${progress.total}`);
+        },
+      })
+      .then((res) => {
+        this.setState({ profileImg: res });
+      })
+      .catch(() => {
+        this.setState({ profileImg: blankProfile });
+      });
   };
   onItemClick = (item) => {
     return this.props.onChange(item);
   };
   render() {
+    console.log(this.state.profileImg)
     return (
       <Row
         className={css(styles.container)}
@@ -145,8 +152,8 @@ class HeaderComponent extends Component {
                 {this.props.usernickname}
               </span>
               <img
-                onError={() => this.setState({ profileImage: blankProfile })}
-                src={this.state.profileImage}
+                onError={() => this.getProfileImage()}
+                src={this.state.profileImg}
                 className={css(styles.avatar)}
               />
             </Link>

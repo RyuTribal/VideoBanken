@@ -85,16 +85,20 @@ class ProfileImage extends Component {
   };
   handleImageUpload = async (image) => {
     this.setState({ loading: true });
-    await Storage.vault.put(`profilePhoto.jpg`, image, {
-      bucket: "user-images-hermes",
-      level: "public",
-      customPrefix: {
-        public: `${this.state.user}/`,
-      },
-      progressCallback(progress) {
-        console.log(`Uploaded: ${progress.loaded}/${progress.total}`);
-      },
-    });
+    let imgUrl = await Storage.vault
+      .put(`profilePhoto.jpg`, image, {
+        bucket: "user-images-hermes",
+        level: "public",
+        customPrefix: {
+          public: `${this.state.user}/`,
+        },
+        progressCallback(progress) {
+          console.log(`Uploaded: ${progress.loaded}/${progress.total}`);
+        },
+      })
+      .then((res) => {
+        return res;
+      });
     await API.graphql(
       graphqlOperation(mutations.editUser, {
         input: {
@@ -104,6 +108,7 @@ class ProfileImage extends Component {
       })
     );
     await this.getProfilePhoto();
+    this.props.changeProfile(imgUrl, null);
     this.setState({ loading: false });
   };
   dataURItoBlob = (dataURI) => {

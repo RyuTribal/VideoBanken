@@ -366,7 +366,12 @@ class Profile extends Component {
     return (
       <div className={css(styles.container)}>
         <div className={css(styles.presentation)}>
-          <CoverPhoto user={this.state.user} />
+          <CoverPhoto
+            changeProfile={(profileImg, fullName) =>
+              this.props.changeProfile(profileImg, fullName)
+            }
+            user={this.state.user}
+          />
         </div>
         <div className={css(styles.editableInfo)}>
           <div className={css(styles.bodyStats)}>

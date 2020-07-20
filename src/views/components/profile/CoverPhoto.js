@@ -158,7 +158,12 @@ class CoverPhoto extends Component {
             className={css(styles.coverPhoto, styles.None)}
           >
             <div className={css(styles.profileImageContainer)}>
-              <ProfileImage user={this.state.user} />
+              <ProfileImage
+                changeProfile={(profileImg, fullName) =>
+                  this.props.changeProfile(profileImg, fullName)
+                }
+                user={this.state.user}
+              />
             </div>
             <div className={css(styles.equalizer)}></div>
           </div>
