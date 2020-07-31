@@ -136,34 +136,6 @@ select:focus {
   margin-bottom: 10px;
 }
 
-.login-btn {
-  background-color: #f58714;
-  text-align: center;
-  color: white;
-  text-decoration: none;
-}
-
-.login-btn:hover {
-  background-color: orange;
-  color: white;
-}
-
-.reg-btn {
-  background-color: white;
-  text-align: center;
-  color: orange;
-  text-decoration: none;
-  border: 2px solid #e5e5e5;
-  -webkit-box-shadow: 0px 4px 0px #e5e5e5;
-  -moz-box-shadow: 0px 4px 0px #e5e5e5;
-  box-shadow: 0px 4px 0px #e5e5e5;
-}
-
-.reg-btn:hover {
-  background-color: beige;
-  color: orange;
-}
-
 .login-wrapper {
   width: 100%;
   display: flex;
@@ -285,7 +257,6 @@ select:focus {
   margin: 10px 0 0 0;
   position: relative;
 }
-
 .custom-input:hover {
   border: 0.5px solid $dark-shade;
   background-color: transparent;
@@ -937,16 +908,8 @@ select:focus {
 }
 
 .video-thumbnail {
-    width: 100%;
-    padding-top: 56.25%;
-}
-
-.feed-container {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-  grid-gap: 20px 0px;
   width: 100%;
-  height: auto;
+  padding-top: 56.25%;
 }
 
 .date-username-wrap {
@@ -954,10 +917,16 @@ select:focus {
 }
 
 .likes-dates {
+  display: flex;
+  flex-direction: row;
   margin: 0;
   color: #606060;
 }
 
+.bullelements {
+  margin-right: 0.25em;
+  margin-left: 0.25em;
+}
 .date-username-wrap a {
   color: #606060;
 }
@@ -1089,8 +1058,15 @@ select:focus {
 .video-time-wrapper-mobile {
   color: #fbf9f9;
   font-size: 12px;
+  display: flex;
+  flex-direction: row;
+  align-items: flex-end;
 }
-
+.time-ago {
+  display: flex;
+  align-items: center;
+  margin-left: 0.25em;
+}
 .player-bar-mobile {
   height: 16px;
   position: relative !important;
@@ -1432,8 +1408,8 @@ select:focus {
 }
 
 .likes-date-wrapper {
-  display: grid;
-  grid-template-columns: repeat(auto-fill);
+  display: flex;
+  flex-direction: column;
   padding-bottom: 5px;
   border-bottom: 1px solid #ededed;
   overflow: hidden;
@@ -1469,7 +1445,7 @@ select:focus {
 
 .likes-dislikes-buttons {
   background: transparent;
-  padding: 0;
+  padding: 15;
   display: flex;
   height: auto;
 }
@@ -1479,8 +1455,8 @@ select:focus {
 }
 
 .likes-dislikes-button-wrap {
-  display: grid;
-  grid-template-columns: repeat(2, 70px);
+  display: flex;
+  flex-direction: row;
 }
 
 .like-progress-wrap {
@@ -1506,23 +1482,20 @@ select:focus {
   color: #606060;
   display: flex;
   flex-direction: row;
-  width: 500px;
+  align-items: center;
 }
 
-.username-wrapper a {
+.username-link {
   color: black;
   font-weight: bold;
-  
+  text-decoration: none;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
 }
 
 .username-wrapper a:hover {
   text-decoration: none;
-}
-
-.username-profile-picture {
-  background-color: blue;
-  height: 20px;
-  width: 20px;
 }
 
 .description-wrapper {
@@ -1566,7 +1539,11 @@ select:focus {
 .posted-comments time {
   color: #606060;
 }
-
+.loading-comments {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
 .comment-wrapper {
   margin-top: 30px;
 }
@@ -1656,11 +1633,7 @@ select:focus {
 
 .edit-comment-field button:last-of-type {
   margin-right: 20px;
-}
-
-.edit-comment-field button:first-of-type {
-  background: #e5e5e5;
-  color: black;
+  color: #f44336;
 }
 
 .comment-submit {

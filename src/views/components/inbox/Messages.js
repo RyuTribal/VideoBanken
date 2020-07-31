@@ -1,17 +1,22 @@
 import React, { Component } from "react";
-import {
-  BrowserRouter,
-  Switch,
-  Route,
-  Link,
-  withRouter,
-} from "react-router-dom";
+import { BrowserRouter, Switch, Route, withRouter } from "react-router-dom";
 import { StyleSheet, css } from "aphrodite";
-import blankProfile from "../../../img/blank-profile.png";
-import { Auth, graphqlOperation, API, Analytics } from "aws-amplify";
+import { Auth, graphqlOperation, API, Storage } from "aws-amplify";
 import * as queries from "../../../graphql/queries";
 import * as subscriptions from "../../../graphql/subscriptions";
 import { connect } from "react-redux";
+import {
+  IconButton,
+  AppBar,
+  Toolbar,
+  Typography,
+  ButtonBase,
+  Avatar,
+} from "@material-ui/core";
+import { withStyles } from "@material-ui/core/styles";
+import { Add, Group } from "@material-ui/icons";
+import { Skeleton } from "@material-ui/lab";
+import theme from "../../../theme";
 
 const styles = StyleSheet.create({
   container: {
@@ -44,31 +49,30 @@ const styles = StyleSheet.create({
     fontSize: 16,
     marginRight: "0px",
   },
-  messagesContainer: {
-    padding: 10,
-  },
   messageBox: {
     height: 50,
     width: "100%",
     display: "flex",
     flexDirection: "row",
-    marginBottom: 10,
     position: "relative",
-    cursor: "pointer",
+    textAlign: "start",
   },
   image: {
     width: 50,
-    height: "100%",
+    height: 50,
     borderRadius: "50%",
+    flex: 1,
   },
   nameMessageWrapper: {
     display: "flex",
     flexDirection: "column",
     marginLeft: 10,
+    flex: 3,
   },
   name: {
     fontWeight: "bold",
     fontSize: 15,
+    textAlign: "start",
   },
   user: {
     fontSize: 12,
@@ -91,7 +95,34 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
 });
-
+const useStyles = (theme) => ({
+  appbar: {
+    background: "transparent",
+    color: "black",
+    boxShadow: "none",
+    borderBottom: "1px solid rgb(191, 156, 150)",
+  },
+  toolbar: {
+    display: "flex",
+    justifyContent: "center",
+  },
+  addChat: {
+    marginRight: 0,
+    padding: 0,
+  },
+  header: {
+    marginRight: "auto",
+    marginLeft: "auto",
+  },
+  divButton: {
+    width: "100%",
+    padding: 10,
+  },
+  avatar: {
+    width: 50,
+    height: 50,
+  },
+});
 class Messages extends Component {
   constructor() {
     super();
@@ -99,6 +130,7 @@ class Messages extends Component {
       modal: false,
       chats: [],
       newestMessages: [],
+      loading: true,
     };
   }
   componentDidMount = () => {};
@@ -119,32 +151,60 @@ class Messages extends Component {
     }
   };
   render() {
+    const { classes } = this.props;
+    const dummyData = ["foo", "bar"];
     return (
       <div className={css(styles.container)}>
-        <div className={css(styles.headerContainer)}>
-          <h3 className={css(styles.header)}>Meddelanden</h3>
-          <button
-            onClick={() => this.props.modal()}
-            className={css(styles.addChat)}
-          >
-            <i className="fas fa-plus"></i>
-          </button>
-        </div>
+        <AppBar position="relative" className={classes.appbar}>
+          <Toolbar className={classes.toolbar} style={{ width: "100%" }}>
+            <Typography
+              className={classes.header}
+              color="inherit"
+              edge="center"
+              variant="h6"
+            >
+              Meddelanden
+            </Typography>
+            <IconButton
+              color="inherit"
+              edge="end"
+              onClick={() => this.props.modal()}
+              className={classes.addChat}
+            >
+              <Add />
+            </IconButton>
+          </Toolbar>
+        </AppBar>
         <div className={css(styles.messagesContainer)}>
-          {this.props.state.rooms.map((chat, i) => (
-            <MessageBox
-              chosen={
-                this.props.state.selectedRoom &&
-                this.props.state.selectedRoom.roomId
-              }
-              chat={chat}
-              lastMessage={chat.lastMessage && chat.lastMessage}
-              onClick={() => {
-                this.changeChat(chat);
-              }}
-              sendMessages={this.props.sendMessage}
-            />
-          ))}
+          {this.props.state.rooms.length > 0
+            ? this.props.state.rooms.map((chat, i) => (
+                <ButtonBase
+                  onClick={() => this.changeChat(chat)}
+                  className={classes.divButton}
+                >
+                  <MessageBox
+                    chosen={
+                      this.props.state.selectedRoom &&
+                      this.props.state.selectedRoom.roomId
+                    }
+                    chat={chat}
+                    lastMessage={chat.lastMessage && chat.lastMessage}
+                    sendMessages={this.props.sendMessage}
+                    classes={classes}
+                  />
+                </ButtonBase>
+              ))
+            : dummyData.map((data, i) => (
+                <div className={classes.divButton}>
+                  <div className={css(styles.messageBox)}>
+                    <Skeleton variant="circle" width={50} height={50} />
+                    <div className={css(styles.nameMessageWrapper)}>
+                      <Skeleton variant="text" width="90%" />
+                      <Skeleton variant="text" width="30%" />
+                    </div>
+                  </div>
+                </div>
+              ))}
         </div>
       </div>
     );
@@ -159,6 +219,7 @@ class MessageBox extends Component {
       user: "",
       lastMessage: "",
       isRead: true,
+      img: null,
     };
   }
   componentDidMount = async () => {
@@ -184,6 +245,47 @@ class MessageBox extends Component {
         }
       });
     }
+    this.getImg();
+  };
+  getImg = async () => {
+    let image = "";
+    if (
+      this.props.chat.users.length < 2 &&
+      (this.props.chat.chatImg === null ||
+        this.props.chat.chatImg === "" ||
+        this.props.chat.chatImg === "$ctx.args.chatImg")
+    ) {
+      image = await Storage.vault
+        .get(`profilePhoto.jpg`, {
+          bucket: "user-images-hermes",
+          level: "public",
+          customPrefix: {
+            public: `${this.props.chat.users[0].username}/`,
+          },
+          progressCallback(progress) {
+            console.log(`Uploaded: ${progress.loaded}/${progress.total}`);
+          },
+        })
+        .then((res) => {
+          return res;
+        });
+    } else {
+      image = await Storage.vault
+        .get(`groupPhoto.jpg`, {
+          bucket: "group-images-hermes",
+          level: "public",
+          customPrefix: {
+            public: `${this.props.chat.id}/groupImg/`,
+          },
+          progressCallback(progress) {
+            console.log(`Uploaded: ${progress.loaded}/${progress.total}`);
+          },
+        })
+        .then((res) => {
+          return res;
+        });
+    }
+    this.setState({ img: image });
   };
   componentDidUpdate = (prevProps) => {
     if (this.state.active === true && this.state.isRead === false) {
@@ -228,18 +330,21 @@ class MessageBox extends Component {
     }
   };
   render() {
+    const { classes } = this.props;
     return (
-      <div
-        onClick={() => {
-          this.props.onClick();
-          this.setState({ isRead: true });
-        }}
-        className={css(styles.messageBox)}
-      >
-        <img
-          className={css(styles.image)}
-          src={this.props.chat.users.length < 2 ? blankProfile : blankProfile}
-        ></img>
+      <div className={css(styles.messageBox)}>
+        {this.state.img ? (
+          <Avatar
+            className={this.props.classes.avatar}
+            width={50}
+            src={this.state.img}
+          >
+            <Group />
+          </Avatar>
+        ) : (
+          <Skeleton variant="circle" width={50} height={50} />
+        )}
+
         <div className={css(styles.nameMessageWrapper)}>
           <div className={css(styles.name)}>
             {this.props.chat.title}{" "}
@@ -290,6 +395,6 @@ function mapDispatchToProps(dispatch) {
     change_room: (id) => dispatch({ type: "CHANGE_ROOM", id: id }),
   };
 }
-export default withRouter(
-  connect(mapStateToProps, mapDispatchToProps)(Messages)
+export default withStyles(useStyles)(
+  withRouter(connect(mapStateToProps, mapDispatchToProps)(Messages))
 );

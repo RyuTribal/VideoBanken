@@ -1,7 +1,7 @@
 import React, { Component } from "react";
 import { BrowserRouter, Switch, Route } from "react-router-dom";
 import "intl-tel-input/build/css/intlTelInput.css";
-import "./commercial/bootstrap/css/bootstrap.min.css";
+// import "./commercial/bootstrap/css/bootstrap.min.css";
 import "./App.scss";
 import Start from "./views/Start";
 import Registration from "./views/Registration";
@@ -46,7 +46,6 @@ Amplify.configure({
 });
 
 const currentConfig = Auth.configure();
-
 class App extends Component {
   render() {
     return (

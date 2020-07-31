@@ -8,6 +8,35 @@ import { Auth, Hub, Storage, API, graphqlOperation } from "aws-amplify";
 import * as queries from "../../../graphql/queries";
 import * as mutations from "../../../graphql/mutations";
 import Player from "../vanilla-player/Player";
+import ChipInput from "material-ui-chip-input";
+import {
+  Slider,
+  TextField,
+  Button,
+  IconButton,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
+  Toolbar,
+  AppBar,
+  Typography,
+  Box,
+  Portal,
+  FormControl,
+  FormHelperText,
+  InputLabel,
+  OutlinedInput,
+  Grid,
+} from "@material-ui/core";
+import {
+  withStyles,
+  createMuiTheme,
+  ThemeProvider,
+} from "@material-ui/core/styles";
+import { Close } from "@material-ui/icons";
+import theme from "../../../theme";
 const styles = StyleSheet.create({
   modal: {
     height: "100%",
@@ -151,6 +180,215 @@ function validate(title) {
     title: title.length === 0,
   };
 }
+const CustomChipField = withStyles({
+  chipContainer: {
+    fontSize: 15,
+    borderColor: "#a18e78",
+    backgroundColor: "rgb(245, 244, 242)",
+    "&:focus": {
+      backgroundColor: "transparent !important",
+    },
+  },
+  focused: {
+    backgroundColor: "transparent !important",
+  },
+  chip: {
+    backgroundColor: "rgb(38, 48, 64)",
+    border: "1px solid rgb(38, 48, 64)",
+    color: "#fbf9f9",
+    "& .MuiChip-deleteIcon path": {
+      fill: "#fbf9f9 !important",
+    },
+    "&:hover": {
+      color: "rgb(38, 48, 64)",
+      backgroundColor: "#fbf9f9",
+      "& .MuiChip-deleteIcon path": {
+        fill: "rgb(38, 48, 64) !important",
+      },
+    },
+  },
+})(ChipInput);
+const CustomTextField = withStyles({
+  root: {
+    "& input": {
+      fontSize: 15,
+      borderColor: "#a18e78",
+      backgroundColor: "rgb(245, 244, 242)",
+    },
+    "& .MuiInputBase-multiline": {
+      fontSize: 15,
+      borderColor: "#a18e78",
+      backgroundColor: "rgb(245, 244, 242)",
+    },
+    "& input:valid:focus": {
+      backgroundColor: "transparent !important",
+    },
+    "& .Mui-focused": {
+      backgroundColor: "transparent !important",
+    },
+  },
+})(TextField);
+const useStyles = (theme) => ({
+  input: {
+    width: "100%",
+  },
+  appbar: {
+    backgroundColor: "#263040",
+    position: "relative",
+  },
+  title: {
+    marginLeft: theme.spacing(2),
+    flex: 1,
+  },
+  modal: {
+    padding: 0,
+  },
+  formWrapper: {
+    padding: "0px 24px",
+  },
+  videoUploadContainer: {
+    paddingTop: "56.25%",
+    width: "100%",
+    borderRadius: 5,
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    background: "rgb(245, 244, 242)",
+    transition: "0.4s",
+    position: "relative",
+  },
+  innerVideoUploadContainer: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    bottom: 0,
+    right: 0,
+    "@media (max-width: 1281px)": {
+      position: "static",
+    },
+  },
+  unmountedContainer: {
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    background: "rgb(245, 244, 242)",
+    paddingTop: "56.25%",
+    position: "relative",
+  },
+  videoUploadDragging: {
+    background: "#F7F8FC",
+    transition: "0.4s",
+    border: "3px dashed grey",
+  },
+  dragVideo: {
+    display: "inline-block",
+    textAlign: "center",
+    fontFamily: "Muli",
+    position: "absolute",
+    top: "25%",
+    bottom: "25%",
+    left: "25%",
+    right: "25%",
+  },
+  submitButton: {
+    background: "#ea3a3a",
+    width: "100%",
+    padding: "10px 20px",
+    boxSizing: "border-box",
+    fontSize: 15,
+    border: 0,
+    transition: "0.4s",
+    borderRadius: 5,
+    color: "#fbf9f9",
+    transition: "background-color 0.4s",
+    "&:hover": {
+      backgroundColor: "#ff5050",
+      transition: "0.4s",
+    },
+    "&:focus": {
+      outline: "none",
+    },
+    "&:disabled": {
+      backgroundColor: "rgb(245, 244, 242)",
+      color: "rgb(177, 172, 163)",
+    },
+  },
+  thumbnailWrapper: {
+    display: "flex",
+    marginTop: 10,
+  },
+  link: {
+    color: "#f44336",
+    textDecoration: "underline",
+    cursor: "pointer",
+  },
+  notice: {
+    color: "rgb(177, 172, 163)",
+  },
+  thumbnailContainer: {
+    marginLeft: "0",
+    marginRight: "0",
+    padding: "0px 24px",
+  },
+  thumbnail: {
+    width: 150,
+    height: 84,
+    background: "rgb(245, 244, 242)",
+  },
+  tagInput: {
+    background: "transparent",
+    border: "none",
+    outline: "none",
+    display: "flex",
+    alignItems: "center",
+  },
+  tagWrapper: {
+    marginRight: "1.5rem",
+    color: "#F7F8FC",
+    background: "rgb(38, 48, 64)",
+    borderRadius: 5,
+    paddingLeft: 10,
+    paddingRight: 10,
+    paddingTop: 5,
+    paddingBottom: 5,
+    marginTop: 5,
+    marginBottom: 5,
+  },
+  tagsRemove: {
+    background: "transparent",
+    color: "#F7F8FC",
+    width: 5,
+    height: 5,
+    cursor: "pointer",
+    marginLeft: 10,
+  },
+  modalCenter: {
+    minHeight: 720,
+    width: "100%",
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  uploadBarWrapper: {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 20,
+    width: "100%",
+  },
+  uploadBar: {
+    width: "100%",
+    height: 25,
+    border: "1px solid rgb(191, 156, 150)",
+    borderRadius: 12,
+    overflow: "hidden",
+  },
+  uploadProgress: {
+    backgroundColor: "rgb(234, 58, 58)",
+    height: "100%",
+  },
+});
 
 class MobileModal extends Component {
   constructor() {
@@ -332,189 +570,215 @@ class MobileModal extends Component {
   render() {
     const errors = validate(this.state.title);
     const isDisabled = Object.keys(errors).some((x) => errors[x]);
+    const { classes } = this.props;
+    console.log(isDisabled);
     return (
-      <div className={css(styles.modal)}>
-        {!this.state.uploadBar ? (
-          <div>
-            <div className={css(styles.navbar)}>
-              <button
-                onClick={() => this.closeModal()}
-                className={css(styles.cancel)}
+      <Dialog
+        open={true}
+        fullWidth={true}
+        maxWidth={true}
+        onClose={() => this.props.closeModal()}
+        aria-labelledby="form-dialog-title"
+        fullScreen={true}
+      >
+        {!this.state.uploadBar && (
+          <AppBar className={classes.appbar} id="form-dialog-title">
+            <Toolbar>
+              <IconButton
+                edge="start"
+                color="inherit"
+                onClick={() => this.props.closeModal(false)}
               >
-                <i className="fas fa-chevron-left"></i>
-              </button>
-              <button
+                <Close />
+              </IconButton>
+              <Typography className={classes.title} variant="h6">
+                Ladda upp video
+              </Typography>
+              <Button
+                color="inherit"
                 disabled={
                   isDisabled || !this.state.thumbnailMounted ? true : false
                 }
-                className={css(styles.upload)}
                 onClick={this.uploadVideo}
               >
-                <i className="fas fa-check"></i>
-              </button>
+                {this.state.loading === true ? (
+                  <i class="fas fa-sync fa-spin"></i>
+                ) : (
+                  "Spara"
+                )}
+              </Button>
+            </Toolbar>
+          </AppBar>
+        )}
+
+        {!this.state.uploadBar ? (
+          <DialogContent className={classes.modal}>
+            <Player
+              shortcuts={false}
+              settings={false}
+              pip={false}
+              fullscreen={false}
+              timeThumb={false}
+              ref={this.playerRef}
+              video={this.state.video}
+              thumbnailCreator={false}
+              mobileControls={true}
+            />
+            <input
+              id="image-uploader"
+              type="file"
+              className="upload"
+              accept="image/*"
+              style={{ display: "none" }}
+              ref="imageUploader"
+              onChange={this.handleImageUpload}
+            ></input>
+            <div className={classes.thumbnailContainer}>
+              <lable for="thumb">Thumbnail</lable>
+              <div
+                onClick={() => this.refs.imageUploader.click()}
+                id="thumb"
+                className={css(styles.thumbnail)}
+              >
+                {this.state.thumbnailMounted && (
+                  <img
+                    style={{ maxWidth: "100%", maxHeight: "100%" }}
+                    src={this.state.thumbnail}
+                  ></img>
+                )}
+              </div>
             </div>
-            <div className={css(styles.videoUploadWrapper)}>
-              <Player
-                shortcuts={false}
-                settings={false}
-                pip={false}
-                fullscreen={false}
-                timeThumb={false}
-                ref={this.playerRef}
-                video={this.state.video}
-                thumbnailCreator={false}
-                mobileControls={true}
-              />
-              <input
-                id="image-uploader"
-                type="file"
-                className="upload"
-                accept="image/*"
-                style={{ display: "none" }}
-                ref="imageUploader"
-                onChange={this.handleImageUpload}
-              ></input>
-              <div className={css(styles.inputContainer)}>
-                <div className={css(styles.thumbnailContainer)}>
-                  <lable for="thumb">Thumbnail</lable>
-                  <div
-                    onClick={() => this.refs.imageUploader.click()}
-                    id="thumb"
-                    className={css(styles.thumbnail)}
-                  >
-                    {this.state.thumbnailMounted && (
-                      <img
-                        style={{ maxWidth: "100%", maxHeight: "100%" }}
-                        src={this.state.thumbnail}
-                      ></img>
-                    )}
-                  </div>
-                </div>
-                <div style={{ marginTop: 10 }} className="input-wrappers">
-                  <lable for="title">Titel</lable>
-                  <input
+            <ThemeProvider className={classes.formWrapper} theme={theme}>
+              <div className={classes.formWrapper}>
+                <div className="input-wrappers">
+                  <CustomTextField
+                    className={classes.input}
+                    id="outlined-password-input"
+                    label="Titel"
                     type="text"
-                    className={
-                      this.shouldMarkError("title") ||
-                      this.state.titleError === true
-                        ? "input-error custom-input"
-                        : "custom-input"
-                    }
-                    id="title"
-                    value={this.state.title}
+                    fullWidth
+                    variant="outlined"
+                    onKeyDown={this.checkForEnter}
+                    value={this.state.name}
                     onChange={this.handleTitleChange}
                     onBlur={this.handleBlur("title")}
                     onKeyDown={this.checkForEnter}
-                  ></input>
-                  {this.state.titleError ||
-                    (this.shouldMarkError("title") && (
-                      <p className="input-error-message">
-                        {this.state.titleErrorMessage}
-                      </p>
-                    ))}
+                    InputProps={{
+                      style: { fontSize: 15 },
+                    }}
+                    InputLabelProps={{
+                      style: { fontSize: 15 },
+                      required: true,
+                      error: this.state.titleError,
+                    }}
+                  ></CustomTextField>
                 </div>
-                <div style={{ marginTop: 10 }} className="input-wrappers">
-                  <lable for="desc">Beskrivning</lable>
-                  <textarea
-                    className={
-                      this.shouldMarkError("desc") ||
-                      this.state.descError === true
-                        ? "input-error custom-input"
-                        : "custom-input"
-                    }
-                    id="desc"
+                <div className="input-wrappers">
+                  <CustomTextField
+                    className={classes.input}
+                    id="outlined-password-input"
+                    label="Beskrivning"
+                    type="text"
+                    variant="outlined"
+                    onKeyDown={this.checkForEnter}
                     value={this.state.desc}
                     onChange={this.handleDescChange}
                     onBlur={this.handleBlur("desc")}
+                    multiline
                     onKeyDown={this.checkForEnter}
-                  ></textarea>
-                  {this.state.descError ||
-                    (this.shouldMarkError("desc") && (
-                      <p className="input-error-message">
-                        {this.state.descErrorMessage}
-                      </p>
-                    ))}
+                    InputProps={{
+                      style: { fontSize: 15 },
+                    }}
+                    InputLabelProps={{
+                      style: { fontSize: 15 },
+                      error: this.state.nameError,
+                    }}
+                  ></CustomTextField>
                 </div>
-                <div
-                  onBlur={this.handleBlur("tags")}
-                  style={{ marginTop: 10 }}
-                  className="input-wrappers"
-                >
-                  <lable for="tags">Taggar</lable>
-                  <TagsInput
-                    className={
-                      this.shouldMarkError("tags") ||
-                      this.state.tagsError === true
-                        ? "input-error custom-input"
-                        : "custom-input"
-                    }
-                    tagProps={{
-                      className: css(styles.tagWrapper),
-                      classNameRemove: css(styles.tagsRemove),
-                    }}
-                    inputProps={{
-                      placeholder: "",
-                      className: css(styles.tagInput),
-                    }}
-                    addKeys={[32]}
-                    id="tags"
-                    onlyUnique={true}
-                    onChange={this.handleTagsChange}
+                <div className="input-wrappers">
+                  <CustomChipField
+                    className={classes.input}
+                    id="outlined-password-input"
+                    label="Tags"
+                    fullWidth={true}
+                    classes={{ focused: classes.focused }}
+                    newChipKeyCodes={[13, 32]}
+                    variant="outlined"
+                    onKeyDown={this.checkForEnter}
                     value={this.state.tags}
-                    renderTag={this.customRenderTag}
+                    onBlur={() => {
+                      this.handleBlur("tags");
+                      this.setState({ tagsFocused: false });
+                    }}
+                    onAdd={(chip) => {
+                      this.setState((prevState) => ({
+                        tags: [...prevState.tags, `#${chip}`],
+                      }));
+                    }}
+                    onDelete={(chip, index) => {
+                      this.setState({
+                        tags: this.state.tags.filter(function (tag) {
+                          return tag !== chip;
+                        }),
+                      });
+                    }}
+                    onKeyDown={this.checkForEnter}
+                    focused={this.state.tagsFocused}
+                    style={{ padding: 0 }}
+                    multiline
+                    InputProps={{
+                      style: { fontSize: 15 },
+                    }}
+                    InputLabelProps={{
+                      style: { fontSize: 15 },
+                      error: this.state.tagsError,
+                    }}
                   />
-                  {this.state.tagsError ||
-                    (this.shouldMarkError("tags") && (
-                      <p className="input-error-message">
-                        {this.state.tagsErrorMessage}
-                      </p>
-                    ))}
                 </div>
-                <div style={{ marginTop: 10 }} className="input-wrappers">
-                  <lable for="connect">Connections</lable>
-                  <input
+                <div className="input-wrappers">
+                  <CustomTextField
+                    className={classes.input}
+                    id="outlined-password-input"
+                    label="Connections"
                     type="text"
-                    className={
-                      this.shouldMarkError("connect") ||
-                      this.state.connectError === true
-                        ? "input-error custom-input"
-                        : "custom-input"
-                    }
-                    id="connect"
+                    fullWidth={true}
+                    variant="outlined"
+                    onKeyDown={this.checkForEnter}
                     value={this.state.connect}
                     onChange={this.handleConnectChange}
                     onBlur={this.handleBlur("connect")}
                     onKeyDown={this.checkForEnter}
-                  ></input>
-                  {this.state.connectError ||
-                    (this.shouldMarkError("connect") && (
-                      <p className="input-error-message">
-                        {this.state.connectErrorMessage}
-                      </p>
-                    ))}
+                    InputProps={{
+                      style: { fontSize: 15 },
+                    }}
+                    InputLabelProps={{
+                      style: { fontSize: 15 },
+                      error: this.state.connectError,
+                    }}
+                  ></CustomTextField>
                 </div>
               </div>
-            </div>
-          </div>
+            </ThemeProvider>
+          </DialogContent>
         ) : (
-          <div className={css(styles.modalCenter)}>
-            <div className={css(styles.uploadBarWrapper)}>
+          <div className={classes.modalCenter}>
+            <div className={classes.uploadBarWrapper}>
               <h3>Uppladdning pågår</h3>
-              <div className={css(styles.uploadBar)}>
+              <div className={classes.uploadBar}>
                 <div
                   style={{ width: `${this.state.uploadPercent}%` }}
-                  className={css(styles.uploadProgress)}
+                  className={classes.uploadProgress}
                 ></div>
               </div>
-              <div className={css(styles.uploadPercent)}>
+              <div className={classes.uploadPercent}>
                 {`${Math.floor(this.state.uploadPercent)} %`}
               </div>
             </div>
           </div>
         )}
-      </div>
+      </Dialog>
     );
   }
 }
 
-export default MobileModal;
+export default withStyles(useStyles)(MobileModal);

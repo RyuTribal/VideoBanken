@@ -10,6 +10,7 @@ import CoverPhoto from "./components/profile/CoverPhoto";
 import Stats from "./components/profile/Stats";
 import Games from "./components/profile/Games";
 import Posts from "./components/profile/Posts";
+import Modal from "./components/profile/ProfileTextModal";
 import { StyleSheet, css } from "aphrodite";
 import { Auth, API, graphqlOperation } from "aws-amplify";
 import * as queries from "../graphql/queries";
@@ -316,7 +317,7 @@ class Profile extends Component {
       userInfo: {},
       userExists: true,
       userProfile: false,
-      activeMenu: "stats",
+      modal: false,
     };
   }
   componentDidMount = async () => {
@@ -325,11 +326,9 @@ class Profile extends Component {
     });
     const currentUser = await Auth.currentAuthenticatedUser();
     if (currentUser.username === this.state.user) {
-      this.props.onChange("Profil");
       this.setState({ userProfile: true });
-    } else {
-      this.props.onChange("None");
     }
+    this.props.onChange(`@${this.state.user}`);
     await API.graphql(
       graphqlOperation(queries.getUser, {
         username: this.state.user,
@@ -365,6 +364,19 @@ class Profile extends Component {
   render() {
     return (
       <div className={css(styles.container)}>
+        {this.state.modal && (
+          <Modal
+            image={this.state.image}
+            closeModal={() => {
+              this.setState({ modal: false });
+            }}
+            upload={(userInfo) => {
+              this.setState({ modal: false });
+              // this.handleImageUpload(this.dataURItoBlob(image));
+            }}
+            userProfile={this.state.userInfo}
+          />
+        )}
         <div className={css(styles.presentation)}>
           <CoverPhoto
             changeProfile={(profileImg, fullName) =>
@@ -384,7 +396,10 @@ class Profile extends Component {
             {this.isMobile() === true && (
               <div className={css(styles.followWrapper)}>
                 {this.state.userProfile === true ? (
-                  <button className={css(styles.callToAction)}>
+                  <button
+                    onClick={() => this.setState({ modal: true })}
+                    className={css(styles.callToAction)}
+                  >
                     Redigera kontot
                   </button>
                 ) : (
@@ -430,7 +445,10 @@ class Profile extends Component {
             {this.isMobile() === false && (
               <div className={css(styles.followWrapper)}>
                 {this.state.userProfile === true ? (
-                  <button className={css(styles.callToAction)}>
+                  <button
+                    onClick={() => this.setState({ modal: true })}
+                    className={css(styles.callToAction)}
+                  >
                     Redigera kontot
                   </button>
                 ) : (

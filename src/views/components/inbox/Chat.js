@@ -18,6 +18,17 @@ import blankProfile from "../../../img/blank-profile.png";
 import { v4 as uuidv4 } from "uuid";
 import Messages from "./chatComponents/Messages";
 import { connect } from "react-redux";
+import {
+  IconButton,
+  AppBar,
+  Toolbar,
+  Typography,
+  Avatar,
+  Button,
+} from "@material-ui/core";
+import { withStyles } from "@material-ui/core/styles";
+import { ArrowBackIosRounded, SettingsRounded } from "@material-ui/icons";
+import { Skeleton } from "@material-ui/lab";
 const blinking = {
   from: {
     opacity: 1,
@@ -108,10 +119,42 @@ const styles = StyleSheet.create({
     flexDirection: "column",
     fontSize: 20,
   },
-  newChat: {
+});
+const useStyles = (theme) => ({
+  appbar: {
+    background: "transparent",
+    color: "black",
+    boxShadow: "none",
+    borderBottom: "1px solid rgb(191, 156, 150)",
+  },
+  toolbar: {
+    display: "flex",
+    justifyContent: "center",
+  },
+  backChat: {
+    marginLeft: 0,
+    padding: 0,
+  },
+  settings: {
+    marginRight: 0,
+    padding: 0,
+  },
+  header: {
+    marginLeft: 0,
+    marginRight: "auto",
+  },
+  headerMobile: {
+    marginRight: "auto",
+    marginLeft: "auto",
+  },
+  svgButtons: {
+    height: 15,
+    width: 15,
+  },
+  addButton: {
     background: "#ea3a3a",
     padding: "10px 20px",
-    fontSize: "1.5em",
+    fontSize: "1em",
     border: 0,
     transition: "0.4s",
     borderRadius: 5,
@@ -310,37 +353,48 @@ class Chat extends Component {
     );
   };
   render() {
+    const { classes } = this.props;
     return (
       <div className={css(styles.container) + " test"}>
         {this.props.state.selectedRoom ? (
-          <div className={css(styles.headerContainer)}>
-            {this.isMobile() && (
-              <button
-                onClick={this.props.back}
-                className={css(styles.headerLeftButton)}
+          <AppBar position="relative" className={classes.appbar}>
+            <Toolbar className={classes.toolbar} style={{ width: "100%" }}>
+              {this.isMobile() && (
+                <IconButton
+                  onClick={this.props.back}
+                  className={classes.backChat}
+                  color="inherit"
+                >
+                  <ArrowBackIosRounded className={classes.svgButtons} />
+                </IconButton>
+              )}
+              <Typography
+                className={
+                  this.isMobile() ? classes.headerMobile : classes.header
+                }
+                color="inherit"
+                edge="center"
+                variant="h6"
               >
-                <i className="fas fa-chevron-left"></i>
-              </button>
-            )}
-
-            <h3 className={css(styles.headerName)}>
-              {this.props.state.selectedRoom.title}{" "}
-              {this.props.state.selectedRoom.length < 2 &&
-                this.props.state.selectedRoom.length > 0 && (
-                  <span
-                    className={css(styles.headerUser)}
-                  >{`@${this.props.state.selectedRoom.users[0].username}`}</span>
-                )}
-            </h3>
-            {this.isMobile() && (
-              <button
-                onClick={this.props.settingsOpen}
-                className={css(styles.headerRightButton)}
-              >
-                <i className="fas fa-cog"></i>
-              </button>
-            )}
-          </div>
+                {this.props.state.selectedRoom.title}{" "}
+                {this.props.state.selectedRoom.length < 2 &&
+                  this.props.state.selectedRoom.length > 0 && (
+                    <span
+                      className={css(styles.headerUser)}
+                    >{`@${this.props.state.selectedRoom.users[0].username}`}</span>
+                  )}
+              </Typography>
+              {this.isMobile() && (
+                <IconButton
+                  onClick={this.props.settingsOpen}
+                  className={classes.settings}
+                  color="inherit"
+                >
+                  <SettingsRounded className={classes.svgButtons} />
+                </IconButton>
+              )}
+            </Toolbar>
+          </AppBar>
         ) : (
           ""
         )}
@@ -349,9 +403,9 @@ class Chat extends Component {
         ) : (
           <div className={css(styles.emptyChat)}>
             Inget rum vald. Välj ett rum eller
-            <button className={css(styles.newChat)} onClick={this.props.modal}>
+            <Button className={classes.addButton} onClick={this.props.modal}>
               Skapa ett nytt rum
-            </button>
+            </Button>
           </div>
         )}
       </div>
@@ -401,4 +455,6 @@ function mapDispatchToProps(dispatch) {
   };
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(Chat);
+export default withStyles(useStyles)(
+  connect(mapStateToProps, mapDispatchToProps)(Chat)
+);

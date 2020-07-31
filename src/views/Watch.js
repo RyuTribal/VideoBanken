@@ -12,7 +12,7 @@ import $ from "jquery";
 import * as queries from "../graphql/queries";
 import * as mutations from "../graphql/mutations";
 import Plyr from "plyr";
-import Player from "./components/player/Player";
+import Player from "./components/vanilla-player/Player";
 import NumberFormat from "react-number-format";
 import Moment from "react-moment";
 import ShowMore from "react-show-more";
@@ -21,6 +21,17 @@ import swedishStrings from "react-timeago/lib/language-strings/sv";
 import buildFormatter from "react-timeago/lib/formatters/buildFormatter";
 import MDReactComponent from "markdown-react-js";
 import { isMobile, browserName } from "react-device-detect";
+import { Skeleton } from "@material-ui/lab";
+import {
+  Avatar,
+  Button,
+  ButtonBase,
+  TextField,
+  ThemeProvider,
+  CircularProgress,
+} from "@material-ui/core";
+import theme from "../theme";
+import { ArrowDropUp, ArrowDropDown } from "@material-ui/icons";
 const formatter = buildFormatter(swedishStrings);
 
 let that;
@@ -30,17 +41,20 @@ class Watch extends Component {
     this.state = {
       video: "",
       key: "",
-      videoDetails: {},
+      videoDetails: null,
       tags: {},
       videoID: "",
-      comments: [],
+      comments: null,
       liked: false,
       disliked: false,
       likeColor: "#",
-      likes: "",
-      dislikes: "",
+      likes: 0,
+      dislikes: 0,
       offset: 0,
       username: "",
+      img: null,
+      newCommentValue: "",
+      ammountComments: 0,
     };
     this._isMounted = false;
     this.playerRef = React.createRef();
@@ -53,7 +67,7 @@ class Watch extends Component {
     const username = currentUser.username;
     this.setState({ username: username });
     let userInformation;
-    this.props.onChange("None");
+    this.props.onChange(null);
     console.log(this.props);
     videoID = this.props.match.params.video;
     let videoDetails = {};
@@ -171,16 +185,30 @@ class Watch extends Component {
         that.handleDisLikes(that.username, videoID, userInformation);
       });
     }
+    await this.getProfileImg(username);
   };
 
   componentWillUnmount = () => {
     this._isMounted = false;
-    document
-      .getElementsByClassName(this.props.container._name)[0]
-      .removeEventListener("scroll", this.trackScrolling);
     clearInterval();
   };
-
+  getProfileImg = async (username) => {
+    const image = await Storage.vault
+      .get(`profilePhoto.jpg`, {
+        bucket: "user-images-hermes",
+        level: "public",
+        customPrefix: {
+          public: `${username}/`,
+        },
+        progressCallback(progress) {
+          console.log(`Uploaded: ${progress.loaded}/${progress.total}`);
+        },
+      })
+      .then((res) => {
+        return res;
+      });
+    this.setState({ img: image });
+  };
   handleLikes = async (username, videoID) => {
     if (this.state.disliked === true) {
       this.setState({
@@ -346,34 +374,23 @@ class Watch extends Component {
   }
 
   handleComments = async () => {
-    let commentArray;
-    if (
-      $("#new-comment").text() == "" ||
-      !/\S/.test($("#new-comment").text())
-    ) {
-      $(".error").addClass("error-visible");
+    if (/^\s*$/.test(this.state.newCommentValue)) {
     } else {
-      $(".error").removeClass("error-visible");
-      const comment = $("#new-comment").text();
-      $("#new-comment").empty();
-
-      commentArray = this.state.comments;
+      this.setState({ newCommentValue: "" });
 
       await API.graphql(
         graphqlOperation(mutations.addComment, {
           input: {
             videoID: this.state.key,
             username: this.state.username,
-            comment: comment,
+            comment: escape(this.state.newCommentValue),
           },
         })
       ).then((result) => {
-        let newComment = result.data.addComment;
-        commentArray.push(newComment);
-        this.setState({
-          comments: commentArray,
+        this.setState((prevState) => ({
+          comments: [...prevState.comments, result.data.addComment],
           ammountComments: this.state.ammountComments + 1,
-        });
+        }));
       });
     }
   };
@@ -410,7 +427,6 @@ class Watch extends Component {
   removeEvents = () => {
     this.playerRef.current.removeEvents();
   };
-
   render() {
     let numberLikes = 0;
     let numberDislikes = 0;
@@ -439,101 +455,135 @@ class Watch extends Component {
     } else {
       numberDislikes = this.state.dislikes;
     }
-    let likesPercentage;
-    try {
-      likesPercentage =
-        (JSON.parse(this.state.likes) /
-          (JSON.parse(this.state.likes) + JSON.parse(this.state.dislikes))) *
-        100;
-    } catch {
-      likesPercentage = 0;
-    }
     let tags;
     try {
       tags = JSON.parse(this.state.tags);
     } catch {
       tags = [];
     }
-    let comments = this.state.comments;
     return (
       <div className="video-container">
         <Player
           ref={this.playerRef}
-          videoID={this.state.key}
           playerRef={this.props.playerRef}
+          shortcuts={true}
+          settings={true}
+          pip={true}
+          fullscreen={true}
+          timeThumb={true}
+          ref={this.playerRef}
+          videoID={this.state.key}
+          mobileControls={isMobile}
+          sendViews={true}
         />
         <div className="details-comments-wrapper">
           <div className="details-wrapper">
             <div className="title-wrapper">
-              <h2>{this.state.videoDetails.title}</h2>
+              {this.state.videoDetails ? (
+                <h2>{this.state.videoDetails.title}</h2>
+              ) : (
+                <Skeleton
+                  style={{
+                    marginBlockStart: "0.83em",
+                    marginBlockEnd: "0.83em",
+                  }}
+                  variant="rect"
+                  width="70%"
+                  height={50}
+                />
+              )}
             </div>
             <div className="likes-date-wrapper">
               <p className="likes-dates">
-                <NumberFormat
-                  value={this.state.videoDetails.views}
-                  displayType={"text"}
-                  thousandSeparator={true}
-                />
+                {this.state.videoDetails ? (
+                  <NumberFormat
+                    value={this.state.videoDetails.views}
+                    displayType={"text"}
+                    thousandSeparator={true}
+                    style={{ marginRight: "0.25em" }}
+                  />
+                ) : (
+                  <Skeleton
+                    style={{ marginRight: "0.25em" }}
+                    variant="text"
+                    width="10%"
+                  />
+                )}
                 {` visningar `}
                 <span className="bullelements">&#x25cf;</span>
                 {` `}
-                <Moment format="D MMM YYYY" withTitle>
-                  {this.state.videoDetails.createdAt}
-                </Moment>
+                {this.state.videoDetails ? (
+                  <Moment format="D MMM YYYY" withTitle>
+                    {this.state.videoDetails.createdAt}
+                  </Moment>
+                ) : (
+                  <Skeleton variant="text" width="30%" />
+                )}
               </p>
               <div className="likes-dislikes">
                 <div className="likes-dislikes-button-wrap">
-                  <button className="likes-dislikes-buttons" id="like-button">
+                  <ButtonBase id="like-button">
                     <i
                       style={{ color: this.state.likeColor }}
                       className="fas fa-thumbs-up"
                     ></i>
                     <p>{numberLikes}</p>
-                  </button>
-                  <button
-                    className="likes-dislikes-buttons"
-                    id="dislike-button"
-                  >
+                  </ButtonBase>
+                  <ButtonBase id="dislike-button">
                     <i
                       style={{ color: this.state.dislikeColor }}
                       className="fas fa-thumbs-down"
                     ></i>
                     <p>{numberDislikes}</p>
-                  </button>
-                  <div className="like-progress-wrap">
-                    <div
-                      style={{ width: `${likesPercentage}%` }}
-                      className="likes-progress"
-                    ></div>
-                  </div>
+                  </ButtonBase>
                 </div>
-                <button
-                  id="download-button"
-                  className="likes-dislikes-buttons"
-                  onClick={this.downloadVideo}
-                >
+                <ButtonBase id="download-button" onClick={this.downloadVideo}>
                   <i className="fas fa-download"></i>
                   <p>Ladda ner</p>
-                </button>
+                </ButtonBase>
               </div>
             </div>
             <div className="username-description-wrap">
               <div className="username-wrapper">
-                <Link to={`profile/${this.state.videoDetails.username}`}>
-                  <div className="username-profile-picture"></div>
-                  {this.state.videoDetails.username}
-                </Link>
+                {this.state.videoDetails ? (
+                  <Link
+                    className="username-link"
+                    to={`/home/users/${this.state.videoDetails.username}`}
+                  >
+                    <Avatar
+                      style={{ marginRight: "0.25em" }}
+                      className="username-profile-picture"
+                      src={this.state.img}
+                    ></Avatar>
+                    {this.state.videoDetails.username}
+                  </Link>
+                ) : (
+                  <div className="username-link">
+                    <Skeleton
+                      style={{ marginRight: "0.25em" }}
+                      variant="circle"
+                      width={50}
+                      height={50}
+                    />
+                    <Skeleton variant="text" width={90} />
+                  </div>
+                )}
               </div>
               <div className="description-wrapper">
                 <div className="description">
-                  <ShowMore
-                    lines={5}
-                    more="Visa mer"
-                    less="Visa mindre"
-                    anchorClass="read-more"
-                  >
-                    {this.state.videoDetails.description + " "}
-                  </ShowMore>
+                  {this.state.videoDetails ? (
+                    <ShowMore
+                      lines={5}
+                      more="Visa mer"
+                      less="Visa mindre"
+                      anchorClass="read-more"
+                    >
+                      {this.state.videoDetails.description + " "}
+                    </ShowMore>
+                  ) : (
+                    <Skeleton type="text" width="70%" />
+                  )}
+
                   <div className="desc-tags">
                     <h4>Tags:</h4>
                     {tags.map((tag, i) => (
@@ -541,12 +591,6 @@ class Watch extends Component {
                         <Link to="">{tag}</Link>,
                       </div>
                     ))}
-                  </div>
-                  <div className="desc-category">
-                    <h4>Kategori:</h4>
-                    <Link to="">
-                      <h4>{this.state.videoDetails.category}</h4>
-                    </Link>
                   </div>
                 </div>
               </div>
@@ -556,38 +600,50 @@ class Watch extends Component {
                 <h3>{this.state.ammountComments} kommentarer</h3>
               </div>
               <div className="post-comment-wrapper">
-                <div className="error">Kommentaren kan inte vara tom</div>
-                <div
-                  onFocus={this.removeEvents}
-                  onBlur={this.addEvents}
-                  contenteditable="true"
-                  className="comment-field"
-                  id="new-comment"
-                  placeholder="Lägg till en ny kommentar..."
-                  aria-label="Lägg till en kommentar..."
-                ></div>
-                <button
+                <ThemeProvider theme={theme}>
+                  <TextField
+                    onFocus={this.removeEvents}
+                    onBlur={this.addEvents}
+                    className="comment-field"
+                    id="new-comment"
+                    multiline
+                    label="Lägg till en ny kommentar"
+                    value={this.state.newCommentValue}
+                    onChange={(e) => {
+                      this.setState({ newCommentValue: e.target.value });
+                    }}
+                  ></TextField>
+                </ThemeProvider>
+                <Button
                   onClick={this.handleComments}
                   className="comment-submit"
-                  id="post-comment"
+                  disabled={/^\s*$/.test(this.state.newCommentValue)}
                 >
                   Kommentera
-                </button>
+                </Button>
               </div>
-              <div id="posted-comments" className="posted-comments">
-                {comments.map((comment, i) => (
-                  <CommentBox
-                    key={i}
-                    comment={comment}
-                    videoDetails={this.state.videoDetails}
-                    username={this.username}
-                    updateComments={this.updateComments}
-                    removeComment={this.removeComment}
-                    addEvents={this.addEvents}
-                    removeEvents={this.removeEvents}
-                  />
-                ))}
-              </div>
+              {this.state.comments ? (
+                <div id="posted-comments" className="posted-comments">
+                  {this.state.comments.map((comment, i) => (
+                    <CommentBox
+                      key={i}
+                      comment={comment}
+                      videoDetails={this.state.videoDetails}
+                      username={this.state.username}
+                      updateComments={this.updateComments}
+                      removeComment={this.removeComment}
+                      addEvents={this.addEvents}
+                      removeEvents={this.removeEvents}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <div className="loading-comments">
+                  <ThemeProvider theme={theme}>
+                    <CircularProgress />
+                  </ThemeProvider>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -595,21 +651,20 @@ class Watch extends Component {
     );
   }
 }
-let commentClass;
 class CommentBox extends Component {
   constructor() {
     super();
     this.elemRef = React.createRef();
     this.state = {
-      replies: [],
-      ammountReplies: "",
+      replies: null,
+      ammountReplies: 0,
       isEdited: false,
       likeColor: "#909090",
       dislikeColor: "#909090",
       liked: false,
       disliked: false,
-      likes: "",
-      dislikes: "",
+      likes: 0,
+      dislikes: 0,
       nextToken: "",
       openBox: false,
       moreReplies: false,
@@ -617,12 +672,14 @@ class CommentBox extends Component {
       showOptions: false,
       offset: 0,
       replyFieldOpen: false,
+      newReplyValue: "",
+      img: "",
     };
     this._isMounted = false;
   }
-  async componentDidMount() {
+  componentDidMount = async () => {
     this._isMounted = true;
-    commentClass = this;
+    console.log(this.props.comment);
     let commentLikes = await API.graphql(
       graphqlOperation(queries.getCommentLikes, {
         commentID: this.props.comment.id,
@@ -642,6 +699,7 @@ class CommentBox extends Component {
       likes: commentLikes.length,
       dislikes: commentDislikes.length,
       ammountReplies: this.props.comment.ammountReplies,
+      newCommentValue: this.props.comment.comment,
     });
     if (this.props.comment.ammountReplies > 5) {
       this.setState({
@@ -668,41 +726,54 @@ class CommentBox extends Component {
         }
       }
     }
-    document.addEventListener("click", this.checkOutsideClick, false);
-  }
-
-  componentWillUnmount = (async) => {
-    this._isMounted = false;
-    document.removeEventListener("click", this.checkOutsideClick, false);
+    await this.getProfileImg(this.props.comment.username);
   };
-  handleReplies = async (id, el) => {
-    let replyField = el.currentTarget.parentNode.getElementsByTagName("div")[1];
-    let replyArray;
-    if (replyField.innerHTML == "" || !/\S/.test($(replyField).text())) {
-      replyField.parentNode
-        .getElementsByTagName("div")[0]
-        .classList.add("error-visible");
+  getProfileImg = async (username) => {
+    const image = await Storage.vault
+      .get(`profilePhoto.jpg`, {
+        bucket: "user-images-hermes",
+        level: "public",
+        customPrefix: {
+          public: `${username}/`,
+        },
+        progressCallback(progress) {
+          console.log(`Uploaded: ${progress.loaded}/${progress.total}`);
+        },
+      })
+      .then((res) => {
+        return res;
+      });
+    this.setState({ img: image });
+  };
+  handleReplies = async () => {
+    console.log(this.props.username);
+    if (/^\s*$/.test(this.state.newReplyValue)) {
     } else {
-      let reply = $(replyField).text();
-      replyField.innerHTML = "";
-      reply = await API.graphql(
+      let reply = await API.graphql(
         graphqlOperation(mutations.addReply, {
           input: {
             videoID: this.props.comment.videoID,
             username: this.props.username,
-            comment: reply,
-            commentID: id,
+            comment: escape(this.state.newReplyValue),
+            commentID: this.props.comment.id,
           },
         })
       ).then((res) => {
         return res.data.addReply;
       });
-      let replies = this.state.replies;
-      replies.push(reply);
-      this.setState({
-        replies: replies,
-        ammountReplies: this.state.ammountReplies + 1,
-      });
+      if (this.state.replies) {
+        this.setState((prevState) => ({
+          replies: [...prevState.replies, reply],
+          ammountReplies: this.state.ammountReplies + 1,
+          newReplyValue: "",
+        }));
+      } else {
+        this.setState({
+          ammountReplies: this.state.ammountReplies + 1,
+          newReplyValue: "",
+          replyFieldOpen: false,
+        });
+      }
     }
   };
   handleCommentLikes = async (commentID, id) => {
@@ -896,8 +967,8 @@ class CommentBox extends Component {
         dislikeColor: "#909090",
         liked: false,
         disliked: false,
-        likes: "",
-        dislikes: "",
+        likes: 0,
+        dislikes: 0,
         nextToken: "",
         openBox: false,
         moreReplies: false,
@@ -905,11 +976,11 @@ class CommentBox extends Component {
         showOptions: false,
         offset: 0,
         replyFieldOpen: false,
+        newCommentValue: "",
       });
       this.props.removeComment(this.props.comment.id);
     });
   };
-
   editComment = async () => {
     if (isMobile) {
       this.closeMoreOptions();
@@ -920,16 +991,13 @@ class CommentBox extends Component {
   };
 
   saveEdit = async (e) => {
-    const errorNode = e.currentTarget.parentNode.children[0];
-    const editedText = e.currentTarget.parentNode.children[1].innerHTML;
-    if (editedText == "" || !/\S/.test(editedText)) {
-      errorNode.classList.add("error-visible");
+    if (/^\s*$/.test(this.state.newCommentValue)) {
     } else {
       let editedComment = await API.graphql(
         graphqlOperation(mutations.editComment, {
           input: {
             id: this.props.comment.id,
-            comment: editedText,
+            comment: escape(this.state.newCommentValue),
           },
         })
       ).then((res) => {
@@ -964,15 +1032,6 @@ class CommentBox extends Component {
 
     if (isMobile) {
       $("body").addClass("noscroll");
-    }
-  };
-  checkOutsideClick = (e) => {
-    if (!ReactDOM.findDOMNode(this).contains(e.target)) {
-      if (this.state.showOptions === true) {
-        this.setState({
-          showOptions: false,
-        });
-      }
     }
   };
   updateReplies = (editedReply) => {
@@ -1015,7 +1074,7 @@ class CommentBox extends Component {
         openBox: false,
       });
     }
-    if (this.state.replies.length < 1) {
+    if (!this.state.replies) {
       let commentReplies = await API.graphql(
         graphqlOperation(queries.getReplies, {
           offset: this.state.offset,
@@ -1058,7 +1117,16 @@ class CommentBox extends Component {
         {this.state.editable === false ? (
           <div className="comment-details-wrapper">
             <div className="username-wrapper">
-              <Link to={`profile/${this.props.comment.username}`}>
+              <Link
+                className="username-link"
+                to={`/home/users/${this.props.comment.username}`}
+              >
+                <Avatar
+                  style={{ marginRight: "0.25em" }}
+                  width={50}
+                  height={50}
+                  src={this.state.img}
+                />
                 {this.props.comment.username}
               </Link>{" "}
               <TimeAgo
@@ -1069,12 +1137,13 @@ class CommentBox extends Component {
               {" " + (this.state.isEdited === true ? "(edited)" : "")}
             </div>
             <div className="comment">
-              <MDReactComponent text={this.props.comment.comment} />
+              <MDReactComponent text={unescape(this.props.comment.comment)} />
             </div>
             <div className="comment-likes">
-              <button
+              <ButtonBase
                 className="likes-dislikes-buttons"
                 id="reply-like-button"
+                style={{ padding: "10px 0" }}
                 onClick={() =>
                   this.handleCommentLikes(
                     this.props.comment.id,
@@ -1087,8 +1156,9 @@ class CommentBox extends Component {
                   className="fas fa-thumbs-up"
                 ></i>
                 <p>{this.state.likes}</p>
-              </button>
-              <button
+              </ButtonBase>
+              <ButtonBase
+                style={{ padding: "10px 0" }}
                 className="likes-dislikes-buttons"
                 id="reply-dislike-button"
                 onClick={() =>
@@ -1102,16 +1172,17 @@ class CommentBox extends Component {
                   style={{ color: this.state.dislikeColor }}
                   className="fas fa-thumbs-down"
                 ></i>
-              </button>
-              <button
+              </ButtonBase>
+              <ButtonBase
+                style={{ padding: "10px 0" }}
                 onClick={() => this.handleReplyField()}
                 className="likes-dislikes-buttons"
                 id="reply-answer-button"
               >
                 <b>Svara</b>
-              </button>
+              </ButtonBase>
               {this.props.comment.username === this.props.username && (
-                <button
+                <ButtonBase
                   onClick={this.handleMoreOptions}
                   className={
                     "likes-dislikes-buttons tooltip more-options " +
@@ -1140,92 +1211,110 @@ class CommentBox extends Component {
                       </div>
                     </span>
                   )}
-                </button>
+                </ButtonBase>
               )}
             </div>
           </div>
         ) : (
           <div className="edit-comment-field">
-            <div className="error">Kommentaren kan inte vara tom</div>
-            <div
-              contenteditable="true"
-              className="comment-field editable-comment"
-              id="edit-field"
-              placeholder="Lägg till en ny kommentar..."
-              aria-label="Lägg till en ny kommentar..."
-            >
-              {this.props.comment.comment}
-            </div>
-            <button
-              onClick={() => this.setState({ editable: false })}
-              className="comment-submit"
-              id="cancel-comment"
-            >
-              Avbryt
-            </button>
-            <button
+            <ThemeProvider theme={theme}>
+              <TextField
+                onFocus={this.props.removeEvents}
+                onBlur={this.props.addEvents}
+                className="comment-field"
+                id="new-comment"
+                multiline
+                label="Redigera kommentaren"
+                value={unescape(this.state.newCommentValue)}
+                onChange={(e) => {
+                  this.setState({ newCommentValue: e.target.value });
+                }}
+              ></TextField>
+            </ThemeProvider>
+            <Button
               onClick={this.saveEdit}
               className="comment-submit"
-              id="edit-comment"
+              disabled={/^\s*$/.test(this.state.newCommentValue)}
             >
               Spara
-            </button>
+            </Button>
+            <Button
+              onClick={() => this.setState({ editable: false })}
+              className="comment-submit"
+            >
+              Avbryt
+            </Button>
           </div>
         )}
         {this.state.replyFieldOpen === true && (
           <div className="reply-field-container">
-            <div className="error">Kommentaren kan inte vara tom</div>
-            <div
-              onFocus={this.props.removeEvents}
-              onBlur={this.props.addEvents}
-              contenteditable="true"
-              className="comment-field"
-              id="new-reply"
-              placeholder="Lägg till en ny kommentar..."
-              aria-label="Lägg till ett svar..."
-            ></div>
-            <button
+            <ThemeProvider theme={theme}>
+              <TextField
+                onFocus={this.props.removeEvents}
+                onBlur={this.props.addEvents}
+                className="comment-field"
+                id="new-comment"
+                multiline
+                label="Lägg till en ny kommentar"
+                value={this.state.newReplyValue}
+                onChange={(e) => {
+                  this.setState({ newReplyValue: e.target.value });
+                }}
+              ></TextField>
+            </ThemeProvider>
+            <Button
+              onClick={this.handleReplies}
               className="comment-submit"
-              onClick={(el) => this.handleReplies(this.props.comment.id, el)}
-              id="post-reply"
+              id="post-comment"
+              disabled={/^\s*$/.test(this.state.newReplyValue)}
             >
               Svara
-            </button>
+            </Button>
           </div>
         )}
         {this.state.ammountReplies > 0 && (
           <div className="ammount-replies">
             {this.state.openBox === false ? (
-              <div onClick={this.openReplies} className="view-replies">
-                <i
-                  style={{ verticalAlign: "top" }}
-                  className="fas fa-sort-down"
-                ></i>
+              <ButtonBase onClick={this.openReplies} className="view-replies">
+                <ArrowDropDown />
                 {` Visa ${this.state.ammountReplies} svar`}
-              </div>
+              </ButtonBase>
             ) : (
-              <div onClick={this.openReplies} className="view-replies">
-                <i className="fas fa-sort-up"></i>
+              <ButtonBase onClick={this.openReplies} className="view-replies">
+                <ArrowDropUp />
                 {` Dölj svar`}
-              </div>
+              </ButtonBase>
             )}
           </div>
         )}
         {this.state.openBox === true && (
           <div className="replies-container">
-            {this.state.replies.map((reply, i) => (
-              <ReplyBox
-                key={i}
-                reply={reply}
-                username={this.props.username}
-                updateReplies={this.updateReplies}
-                removeReply={this.removeReply}
-              />
-            ))}
-            {this.state.moreReplies == true && (
-              <div onClick={this.loadMoreReplies} className="view-replies">
-                {`Visa fler svar`}
+            {this.state.replies ? (
+              this.state.replies.map((reply, i) => (
+                <ReplyBox
+                  key={i}
+                  reply={reply}
+                  username={this.props.username}
+                  removeEvents={this.props.removeEvents}
+                  addEvents={this.props.addEvents}
+                  updateReplies={this.updateReplies}
+                  removeReply={this.removeReply}
+                />
+              ))
+            ) : (
+              <div className="loading-comments">
+                <ThemeProvider theme={theme}>
+                  <CircularProgress />
+                </ThemeProvider>
               </div>
+            )}
+            {this.state.moreReplies == true && (
+              <ButtonBase
+                onClick={this.loadMoreReplies}
+                className="view-replies"
+              >
+                {`Visa fler svar`}
+              </ButtonBase>
             )}
           </div>
         )}
@@ -1247,12 +1336,15 @@ class ReplyBox extends Component {
       showOptions: false,
       editable: false,
       isEdited: false,
+      newReplyValue: "",
+      img: "",
     };
     this._isMounted = false;
   }
 
   async componentDidMount() {
     this._isMounted = true;
+    this.setState({ newReplyValue: this.props.reply.comment });
     if (this.props.reply.isEdited === true) {
       this.setState({
         isEdited: true,
@@ -1292,12 +1384,25 @@ class ReplyBox extends Component {
         });
       }
     }
+    await this.getProfileImg(this.props.reply.username);
   }
-
-  componentWillUnmount = () => {
-    this._isMounted = false;
+  getProfileImg = async (username) => {
+    const image = await Storage.vault
+      .get(`profilePhoto.jpg`, {
+        bucket: "user-images-hermes",
+        level: "public",
+        customPrefix: {
+          public: `${username}/`,
+        },
+        progressCallback(progress) {
+          console.log(`Uploaded: ${progress.loaded}/${progress.total}`);
+        },
+      })
+      .then((res) => {
+        return res;
+      });
+    this.setState({ img: image });
   };
-
   handleReplyLikes = async (replyID, id) => {
     let username = this.props.username;
 
@@ -1452,15 +1557,6 @@ class ReplyBox extends Component {
       $("body").addClass("noscroll");
     }
   };
-  checkOutsideClick = (e) => {
-    if (!ReactDOM.findDOMNode(this).contains(e.target)) {
-      if (this.state.showOptions === true) {
-        this.setState({
-          showOptions: false,
-        });
-      }
-    }
-  };
   editReply = () => {
     if (isMobile) {
       this.closeMoreOptions();
@@ -1470,16 +1566,13 @@ class ReplyBox extends Component {
     });
   };
   saveEdit = async (e) => {
-    const errorNode = e.currentTarget.parentNode.children[0];
-    const editedText = e.currentTarget.parentNode.children[1].innerHTML;
-    if (editedText == "" || !/\S/.test(editedText)) {
-      errorNode.classList.add("error-visible");
+    if (/^\s*$/.test(this.state.newReplyValue)) {
     } else {
       let editedReply = await API.graphql(
         graphqlOperation(mutations.editReply, {
           input: {
             id: this.props.reply.id,
-            comment: editedText,
+            comment: escape(this.state.newReplyValue),
           },
         })
       ).then((res) => {
@@ -1506,6 +1599,17 @@ class ReplyBox extends Component {
         this.props.removeReply(replyID);
       })
       .catch((err) => {});
+  };
+  isMobile = () => {
+    if (
+      window.matchMedia("(max-width: 813px)").matches ||
+      window.matchMedia("(max-width: 1025px) and (orientation: landscape)")
+        .matches
+    ) {
+      return true;
+    } else {
+      return false;
+    }
   };
   render() {
     return (
@@ -1535,7 +1639,16 @@ class ReplyBox extends Component {
         {this.state.editable === false ? (
           <div className="reply-inner-wrapper">
             <div className="username-wrapper">
-              <Link to={`profile/${this.props.reply.username}`}>
+              <Link
+                className="username-link"
+                to={`/home/users/${this.props.reply.username}`}
+              >
+                <Avatar
+                  style={{ marginRight: "0.25em" }}
+                  width={50}
+                  height={50}
+                  src={this.state.img}
+                />
                 {this.props.reply.username}
               </Link>{" "}
               <TimeAgo
@@ -1546,10 +1659,10 @@ class ReplyBox extends Component {
               {" " + (this.state.isEdited === true ? "(edited)" : "")}
             </div>
             <div className="reply">
-              <MDReactComponent text={this.props.reply.comment} />
+              <MDReactComponent text={unescape(this.props.reply.comment)} />
             </div>
             <div className="comment-likes">
-              <button
+              <ButtonBase
                 className="likes-dislikes-buttons"
                 id="reply-like-button"
                 onClick={() =>
@@ -1564,8 +1677,8 @@ class ReplyBox extends Component {
                   className="fas fa-thumbs-up"
                 ></i>
                 <p>{this.state.likes}</p>
-              </button>
-              <button
+              </ButtonBase>
+              <ButtonBase
                 className="likes-dislikes-buttons"
                 id="reply-dislike-button"
                 onClick={() =>
@@ -1579,9 +1692,9 @@ class ReplyBox extends Component {
                   style={{ color: this.state.dislikeColor }}
                   className="fas fa-thumbs-down"
                 ></i>
-              </button>
+              </ButtonBase>
               {this.props.reply.username === this.props.username && (
-                <button
+                <ButtonBase
                   onClick={this.handleMoreOptions}
                   className={
                     "likes-dislikes-buttons tooltip more-options " +
@@ -1610,36 +1723,39 @@ class ReplyBox extends Component {
                       </div>
                     </span>
                   )}
-                </button>
+                </ButtonBase>
               )}
             </div>
           </div>
         ) : (
           <div className="edit-comment-field">
-            <div className="error">Kommentaren kan inte vara tom</div>
-            <div
-              contenteditable="true"
-              className="comment-field editable-comment"
-              id="edit-field"
-              placeholder="Lägg till en ny kommentar..."
-              aria-label="Lägg till en ny kommentar..."
-            >
-              {this.props.reply.comment}
-            </div>
-            <button
-              onClick={() => this.setState({ editable: false })}
-              className="comment-submit"
-              id="cancel-comment"
-            >
-              Avbryt
-            </button>
-            <button
+            <ThemeProvider theme={theme}>
+              <TextField
+                onFocus={this.props.removeEvents}
+                onBlur={this.props.addEvents}
+                className="comment-field"
+                id="new-comment"
+                multiline
+                label="Redigera kommentaren"
+                value={unescape(this.state.newReplyValue)}
+                onChange={(e) => {
+                  this.setState({ newReplyValue: e.target.value });
+                }}
+              ></TextField>
+            </ThemeProvider>
+            <Button
               onClick={this.saveEdit}
               className="comment-submit"
-              id="edit-comment"
+              disabled={/^\s*$/.test(this.state.newReplyValue)}
             >
               Spara
-            </button>
+            </Button>
+            <Button
+              onClick={() => this.setState({ editable: false })}
+              className="comment-submit"
+            >
+              Avbryt
+            </Button>
           </div>
         )}
       </div>

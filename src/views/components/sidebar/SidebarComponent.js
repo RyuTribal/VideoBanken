@@ -1,103 +1,240 @@
 import React from "react";
-import { Column, Row } from "simple-flexbox";
 import { StyleSheet, css } from "aphrodite";
-import LogoComponent from "./LogoComponent";
-import MenuItemsComponent from "./MenuItemsComponent";
+import PropTypes from "prop-types";
 import { connect } from "react-redux";
+import { Link } from "react-router-dom";
+import { ReactComponent as Logo } from "../../../img/hermes-logo.svg";
+import { Auth, API, graphqlOperation, Storage } from "aws-amplify";
+import {
+  Slider,
+  TextField,
+  Button,
+  IconButton,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
+  Toolbar,
+  AppBar,
+  Typography,
+  Drawer,
+  Hidden,
+  List,
+  ListItem,
+  ListItemIcon,
+  ListItemText,
+  Divider,
+  CssBaseline,
+  Slide,
+  useScrollTrigger,
+  Avatar,
+  InputBase,
+} from "@material-ui/core";
+import { Skeleton, Autocomplete } from "@material-ui/lab";
+import { withStyles, fade } from "@material-ui/core/styles";
+import theme from "../../../theme";
+import grey from "@material-ui/core/colors/grey";
+import {
+  Menu,
+  Inbox,
+  VideoCall,
+  VideoLabel,
+  Group,
+  Search,
+  ExitToApp,
+} from "@material-ui/icons";
+const videoSuggestions = [
+  { title: "The Shawshank Redemption", year: 1994 },
+  { title: "The Godfather", year: 1972 },
+  { title: "The Godfather: Part II", year: 1974 },
+  { title: "The Dark Knight", year: 2008 },
+  { title: "12 Angry Men", year: 1957 },
+  { title: "Schindler's List", year: 1993 },
+  { title: "Pulp Fiction", year: 1994 },
+  { title: "The Lord of the Rings: The Return of the King", year: 2003 },
+  { title: "The Good, the Bad and the Ugly", year: 1966 },
+  { title: "Fight Club", year: 1999 },
+];
+const drawerWidth = 255;
+function HideOnScroll(props) {
+  const { children, window } = props;
+  const trigger = useScrollTrigger({ target: window ? window() : undefined });
 
-const styles = StyleSheet.create({
-  container: {
+  return (
+    <Slide appear={false} direction="down" in={!trigger}>
+      {children}
+    </Slide>
+  );
+}
+
+HideOnScroll.propTypes = {
+  children: PropTypes.element.isRequired,
+  /**
+   * Injected by the documentation to work in an iframe.
+   * You won't need it on your project.
+   */
+  window: PropTypes.func,
+};
+const useStyles = (theme) => ({
+  root: {
+    display: "flex",
+  },
+  appbar: {
+    backgroundColor: "#F7F8FC",
+    color: "black",
+    width: `calc(100% - ${drawerWidth}px)`,
+    marginLeft: drawerWidth,
+    "@media (max-width: 813px)": {
+      width: "100%",
+      marginLeft: 0,
+    },
+    "@media (max-width: 1025px) and (orientation: landscape)": {
+      width: "100%",
+      marginLeft: 0,
+    },
+  },
+  title: {
+    marginLeft: theme.spacing(2),
+    flex: 1,
+  },
+  drawer: {
+    width: drawerWidth,
+    flexShrink: 0,
+    "@media (max-width: 813px)": {
+      width: "initial",
+    },
+    "@media (max-width: 1025px) and (orientation: landscape)": {
+      width: "initial",
+    },
+  },
+  menuButton: {
+    marginRight: theme.spacing(2),
+    display: "none",
+    "@media (max-width: 813px)": {
+      display: "block",
+    },
+    "@media (max-width: 1025px) and (orientation: landscape)": {
+      display: "block",
+    },
+  },
+  // necessary for content to be below app bar
+  toolbar: theme.mixins.toolbar,
+  drawerPaper: {
+    width: drawerWidth,
     backgroundColor: "#263040",
-    minWidth: 255,
-    paddingTop: 32,
-    height: "100vh !important",
-    overflowY: "auto",
     overflowX: "hidden",
-  },
-  menuItemList: {
-    marginTop: 52,
-  },
-  separator: {
-    borderTop: "1px solid #FFF",
-    opacity: 0.06,
-  },
-  burgerIcon: {
-    cursor: "pointer",
-    position: "absolute",
-    left: 24,
-    top: 17,
-    fontSize: 20,
-    zIndex: 5,
-  },
-  containerMobile: {
-    transition: "left 0.2s, right 0.2s",
-    position: "absolute",
-    width: 255,
-    height: "100vh",
-    zIndex: 901,
-  },
-  mainContainer: {
-    height: "100%",
-    minHeight: "100vh",
-  },
-  mainContainerMobile: {
-    position: "absolute",
-    width: "100vw",
-    minWidth: "100%",
-    height: "calc(100% - 32px)",
-    top: 0,
-    left: 0,
-  },
-  outsideLayer: {
-    position: "absolute",
-    width: "100vw",
-    minWidth: "100%",
-    height: "100%",
-    backgroundColor: "rgba(0,0,0,.50)",
-    zIndex: 100,
-  },
-  hide: {
-    left: -255,
-  },
-  show: {
-    left: 0,
-  },
-  logout: {
-    height: 56,
-    cursor: "pointer",
-    ":hover i": {
-      opacity: "1",
-    },
-    ":hover span": {
-      opacity: "1",
-    },
-    paddingLeft: 32,
-    paddingRight: 32,
-  },
-  logoutTitle: {
-    fontSize: 16,
-    lineHeight: "20px",
-    letterSpacing: "0.2px",
+    overflowY: "auto",
     color: "#fbf9f9",
-    opacity: "0.7",
-    marginLeft: 24,
-    transition: "0.4s",
     textTransform: "uppercase",
   },
-  logoutIcon: {
+  listIcon: {
     color: "#fbf9f9",
+  },
+  titleContainer: {
     opacity: "0.7",
-    transition: "0.4s",
+    "&:hover": {
+      opacity: 1,
+    },
+  },
+  activeTitle: {
+    color: "#ea3a3a",
+    opacity: 1,
+    backgroundColor: "#1e2633",
+  },
+  activeIcon: {
+    color: "#ea3a3a",
+    opacity: 1,
+  },
+  content: {
+    flexGrow: 1,
+    padding: theme.spacing(3),
+  },
+  link: {
+    textDecoration: "none",
+    color: "inherit",
+    ":hover": {
+      textDecoration: "none",
+      color: "inherit",
+    },
+    ":focus": {
+      textDecoration: "none",
+      color: "inherit",
+    },
+  },
+  profileWrapper: {
+    width: "100%",
+    display: "flex",
+    alignItems: "center",
+    flexDirection: "column",
+    padding: theme.spacing(3),
+    color: "inherit",
+    textDecoration: "none",
+    textTransform: "none",
+  },
+  username: {
+    color: "#666666",
+    fontSize: 11,
+  },
+  large: {
+    width: theme.spacing(7),
+    height: theme.spacing(7),
+  },
+  search: {
+    position: "relative",
+    borderRadius: theme.shape.borderRadius,
+    backgroundColor: fade(grey[500], 0.15),
+    "&:hover": {
+      backgroundColor: fade(grey[500], 0.25),
+    },
+    borderColor: grey[300],
+    border: "1px solid",
+    marginRight: "auto",
+    marginLeft: "auto",
+    width: "100%",
+    [theme.breakpoints.up("sm")]: {
+      // marginLeft: theme.spacing(3),
+      width: "auto",
+    },
+  },
+  searchIcon: {
+    padding: theme.spacing(0, 2),
+    height: "100%",
+    position: "absolute",
+    pointerEvents: "none",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  inputRoot: {
+    color: "inherit",
+  },
+  inputInput: {
+    padding: theme.spacing(1, 1, 1, 0),
+    // vertical padding + font size from searchIcon
+    paddingLeft: `calc(1em + ${theme.spacing(4)}px)`,
+    transition: theme.transitions.create("width"),
+    width: "100%",
+    [theme.breakpoints.up("md")]: {
+      width: "20ch",
+    },
   },
 });
-
 class SidebarComponent extends React.Component {
   constructor() {
     super();
     this.state = {
-      expanded: false,
+      mobileOpen: false,
+      profileImg: "",
+      loading: true,
     };
   }
+  componentDidUpdate = (prevProps) => {
+    if (prevProps.state.user !== this.props.state.user) {
+      this.setState({ loading: true });
+      this.getProfileImg();
+    }
+  };
   onItemClicked = (item) => {
     this.setState({ expanded: false });
   };
@@ -113,120 +250,202 @@ class SidebarComponent extends React.Component {
       return false;
     }
   };
+  getProfileImg = async () => {
+    console.log("here");
+    await Storage.vault
+      .get(`profilePhoto.jpg`, {
+        bucket: "user-images-hermes",
+        level: "public",
+        customPrefix: {
+          public: `${this.props.state.user.username}/`,
+        },
+        progressCallback(progress) {
+          console.log(`Uploaded: ${progress.loaded}/${progress.total}`);
+        },
+      })
+      .then((res) => {
+        console.log(res);
+        this.setState({ profileImg: res, loading: false });
+      });
+  };
+  render() {
+    const { classes } = this.props;
+    const drawer = (
+      <div className={classes.drawer}>
+        <div className={classes.toolbar}>
+          {this.state.loading ? (
+            <div className={classes.profileWrapper}>
+              <Skeleton variant="circle" className={classes.large} />
+              <Skeleton width={98} variant="text" />
+              <Skeleton width={59} variant="text" />
+            </div>
+          ) : (
+            <Link
+              to={`/home/users/${
+                this.props.state.user ? this.props.state.user.username : ""
+              }`}
+              onClick={() => this.setState({ mobileOpen: false })}
+              className={classes.profileWrapper}
+            >
+              <Avatar
+                alt="profile-image"
+                src={this.state.profileImg}
+                className={classes.large}
+              />
+              <Typography>
+                {this.props.state.user ? this.props.state.user.fullName : ""}
+              </Typography>
+              <Typography className={classes.username}>
+                {this.props.state.user
+                  ? `@${this.props.state.user.username}`
+                  : ""}
+              </Typography>
+            </Link>
+          )}
+        </div>
 
-  toggleMenu = () =>
-    this.setState((prevState) => ({ expanded: !prevState.expanded }));
-
-  renderBurger = () => {
-    return (
-      <div onClick={this.toggleMenu} className={css(styles.burgerIcon)}>
-        <i className="fas fa-bars"></i>
+        <Divider />
+        <List>
+          {[
+            { text: "Feed", link: "/home" },
+            { text: "Inbox", link: "/home/inbox" },
+            { text: "Huddinge P06", link: "/home/team" },
+          ].map((item, index) => (
+            <Link
+              onClick={() => this.setState({ mobileOpen: false })}
+              className={classes.link}
+              to={item.link}
+            >
+              <ListItem
+                className={
+                  this.props.selectedItem === item.text
+                    ? classes.activeTitle
+                    : classes.titleContainer
+                }
+                button
+                key={item.text}
+              >
+                <ListItemIcon
+                  className={
+                    this.props.selectedItem === item.text
+                      ? classes.activeIcon
+                      : classes.listIcon
+                  }
+                >
+                  {index === 0 && <VideoLabel />}
+                  {index === 1 && <Inbox />}
+                  {index === 2 && <Group />}
+                </ListItemIcon>
+                <ListItemText primary={item.text} />
+              </ListItem>
+            </Link>
+          ))}
+        </List>
+        <Divider />
+        <List>
+          {["Logga ut"].map((text, index) => (
+            <ListItem
+              className={
+                this.props.selectedItem === text
+                  ? classes.activeTitle
+                  : classes.titleContainer
+              }
+              button
+              key={text}
+            >
+              <ListItemIcon
+                className={
+                  this.props.selectedItem === text
+                    ? classes.activeIcon
+                    : classes.listIcon
+                }
+              >
+                {index === 0 && <ExitToApp />}
+              </ListItemIcon>
+              <ListItemText primary={text} />
+            </ListItem>
+          ))}
+        </List>
       </div>
     );
-  };
-
-  render() {
     return (
-      <div style={{ position: "relative" }}>
-        <Row
-          className={css(
-            styles.mainContainer,
-            this.isMobile() === true && styles.mainContainerMobile
-          )}
-        >
-          {this.isMobile() === true &&
-            !this.state.expanded &&
-            this.renderBurger()}
-          <Column
-            className={css(
-              styles.container,
-              this.isMobile() === true && styles.containerMobile,
-              this.state.expanded ? styles.show : styles.hide
-            )}
-          >
-            <LogoComponent />
-            <Column className={css(styles.menuItemList)}>
-              <MenuItemsComponent
-                title="Feed"
-                icon="fas fa-tv"
-                onClick={() => this.onItemClicked("Feed")}
-                active={this.props.selectedItem === "Feed"}
-                link="/home/"
-              />
-              <MenuItemsComponent
-                title="Inbox"
-                icon="fas fa-envelope"
-                hasNotifications={true}
-                notifications={this.props.state.notifications.length}
-                username={this.props.username}
-                onClick={() => this.onItemClicked("Inbox")}
-                active={this.props.selectedItem === "Inbox"}
-                link="/home/inbox"
-              />
-              <div className={css(styles.separator)}></div>
-              <MenuItemsComponent
-                title="Profil"
-                icon="fas fa-user"
-                onClick={() => this.onItemClicked("Profil")}
-                active={this.props.selectedItem === "Profil"}
-                link={`/home/users/${this.props.username}`}
-              />
-              <MenuItemsComponent
-                title="Huddinge P06"
-                icon="fas fa-users"
-                onClick={() => this.onItemClicked("Team")}
-                active={this.props.selectedItem === "Team"}
-                link={`/home/team/`} //'/home/teams/${this.props.team}'
-              />
-              {/* <MenuItemsComponent
-                title="Tickets"
-                icon="fas fa-user"
-                onClick={() => this.onItemClicked("Tickets")}
-                active={this.props.selectedItem === "Tickets"}
-              />
-              <MenuItemsComponent
-                title="Ideas"
-                icon="fas fa-user"
-                onClick={() => this.onItemClicked("Ideas")}
-                active={this.props.selectedItem === "Ideas"}
-              />
-              <MenuItemsComponent
-                title="Contacts"
-                icon="fas fa-user"
-                onClick={() => this.onItemClicked("Contacts")}
-                active={this.props.selectedItem === "Contacts"}
-              />
-              <MenuItemsComponent
-                title="Agents"
-                icon="fas fa-user"
-                onClick={() => this.onItemClicked("Agents")}
-                active={this.props.selectedItem === "Agents"}
-              />
-              <MenuItemsComponent
-                title="Articles"
-                icon="fas fa-user"
-                onClick={() => this.onItemClicked("Articles")}
-                active={this.props.selectedItem === "Articles"}
-              /> */}
-              <Row
-                onClick={this.props.logout}
-                className={css(styles.logout)}
-                vertical="center"
+      <div className={classes.root}>
+        <CssBaseline />
+        <HideOnScroll {...this.props}>
+          <AppBar position="fixed" className={classes.appbar}>
+            <Toolbar style={{ width: "100%" }}>
+              <IconButton
+                color="inherit"
+                aria-label="open drawer"
+                edge="start"
+                onClick={() => this.setState({ mobileOpen: true })}
+                className={classes.menuButton}
               >
-                <i
-                  className={`${css(styles.logoutIcon)} fas fa-sign-out-alt`}
-                ></i>
-                <span className={css(styles.logoutTitle)}>Logga ut</span>
-              </Row>
-            </Column>
-          </Column>
-          {this.isMobile() === true && this.state.expanded && (
-            <div
-              className={css(styles.outsideLayer)}
-              onClick={this.toggleMenu}
-            ></div>
+                <Menu />
+              </IconButton>
+              <Typography variant="h6">{this.props.title}</Typography>
+              {!this.isMobile() ? (
+                <div className={classes.search}>
+                  <div className={classes.searchIcon}>
+                    <Search />
+                  </div>
+                  <InputBase
+                    placeholder="Sök…"
+                    classes={{
+                      root: classes.inputRoot,
+                      input: classes.inputInput,
+                    }}
+                    inputProps={{ "aria-label": "search" }}
+                  />
+                </div>
+              ) : (
+                <IconButton
+                  style={{ marginLeft: "auto" }}
+                  // onClick={this.props.videoModal}
+                  color="inherit"
+                >
+                  <Search />
+                </IconButton>
+              )}
+
+              <IconButton
+                style={{ marginRight: "0" }}
+                onClick={this.props.videoModal}
+                color="inherit"
+              >
+                <VideoCall />
+              </IconButton>
+            </Toolbar>
+          </AppBar>
+        </HideOnScroll>
+        <nav className={classes.drawer} aria-label="mailbox folders">
+          {this.isMobile() ? (
+            <Drawer
+              variant="temporary"
+              anchor={theme.direction === "rtl" ? "right" : "left"}
+              open={this.state.mobileOpen}
+              onClose={() => this.setState({ mobileOpen: false })}
+              classes={{
+                paper: classes.drawerPaper,
+              }}
+              ModalProps={{
+                keepMounted: true, // Better open performance on mobile.
+              }}
+            >
+              {drawer}
+            </Drawer>
+          ) : (
+            <Drawer
+              classes={{
+                paper: classes.drawerPaper,
+              }}
+              variant="permanent"
+              open
+            >
+              {drawer}
+            </Drawer>
           )}
-        </Row>
+        </nav>
       </div>
     );
   }
@@ -259,5 +478,5 @@ function mapDispatchToProps(dispatch) {
       dispatch({ type: "REMOVE_NOTIFICATIONS", id: id }),
   };
 }
-
-export default connect(mapStateToProps, mapDispatchToProps)(SidebarComponent);
+const StyledSideBar = withStyles(useStyles)(SidebarComponent);
+export default connect(mapStateToProps, mapDispatchToProps)(StyledSideBar);

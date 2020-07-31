@@ -13,6 +13,18 @@ import {
   FormattedTime,
 } from "react-player-controls-touch";
 import IdleTimer from "react-idle-timer";
+import { IconButton } from "@material-ui/core";
+import {
+  PlayArrow,
+  Pause,
+  Replay,
+  VolumeUp,
+  VolumeDown,
+  VolumeOff,
+  Settings,
+  Fullscreen,
+  FullscreenExit,
+} from "@material-ui/icons";
 
 class Player extends Component {
   constructor() {
@@ -201,23 +213,23 @@ class Player extends Component {
   setQuality = async () => {
     if (this.state.selectedQuality === "auto") {
       this.setState({
-        video: `http://d2pfjxfjra8lmf.cloudfront.net/${this.props.videoID}/hls/${this.props.videoID}.m3u8`,
+        video: `https://d2pfjxfjra8lmf.cloudfront.net/${this.props.videoID}/hls/${this.props.videoID}.m3u8`,
       });
     } else if (this.state.selectedQuality === "360p") {
       this.setState({
-        video: `http://d2pfjxfjra8lmf.cloudfront.net/${this.props.videoID}/hls/${this.props.videoID}_Ott_Hls_Ts_Avc_Aac_16x9_640x360p_30Hz_1.2Mbps_qvbr.m3u8`,
+        video: `https://d2pfjxfjra8lmf.cloudfront.net/${this.props.videoID}/hls/${this.props.videoID}_Ott_Hls_Ts_Avc_Aac_16x9_640x360p_30Hz_1.2Mbps_qvbr.m3u8`,
       });
     } else if (this.state.selectedQuality === "540p") {
       this.setState({
-        video: `http://d2pfjxfjra8lmf.cloudfront.net/${this.props.videoID}/hls/${this.props.videoID}_Ott_Hls_Ts_Avc_Aac_16x9_960x540p_30Hz_3.5Mbps_qvbr.m3u8`,
+        video: `https://d2pfjxfjra8lmf.cloudfront.net/${this.props.videoID}/hls/${this.props.videoID}_Ott_Hls_Ts_Avc_Aac_16x9_960x540p_30Hz_3.5Mbps_qvbr.m3u8`,
       });
     } else if (this.state.selectedQuality === "720p") {
       this.setState({
-        video: `http://d2pfjxfjra8lmf.cloudfront.net/${this.props.videoID}/hls/${this.props.videoID}_Ott_Hls_Ts_Avc_Aac_16x9_1280x720p_30Hz_5.0Mbps_qvbr.m3u8`,
+        video: `https://d2pfjxfjra8lmf.cloudfront.net/${this.props.videoID}/hls/${this.props.videoID}_Ott_Hls_Ts_Avc_Aac_16x9_1280x720p_30Hz_5.0Mbps_qvbr.m3u8`,
       });
     } else if (this.state.selectedQuality === "1080p") {
       this.setState({
-        video: `http://d2pfjxfjra8lmf.cloudfront.net/${this.props.videoID}/hls/${this.props.videoID}_Ott_Hls_Ts_Avc_Aac_16x9_1920x1080p_30Hz_8.5Mbps_qvbr.m3u8`,
+        video: `https://d2pfjxfjra8lmf.cloudfront.net/${this.props.videoID}/hls/${this.props.videoID}_Ott_Hls_Ts_Avc_Aac_16x9_1920x1080p_30Hz_8.5Mbps_qvbr.m3u8`,
       });
     }
   };
@@ -1098,13 +1110,24 @@ class Player extends Component {
     ) {
       let timeout;
       (() => {
-        clearTimeout(timeout);
+        clearTimeout(timeout); 
         timeout = setTimeout(() => {
           if (this._isMounted) {
             this.setState({ isTimedOut: true });
           }
         }, 3000);
       })();
+    }
+  };
+  isMobile = () => {
+    if (
+      window.matchMedia("(max-width: 813px)").matches ||
+      window.matchMedia("(max-width: 1025px) and (orientation: landscape)")
+        .matches
+    ) {
+      return true;
+    } else {
+      return false;
     }
   };
   render() {
@@ -1136,6 +1159,73 @@ class Player extends Component {
               })}
             </div>
             <FormattedTime numSeconds={this.state.hoveredTime} />
+          </div>
+        )}
+        {this.isMobile() && (
+          <div
+            className={`video-overlay ${
+              this.state.mobileVideoOverlay ? "video-overlay-active" : ""
+            }`}
+            onClick={() => this.setState({ mobileVideoOverlay: false })}
+          >
+            <div className="play-wrapper">
+              <Button
+                className="play-button-mobile"
+                onClick={(e) => this.startVideo(e)}
+              >
+                {this.state.play === false && this.state.pause === true && (
+                  <i className="fas fa-play"></i>
+                )}
+                {this.state.pause === false && this.state.play === true && (
+                  <i className="fas fa-pause"></i>
+                )}
+                {this.state.pause === false && this.state.play === false && (
+                  <i className="fas fa-redo"></i>
+                )}
+              </Button>
+            </div>
+            <div
+              onClick={(e) => {
+                e.stopPropagation();
+              }}
+              className="time-slider-wrapper"
+            >
+              <div className="time-slider-pad">
+                <div className="video-time-wrapper-mobile">
+                  <FormattedTime numSeconds={this.state.videoPlayed} />/
+                  <FormattedTime numSeconds={this.state.videoDuration} />
+                </div>
+                <Slider
+                  className="player-bar-mobile"
+                  direction={Direction.HORIZONTAL}
+                  isEnabled
+                  onIntent={(intent) => this.handleHover(intent)}
+                  onIntentEnd={() => this.handleEndHover()}
+                  onChange={(newValue) => this.handleSliderClick(newValue)}
+                  onChangeStart={(startValue) =>
+                    this.handleSliderStart(startValue)
+                  }
+                  onChangeEnd={(endValue) => this.handleSliderEnd(endValue)}
+                >
+                  <div
+                    className="video-loaded-mobile"
+                    style={{
+                      width: `${this.state.videoLoadedPercent}%`,
+                    }}
+                  ></div>
+                  <div className="video-played-wrapper">
+                    <div
+                      className="video-played-mobile"
+                      style={{
+                        width: `${this.state.videoPlayedPercent}%`,
+                      }}
+                    ></div>
+                    <div className="slider-circle-mobile"></div>
+                  </div>
+                  <div className="video-duration"></div>
+                </Slider>
+              </div>
+            </div>
           </div>
         )}
         <div className="player-container">
@@ -1215,34 +1305,28 @@ class Player extends Component {
               <div className="video-duration"></div>
             </Slider>
             <div className="player-btns">
-              <Button onClick={() => this.startVideo()}>
+              <IconButton onClick={() => this.startVideo()}>
                 {this.state.play === false && this.state.pause === true && (
-                  <i className="fas fa-play"></i>
+                  <PlayArrow />
                 )}
                 {this.state.pause === false && this.state.play === true && (
-                  <i className="fas fa-pause"></i>
+                  <Pause />
                 )}
                 {this.state.pause === false && this.state.play === false && (
-                  <i className="fas fa-redo"></i>
+                  <Replay />
                 )}
-              </Button>
+              </IconButton>
               <div className="volume-wrapper">
-                <Button
+                <IconButton
                   className="volume-button"
                   onClick={() => this.handleSound()}
                 >
                   {this.state.muted === false &&
-                    this.state.volumeLevel > 0.5 && (
-                      <i className="fas fa-volume-up"></i>
-                    )}
+                    this.state.volumeLevel > 0.5 && <VolumeUp />}
                   {this.state.muted === false &&
-                    this.state.volumeLevel <= 0.5 && (
-                      <i className="fas fa-volume-down"></i>
-                    )}
-                  {this.state.muted === true && (
-                    <i className="fas fa-volume-mute"></i>
-                  )}
-                </Button>
+                    this.state.volumeLevel <= 0.5 && <VolumeDown />}
+                  {this.state.muted === true && <VolumeOff />}
+                </IconButton>
                 <Slider
                   className="volume-bar"
                   direction={Direction.HORIZONTAL}
@@ -1473,25 +1557,25 @@ class Player extends Component {
                         )}
                     </span>
                   )}
-                  <Button onClick={this.handleSettings} id="cog-button">
-                    <i
-                      className={`fas fa-cog tooltip ${
+                  <IconButton onClick={this.handleSettings} id="cog-button">
+                    <Settings
+                      className={`tooltip ${
                         this.state.cogOpen === true ? "open-cog" : "closed-cog"
                       }`}
-                    ></i>
-                  </Button>
+                    />
+                  </IconButton>
                 </div>
                 <div className="pip-wrapper">
                   <Button onClick={() => this.setState({ pip: true })}>
-                    <i className="fas fa-clone"></i>
+                    <i style={{ color: "white" }} className="fas fa-clone"></i>
                   </Button>
                 </div>
                 <div className="fullScreen-wrapper">
                   <Button onClick={this.toggleFullScreen}>
                     {this.state.fullScreen === false ? (
-                      <i className="fas fa-expand"></i>
+                      <Fullscreen />
                     ) : (
-                      <i className="fas fa-compress"></i>
+                      <FullscreenExit />
                     )}
                   </Button>
                 </div>

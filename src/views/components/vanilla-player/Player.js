@@ -2,6 +2,9 @@ import React, { Component } from "react";
 import ReactDOM from "react-dom";
 import { BrowserRouter, Switch, Route, Link } from "react-router-dom";
 import ReactPlayer from "react-player";
+import { Auth, Hub, Storage, API, graphqlOperation } from "aws-amplify";
+import * as queries from "../../../graphql/queries";
+import * as mutations from "../../../graphql/mutations";
 import {
   Slider,
   Direction,
@@ -10,14 +13,72 @@ import {
   FormattedTime,
 } from "react-player-controls-touch";
 import IdleTimer from "react-idle-timer";
-
+import {
+  IconButton,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  NativeSelect,
+  DialogActions,
+  InputLabel,
+  Menu,
+} from "@material-ui/core";
+import {
+  PlayArrow,
+  Pause,
+  Replay,
+  VolumeUp,
+  VolumeDown,
+  VolumeOff,
+  Settings,
+  Fullscreen,
+  FullscreenExit,
+  Image,
+  PictureInPictureAlt,
+} from "@material-ui/icons";
+import theme from "../../../theme";
+import {
+  withStyles,
+  createMuiTheme,
+  ThemeProvider,
+} from "@material-ui/core/styles";
+const useStyles = (theme) => ({
+  playButtonMobile: {
+    fontSize: 30,
+    color: "#fbf9f9",
+    textShadow: "rgb(0, 0, 0) 1px 0 20px",
+  },
+  playButtonIcon: {
+    width: 70,
+    height: 70,
+  },
+  fullscreenMobile: {
+    marginLeft: "auto",
+    marginRight: 0,
+    color: "white",
+  },
+  mobileSettings: {
+    position: "absolute",
+    top: 0,
+    right: 0,
+    color: "white",
+  },
+  nativeSelect: {
+    width: "100%",
+  },
+  label: {
+    marginTop: 10,
+  },
+});
+const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
 class Player extends Component {
   constructor() {
     super();
     this._isMounted = false;
     this.state = {
-      play: false,
-      pause: true,
+      play: true,
+      pause: false,
+      videoCurrentTime: 0,
       videoDuration: 0,
       videoWatched: 0,
       videoLoaded: 0,
@@ -40,13 +101,22 @@ class Player extends Component {
       mouseOver: false,
       replay: false,
       mobileVideoOverlay: false,
+      selectedQuality: "auto",
+      qualities: ["auto", "360p", "540p", "720p", "1080p"],
+      thumbs: [],
+      mobileSettingsOpen: false,
     };
     this.idleTimer = null;
+    this.speedRef = React.createRef();
+    this.qualityRef = React.createRef();
     this.canvasRef = React.createRef();
+    this.speedOptions = [0.25, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2];
   }
   componentDidMount = () => {
     console.log(this.state.volumeLevel);
     this._isMounted = true;
+    if (!this.props.fileVideo) {
+    }
     if (this.props.fullscreen) {
       document.addEventListener("fullscreenchange", (event) => {
         if (document.fullscreenElement && this._isMounted) {
@@ -96,6 +166,63 @@ class Player extends Component {
       document.addEventListener("keydown", this.handleVideoShortcuts);
     }
   };
+  componentDidUpdate = async (prevProps) => {
+    if (prevProps.video !== this.props.video) {
+      this.setState({
+        video: this.props.video,
+        videoWatched: 0,
+        videoLoaded: 0,
+        videoLoadedPercent: 0,
+        videoPlayedPercent: 0,
+      });
+    }
+    if (prevProps.videoID !== this.props.videoID) {
+      API.graphql(
+        graphqlOperation(queries.getVideoSize, {
+          guid: this.props.videoID,
+        })
+      ).then((res) => {
+        if (res.data.getVideoSize.srcHeight === 720) {
+          this.setState({ qualities: ["auto", "360p", "540p", "720p"] });
+        }
+      });
+      await this.setQuality();
+      if (this.state.thumbs.length === 0) {
+        let thumbs = await Storage.vault
+          .list("thumbnails/", {
+            bucket: "vod-destination-1uukav97fprkq",
+            level: "public",
+            customPrefix: { public: `${this.props.videoID}/` },
+          })
+          .then((res) => {
+            return res;
+          });
+        for (let i = 0; i < thumbs.length; i++) {
+          await Storage.vault
+            .get(thumbs[i].key, {
+              bucket: "vod-destination-1uukav97fprkq",
+              level: "public",
+              customPrefix: { public: `${this.props.videoID}/` },
+            })
+            .then((res) => {
+              const videoDuration = this.player.getDuration();
+              this.setState({
+                thumbs: [
+                  ...this.state.thumbs,
+                  {
+                    link: res,
+                    key: thumbs[i].key,
+                    start: (videoDuration / thumbs.length) * i,
+                    end: (videoDuration / thumbs.length) * (i + 1),
+                    index: i,
+                  },
+                ],
+              });
+            });
+        }
+      }
+    }
+  };
   componentWillUnmount = () => {
     this._isMounted = false;
     if (this.props.fullscreen) {
@@ -136,6 +263,64 @@ class Player extends Component {
     }
     clearInterval();
   };
+  setQuality = async () => {
+    console.log("hey");
+    if (this.state.selectedQuality === "auto") {
+      this.setState({
+        video: `https://d2pfjxfjra8lmf.cloudfront.net/${this.props.videoID}/hls/${this.props.videoID}.m3u8`,
+      });
+    } else if (this.state.selectedQuality === "360p") {
+      this.setState({
+        video: `https://d2pfjxfjra8lmf.cloudfront.net/${this.props.videoID}/hls/${this.props.videoID}_Ott_Hls_Ts_Avc_Aac_16x9_640x360p_30Hz_1.2Mbps_qvbr.m3u8`,
+      });
+    } else if (this.state.selectedQuality === "540p") {
+      this.setState({
+        video: `https://d2pfjxfjra8lmf.cloudfront.net/${this.props.videoID}/hls/${this.props.videoID}_Ott_Hls_Ts_Avc_Aac_16x9_960x540p_30Hz_3.5Mbps_qvbr.m3u8`,
+      });
+    } else if (this.state.selectedQuality === "720p") {
+      this.setState({
+        video: `https://d2pfjxfjra8lmf.cloudfront.net/${this.props.videoID}/hls/${this.props.videoID}_Ott_Hls_Ts_Avc_Aac_16x9_1280x720p_30Hz_5.0Mbps_qvbr.m3u8`,
+      });
+    } else if (this.state.selectedQuality === "1080p") {
+      this.setState({
+        video: `https://d2pfjxfjra8lmf.cloudfront.net/${this.props.videoID}/hls/${this.props.videoID}_Ott_Hls_Ts_Avc_Aac_16x9_1920x1080p_30Hz_8.5Mbps_qvbr.m3u8`,
+      });
+    }
+  };
+  handleReadyPlayer = () => {
+    let player = this.player.getInternalPlayer();
+    window.setInterval(() => {
+      if (!player.paused) {
+        if (Math.round(player.currentTime) < this.state.videoWatched) {
+        } else if (Math.round(player.currentTime) > this.state.videoWatched) {
+          if (this._isMounted) {
+            this.setState({ videoWatched: this.state.videoWatched + 1 });
+            this.sendView(player);
+          }
+        }
+      } else if (!player.paused && this._isMounted) {
+        if (this.state.replay === false && this._isMounted) {
+          this.setState({ pause: true, play: false });
+        }
+      }
+    }, 1000);
+  };
+  async sendView(player) {
+    let watchTimeLimit = 0;
+    if (this.state.videoDuration < 30) {
+      watchTimeLimit = Math.floor(this.state.videoDuration);
+    } else {
+      watchTimeLimit = 30;
+    }
+    if (this.state.videoWatched == watchTimeLimit && this._isMounted) {
+      clearInterval();
+      await API.graphql(
+        graphqlOperation(mutations.sendView, {
+          id: this.props.videoID,
+        })
+      );
+    }
+  }
   handleVideoShortcuts = (event) => {
     const player = this.player.getInternalPlayer();
     switch (event.keyCode) {
@@ -797,7 +982,9 @@ class Player extends Component {
 
     if (this.player) {
       let player = this.player.getInternalPlayer();
-      player.currentTime = this.state.videoPlayed;
+      try {
+        player.currentTime = this.state.videoPlayed;
+      } catch {}
     }
   };
 
@@ -1004,7 +1191,28 @@ class Player extends Component {
       this.props.sendThumbnail(dataURL);
     }
   };
+  handleMobileModalSave = async () => {
+    if (this.speedRef.current && this.qualityRef.current) {
+      const oldQuality = this.state.selectedQuality;
+      const currentTime = this.player.getCurrentTime();
+      console.log(currentTime);
+      this.setState(
+        {
+          playBackRate: this.speedRef.current.childNodes[0].value,
+          selectedQuality: this.qualityRef.current.childNodes[0].value,
+          videoCurrentTime: currentTime,
+          mobileSettingsOpen: false,
+        },
+        () => {
+          if (this.state.selectedQuality !== oldQuality) {
+            this.setQuality();
+          }
+        }
+      );
+    }
+  };
   render() {
+    const { classes } = this.props;
     return (
       <div
         className="player-wrapper"
@@ -1016,13 +1224,81 @@ class Player extends Component {
         onClick={() => this.setState({ isTimedOut: false })}
       >
         <canvas ref={this.canvasRef} style={{ display: "none" }}></canvas>
+        <Dialog
+          open={this.state.mobileSettingsOpen}
+          onClose={() => this.setState({ mobileSettingsOpen: false })}
+        >
+          <DialogTitle id="form-dialog-title">Video Inställningar</DialogTitle>
+          <DialogContent>
+            <ThemeProvider theme={theme}>
+              <InputLabel className={classes.label} htmlFor="speed">
+                Hastighet
+              </InputLabel>
+              <NativeSelect
+                inputProps={{
+                  name: "hastighet",
+                  id: "speed",
+                }}
+                className={classes.nativeSelect}
+                defaultValue={this.state.playBackRate}
+                ref={this.speedRef}
+              >
+                {this.speedOptions.map((option, i) => (
+                  <option value={option}>
+                    {option !== 1 ? option : "Normal"}
+                  </option>
+                ))}
+              </NativeSelect>
+              <InputLabel className={classes.label} htmlFor="quality">
+                Kvalite
+              </InputLabel>
+              <NativeSelect
+                inputProps={{
+                  name: "kvalite",
+                  id: "quality",
+                }}
+                className={classes.nativeSelect}
+                name="Kvalite"
+                defaultValue={this.state.selectedQuality}
+                ref={this.qualityRef}
+              >
+                {this.state.qualities.map((quality, i) => (
+                  <option key={i} value={quality}>
+                    {quality}
+                  </option>
+                ))}
+              </NativeSelect>
+            </ThemeProvider>
+          </DialogContent>
+          <DialogActions>
+            <IconButton
+              onClick={() => this.handleMobileModalSave()}
+              color="inherit"
+            >
+              OK
+            </IconButton>
+          </DialogActions>
+        </Dialog>
         {this.state.showTime && (
           <div
             className="video-time"
             style={{ right: `${this.state.hoveredPos}%` }}
           >
-            {this.state.timeThumb && <div className="frame-image"></div>}
-
+            <div className="frame-image">
+              {this.state.thumbs.map((thumb) => {
+                return this.state.hoveredTime >= thumb.start &&
+                  this.state.hoveredTime < thumb.end ? (
+                  <img
+                    onError={() => {
+                      this.replaceThumb(thumb.key, thumb.index);
+                    }}
+                    src={thumb.link}
+                  ></img>
+                ) : (
+                  ""
+                );
+              })}
+            </div>
             <FormattedTime numSeconds={this.state.hoveredTime} />
           </div>
         )}
@@ -1033,21 +1309,35 @@ class Player extends Component {
             }`}
             onClick={() => this.setState({ mobileVideoOverlay: false })}
           >
+            {this.props.settings && (
+              <IconButton
+                className={classes.mobileSettings}
+                onClick={() => this.setState({ mobileSettingsOpen: true })}
+                id="cog-button"
+              >
+                <Settings
+                  className={`tooltip ${
+                    this.state.cogOpen === true ? "open-cog" : "closed-cog"
+                  }`}
+                />
+              </IconButton>
+            )}
+
             <div className="play-wrapper">
-              <Button
-                className="play-button-mobile"
+              <IconButton
+                className={classes.playButtonMobile}
                 onClick={(e) => this.startVideo(e)}
               >
                 {this.state.play === false && this.state.pause === true && (
-                  <i className="fas fa-play"></i>
+                  <PlayArrow className={classes.playButtonIcon} />
                 )}
                 {this.state.pause === false && this.state.play === true && (
-                  <i className="fas fa-pause"></i>
+                  <Pause className={classes.playButtonIcon} />
                 )}
                 {this.state.pause === false && this.state.play === false && (
-                  <i className="fas fa-redo"></i>
+                  <Replay className={classes.playButtonIcon} />
                 )}
-              </Button>
+              </IconButton>
             </div>
             <div
               onClick={(e) => {
@@ -1059,6 +1349,18 @@ class Player extends Component {
                 <div className="video-time-wrapper-mobile">
                   <FormattedTime numSeconds={this.state.videoPlayed} />/
                   <FormattedTime numSeconds={this.state.videoDuration} />
+                  {this.props.fullscreen && (
+                    <IconButton
+                      className={classes.fullscreenMobile}
+                      onClick={this.toggleFullScreen}
+                    >
+                      {this.state.fullScreen === false ? (
+                        <Fullscreen />
+                      ) : (
+                        <FullscreenExit />
+                      )}
+                    </IconButton>
+                  )}
                 </div>
                 <Slider
                   className="player-bar-mobile"
@@ -1099,7 +1401,12 @@ class Player extends Component {
             ref={this.ref}
             playing={this.state.play}
             className="video-player"
-            url={this.props.video}
+            url={this.props.video ? this.props.video : this.state.video}
+            onReady={() => {
+              if (this.props.sendViews) {
+                this.handleReadyPlayer();
+              }
+            }}
             onClick={() => {
               if (!this.props.mobileControls) {
                 this.startVideo();
@@ -1113,13 +1420,30 @@ class Player extends Component {
             onMouseMove={this.handleMouseMoving}
             onMouseOver={this.checkIdle}
             onEnded={() =>
-              this.setState({ play: false, pause: false, replay: true })
+              this.setState({
+                play: false,
+                pause: false,
+                replay: true,
+                videoCurrentTime: 0,
+              })
             }
             onBuffer={() => console.log("buffering")}
             playbackRate={this.state.playBackRate}
             pip={this.state.pip}
             controls={false}
             playsinline={true}
+            preload="false"
+            config={{
+              file: {
+                hlsOptions: {
+                  startPosition: this.state.videoCurrentTime,
+                },
+                attributes: {
+                  currentTime: this.state.videoCurrentTime,
+                },
+              },
+            }}
+            onDisablePIP={() => this.setState({ pip: false })}
           />
           {!this.props.mobileControls && (
             <div
@@ -1192,37 +1516,29 @@ class Player extends Component {
               </Slider>
               <div className="player-btns">
                 {!this.props.mobileControls && (
-                  <Button onClick={() => this.startVideo()}>
+                  <IconButton onClick={() => this.startVideo()}>
                     {this.state.play === false && this.state.pause === true && (
-                      <i className="fas fa-play"></i>
+                      <PlayArrow />
                     )}
                     {this.state.pause === false && this.state.play === true && (
-                      <i className="fas fa-pause"></i>
+                      <Pause />
                     )}
                     {this.state.pause === false &&
-                      this.state.play === false && (
-                        <i className="fas fa-redo"></i>
-                      )}
-                  </Button>
+                      this.state.play === false && <Replay />}
+                  </IconButton>
                 )}
                 {!this.props.mobileControls && (
                   <div className="volume-wrapper">
-                    <Button
+                    <IconButton
                       className="volume-button"
                       onClick={() => this.handleSound()}
                     >
                       {this.state.muted === false &&
-                        this.state.volumeLevel > 0.5 && (
-                          <i className="fas fa-volume-up"></i>
-                        )}
+                        this.state.volumeLevel > 0.5 && <VolumeUp />}
                       {this.state.muted === false &&
-                        this.state.volumeLevel <= 0.5 && (
-                          <i className="fas fa-volume-down"></i>
-                        )}
-                      {this.state.muted === true && (
-                        <i className="fas fa-volume-mute"></i>
-                      )}
-                    </Button>
+                        this.state.volumeLevel <= 0.5 && <VolumeDown />}
+                      {this.state.muted === true && <VolumeOff />}
+                    </IconButton>
                     <Slider
                       className="volume-bar"
                       direction={Direction.HORIZONTAL}
@@ -1253,7 +1569,7 @@ class Player extends Component {
                   {this.props.thumbnailCreator === true && (
                     <div className="thumbnail-wrapper">
                       <Button onClick={this.sendThumbnail}>
-                        <i className="fas fa-image"></i>
+                        <Image />
                       </Button>
                     </div>
                   )}
@@ -1281,13 +1597,57 @@ class Player extends Component {
                                     <i className="fas fa-chevron-right"></i>
                                   </div>
                                 </div>
-                                <div className="cog-options">
+                                <div
+                                  className="cog-options"
+                                  onClick={() =>
+                                    this.setState({
+                                      speedOpen: false,
+                                      qualityOpen: true,
+                                    })
+                                  }
+                                >
                                   {`Kvalite`}
                                   <div className="tooltip-prompt">
-                                    {"480p"}
+                                    {this.state.selectedQuality}
                                     <i className="fas fa-chevron-right"></i>
                                   </div>
                                 </div>
+                              </div>
+                            )}
+                          {this.state.speedOpen === false &&
+                            this.state.qualityOpen === true && (
+                              <div className="cog-options-wrapper">
+                                <div
+                                  className="cog-options cog-header"
+                                  onClick={() =>
+                                    this.setState({ qualityOpen: false })
+                                  }
+                                >
+                                  <i className="fas fa-chevron-left"></i>
+                                  <div className="cog-title">{`Kvalite`}</div>
+                                </div>
+                                {this.state.qualities.map((quality) => (
+                                  <div
+                                    className="cog-options"
+                                    onClick={() => {
+                                      this.setState(
+                                        {
+                                          qualityOpen: false,
+                                          selectedQuality: quality,
+                                          videoCurrentTime: this.player.getCurrentTime(),
+                                        },
+                                        () => {
+                                          this.setQuality();
+                                        }
+                                      );
+                                    }}
+                                  >
+                                    {this.state.selectedQuality === quality && (
+                                      <i className="fas fa-check"></i>
+                                    )}
+                                    <div className="cog-title">{quality}</div>
+                                  </div>
+                                ))}
                               </div>
                             )}
                           {this.state.speedOpen === true &&
@@ -1302,149 +1662,56 @@ class Player extends Component {
                                   <i className="fas fa-chevron-left"></i>
                                   <div className="cog-title">{`Hastighet`}</div>
                                 </div>
-                                <div
-                                  className="cog-options"
-                                  onClick={() =>
-                                    this.setState({
-                                      speedOpen: false,
-                                      playBackRate: 0.25,
-                                    })
-                                  }
-                                >
-                                  {this.state.playBackRate == 0.25 && (
-                                    <i className="fas fa-check"></i>
-                                  )}
-                                  <div className="cog-title">{`0.25`}</div>
-                                </div>
-                                <div
-                                  className="cog-options"
-                                  onClick={() =>
-                                    this.setState({
-                                      speedOpen: false,
-                                      playBackRate: 0.5,
-                                    })
-                                  }
-                                >
-                                  {this.state.playBackRate == 0.5 && (
-                                    <i className="fas fa-check"></i>
-                                  )}
-                                  <div className="cog-title">{`0.5`}</div>
-                                </div>
-                                <div
-                                  className="cog-options"
-                                  onClick={() =>
-                                    this.setState({
-                                      speedOpen: false,
-                                      playBackRate: 0.75,
-                                    })
-                                  }
-                                >
-                                  {this.state.playBackRate == 0.75 && (
-                                    <i className="fas fa-check"></i>
-                                  )}
-                                  <div className="cog-title">{`0.75`}</div>
-                                </div>
-                                <div
-                                  className="cog-options"
-                                  onClick={() =>
-                                    this.setState({
-                                      speedOpen: false,
-                                      playBackRate: 1,
-                                    })
-                                  }
-                                >
-                                  {this.state.playBackRate == 1 && (
-                                    <i className="fas fa-check"></i>
-                                  )}
-                                  <div className="cog-title">{`Normal`}</div>
-                                </div>
-                                <div
-                                  className="cog-options"
-                                  onClick={() =>
-                                    this.setState({
-                                      speedOpen: false,
-                                      playBackRate: 1.25,
-                                    })
-                                  }
-                                >
-                                  {this.state.playBackRate == 1.25 && (
-                                    <i className="fas fa-check"></i>
-                                  )}
-                                  <div className="cog-title">{`1.25`}</div>
-                                </div>
-                                <div
-                                  className="cog-options"
-                                  onClick={() =>
-                                    this.setState({
-                                      speedOpen: false,
-                                      playBackRate: 1.5,
-                                    })
-                                  }
-                                >
-                                  {this.state.playBackRate == 1.5 && (
-                                    <i className="fas fa-check"></i>
-                                  )}
-                                  <div className="cog-title">{`1.5`}</div>
-                                </div>
-                                <div
-                                  className="cog-options"
-                                  onClick={() =>
-                                    this.setState({
-                                      speedOpen: false,
-                                      playBackRate: 1.75,
-                                    })
-                                  }
-                                >
-                                  {this.state.playBackRate == 1.75 && (
-                                    <i className="fas fa-check"></i>
-                                  )}
-                                  <div className="cog-title">{`1.75`}</div>
-                                </div>
-                                <div
-                                  className="cog-options"
-                                  onClick={() =>
-                                    this.setState({
-                                      speedOpen: false,
-                                      playBackRate: 2,
-                                    })
-                                  }
-                                >
-                                  {this.state.playBackRate == 2 && (
-                                    <i className="fas fa-check"></i>
-                                  )}
-                                  <div className="cog-title">{`2`}</div>
-                                </div>
+                                {this.speedOptions.map((option, i) => (
+                                  <div
+                                    key={i}
+                                    className="cog-options"
+                                    onClick={() =>
+                                      this.setState({
+                                        speedOpen: false,
+                                        playBackRate: option,
+                                      })
+                                    }
+                                  >
+                                    {this.state.playBackRate == option && (
+                                      <i className="fas fa-check"></i>
+                                    )}
+                                    <div className="cog-title">
+                                      {option !== 1 ? option : "Normal"}
+                                    </div>
+                                  </div>
+                                ))}
                               </div>
                             )}
                         </span>
                       )}
-                      <Button onClick={this.handleSettings} id="cog-button">
-                        <i
-                          className={`fas fa-cog tooltip ${
+                      <IconButton onClick={this.handleSettings} id="cog-button">
+                        <Settings
+                          className={`tooltip ${
                             this.state.cogOpen === true
                               ? "open-cog"
                               : "closed-cog"
                           }`}
-                        ></i>
-                      </Button>
+                        />
+                      </IconButton>
                     </div>
                   )}
                   {this.props.pip && (
                     <div className="pip-wrapper">
-                      <Button onClick={() => this.setState({ pip: true })}>
-                        <i className="fas fa-clone"></i>
-                      </Button>
+                      <IconButton onClick={() => this.setState({ pip: true })}>
+                        <PictureInPictureAlt />
+                      </IconButton>
                     </div>
                   )}
                   {this.props.fullscreen && (
                     <div className="fullScreen-wrapper">
-                      <Button onClick={this.toggleFullScreen}>
+                      <IconButton onClick={this.toggleFullScreen}>
                         {this.state.fullScreen === false ? (
-                          <i className="fas fa-expand"></i>
+                          <Fullscreen />
                         ) : (
-                          <i className="fas fa-compress"></i>
+                          <FullscreenExit />
                         )}
-                      </Button>
+                      </IconButton>
                     </div>
                   )}
                 </div>
@@ -1456,4 +1723,4 @@ class Player extends Component {
     );
   }
 }
-export default Player;
+export default withStyles(useStyles)(Player);

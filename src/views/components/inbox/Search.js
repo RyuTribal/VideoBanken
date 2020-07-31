@@ -11,8 +11,18 @@ import { connect } from "react-redux";
 import blankProfile from "../../../img/blank-profile.png";
 import * as queries from "../../../graphql/queries";
 import * as mutations from "../../../graphql/mutations";
-import { API, graphqlOperation } from "aws-amplify";
-
+import { API, graphqlOperation, Storage } from "aws-amplify";
+import {
+  IconButton,
+  AppBar,
+  Toolbar,
+  Typography,
+  Avatar,
+  ButtonBase,
+} from "@material-ui/core";
+import { withStyles } from "@material-ui/core/styles";
+import { ArrowBackIosRounded, SettingsRounded } from "@material-ui/icons";
+import { Skeleton } from "@material-ui/lab";
 const styles = StyleSheet.create({
   container: {
     height: "100%",
@@ -67,7 +77,7 @@ const styles = StyleSheet.create({
     background: "#fbf9f9",
     width: 35,
     height: 35,
-    bottom: "11%",
+    bottom: "5%",
     right: "0%",
     borderRadius: "50%",
     color: "#263040",
@@ -185,7 +195,49 @@ const styles = StyleSheet.create({
     },
   },
 });
-
+const useStyles = (theme) => ({
+  appbar: {
+    background: "transparent",
+    color: "black",
+    boxShadow: "none",
+    borderBottom: "1px solid rgb(191, 156, 150)",
+  },
+  toolbar: {
+    display: "flex",
+    justifyContent: "center",
+  },
+  backChat: {
+    marginLeft: 0,
+    padding: 0,
+  },
+  settings: {
+    marginRight: 0,
+    padding: 0,
+  },
+  header: {
+    marginLeft: 0,
+    marginRight: "auto",
+  },
+  headerMobile: {
+    marginRight: "auto",
+    marginLeft: "auto",
+  },
+  svgButtons: {
+    height: 15,
+    width: 15,
+  },
+  groupImg: {
+    height: 200,
+    width: 200,
+  },
+  button: {
+    width: "100%",
+    padding: 10,
+    display: "flex",
+    flexDirection: "row",
+    justifyContent: "flex-start",
+  },
+});
 class Search extends Component {
   constructor() {
     super();
@@ -193,10 +245,24 @@ class Search extends Component {
       clickedUsername: "",
       isOpen: false,
       newName: "",
+      img: null,
+      profileImages: [],
     };
   }
   componentDidMount = async () => {};
-
+  componentDidUpdate = async (prevProps) => {
+    if (
+      prevProps.state.selectedRoom !== this.props.state.selectedRoom &&
+      this.props.state.selectedRoom
+    ) {
+      this.setState({ profileImages: [] });
+      await this.getImg();
+      console.log(this.props.state.selectedRoom.users);
+      for (let i = 0; i < this.props.state.selectedRoom.users.length; i++) {
+        await this.getUserImg(this.props.state.selectedRoom.users[i].username);
+      }
+    }
+  };
   componentWillUnmount() {}
   isMobile = () => {
     if (
@@ -251,8 +317,82 @@ class Search extends Component {
       }
     });
   };
+  getUserImg = async (username) => {
+    const userImg = await Storage.vault
+      .get(`profilePhoto.jpg`, {
+        bucket: "user-images-hermes",
+        level: "public",
+        customPrefix: {
+          public: `${username}/`,
+        },
+        progressCallback(progress) {
+          console.log(`Uploaded: ${progress.loaded}/${progress.total}`);
+        },
+      })
+      .then((res) => {
+        return res;
+      });
+    this.setState((prevState) => ({
+      profileImages: [...prevState.profileImages, userImg],
+    }));
+  };
+  getImg = async () => {
+    let image = "";
+    if (
+      this.props.state.selectedRoom.users.length < 2 &&
+      (this.props.state.selectedRoom.chatImg === null ||
+        this.props.state.selectedRoom.chatImg === "" ||
+        this.props.state.selectedRoom.chatImg === "$ctx.args.chatImg")
+    ) {
+      image = await Storage.vault
+        .get(`profilePhoto.jpg`, {
+          bucket: "user-images-hermes",
+          level: "public",
+          customPrefix: {
+            public: `${this.props.state.selectedRoom.users[0].username}/`,
+          },
+          progressCallback(progress) {
+            console.log(`Uploaded: ${progress.loaded}/${progress.total}`);
+          },
+        })
+        .then((res) => {
+          return res;
+        });
+    } else {
+      image = await Storage.vault
+        .get(`groupPhoto.jpg`, {
+          bucket: "group-images-hermes",
+          level: "public",
+          customPrefix: {
+            public: `${this.props.state.selectedRoom.id}/groupImg/`,
+          },
+          progressCallback(progress) {
+            console.log(`Uploaded: ${progress.loaded}/${progress.total}`);
+          },
+        })
+        .then((res) => {
+          return res;
+        });
+    }
+    const userImg = await Storage.vault
+      .get(`profilePhoto.jpg`, {
+        bucket: "user-images-hermes",
+        level: "public",
+        customPrefix: {
+          public: `${this.props.state.user.username}/`,
+        },
+        progressCallback(progress) {
+          console.log(`Uploaded: ${progress.loaded}/${progress.total}`);
+        },
+      })
+      .then((res) => {
+        return res;
+      });
+    this.setState({ img: image, userImg: userImg });
+  };
   render() {
-    console.log(this.props.state.selectedRoom);
+    console.log(this.state.profileImages);
+    const { classes } = this.props;
     return (
       <div className={css(styles.container)}>
         {this.state.isOpen === true && (
@@ -263,28 +403,36 @@ class Search extends Component {
             className={css(styles.overlay)}
           ></div>
         )}
-        <div className={css(styles.headerContainer)}>
-          {this.isMobile() && (
-            <button
-              onClick={this.props.back}
-              className={css(styles.headerLeftButton)}
+        <AppBar position="relative" className={classes.appbar}>
+          <Toolbar className={classes.toolbar} style={{ width: "100%" }}>
+            {this.isMobile() && (
+              <IconButton
+                onClick={this.props.back}
+                className={classes.backChat}
+                color="inherit"
+              >
+                <ArrowBackIosRounded className={classes.svgButtons} />
+              </IconButton>
+            )}
+            <Typography
+              className={
+                this.isMobile() ? classes.headerMobile : classes.header
+              }
+              color="inherit"
+              edge="center"
+              variant="h6"
             >
-              <i className="fas fa-chevron-left"></i>
-            </button>
-          )}
-          <h3 className={css(styles.header)}>Inställningar</h3>
-        </div>
+              Inställningar
+            </Typography>
+          </Toolbar>
+        </AppBar>
         {this.props.state.selectedRoom && (
           <div className={css(styles.contentWrapper)}>
             <div className={css(styles.imgWrapper)}>
-              <img
-                src={
-                  this.props.state.selectedRoom.users.length < 2
-                    ? blankProfile
-                    : blankProfile
-                }
-                className={css(styles.profileImg)}
-              ></img>
+              <Avatar
+                src={this.state.img}
+                className={classes.groupImg}
+              ></Avatar>
               <div className={css(styles.changeImage)}>
                 <i className="fas fa-camera"></i>
               </div>
@@ -304,54 +452,44 @@ class Search extends Component {
                 />
               </div>
               <div className={css(styles.chatUserWrapper)}>
-                <div
+                <ButtonBase
                   onClick={() => {
                     this.setState({
                       clickedUsername: this.props.state.user.username,
                       isOpen: true,
                     });
                   }}
-                  className={css(styles.chatUser)}
+                  className={classes.button}
                 >
-                  <img
-                    src={
-                      this.props.state.user.profileImg
-                        ? this.props.state.user.profileImg
-                        : blankProfile
-                    }
+                  <Avatar
+                    src={this.state.userImg}
                     className={css(styles.userImg)}
-                  ></img>
+                  ></Avatar>
                   <div className={css(styles.userNames)}>Jag</div>
-                </div>
-                {this.props.state.selectedRoom.users.map((user) => (
-                  <div
+                </ButtonBase>
+                {this.props.state.selectedRoom.users.map((user, i) => (
+                  <ButtonBase
                     onClick={() => {
                       this.setState({
                         clickedUsername: user.username,
                         isOpen: true,
                       });
                     }}
-                    className={css(styles.chatUser)}
+                    className={classes.button}
                   >
-                    <img
-                      src={user.profileImg ? user.profileImg : blankProfile}
+                    <Avatar
+                      src={this.state.profileImages[i]}
                       className={css(styles.userImg)}
-                    ></img>
+                    ></Avatar>
                     <div className={css(styles.userNames)}>
                       {user.fullName}
                       <div
                         className={css(styles.userHandle)}
                       >{`@${user.username}`}</div>
                     </div>
-                  </div>
+                  </ButtonBase>
                 ))}
               </div>
-              {/* <div
-                onClick={this.leaveChat}
-                className={css(styles.leaveConvo, styles.settingsButton)}
-              >
-                Lämna chatten
-              </div> */}
             </div>
           </div>
         )}
@@ -421,4 +559,6 @@ function mapDispatchToProps(dispatch) {
   };
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(Search);
+export default withStyles(useStyles)(
+  connect(mapStateToProps, mapDispatchToProps)(Search)
+);

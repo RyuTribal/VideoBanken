@@ -6,18 +6,21 @@ import * as queries from "../../../../graphql/queries";
 import * as mutations from "../../../../graphql/mutations";
 import * as subscriptions from "../../../../graphql/subscriptions";
 import TextareaAutosize from "react-textarea-autosize";
+import { IconButton } from "@material-ui/core";
+import { SendRounded, ImageRounded } from "@material-ui/icons";
 
 const styles = StyleSheet.create({
   container: {
     width: "100%",
     borderTop: "1px solid rgb(230, 236, 240)",
-    marginTop: "auto"
+    marginTop: "auto",
   },
   inputWrapper: {
-    padding: "13px 5px",
+    padding: "6px 5px",
     display: "flex",
     width: "100%",
     height: "100%",
+    alignItems: "center",
   },
   imageContainer: {
     flex: 1,
@@ -25,7 +28,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   signButtons: {
-    background: "transparent",
     border: "none",
     height: "100%",
     fontSize: 20,
@@ -36,6 +38,7 @@ const styles = StyleSheet.create({
     ":disabled": {
       opacity: 0.5,
     },
+    padding: 10,
   },
   textBox: {
     flex: 20,
@@ -49,6 +52,8 @@ const styles = StyleSheet.create({
     border: "1px solid transparent",
     resize: "none",
     cursor: "text",
+    overflowY: "hidden",
+    fontSize: 12,
     ":empty:before": {
       content: "attr(data-placeholder)",
     },
@@ -97,9 +102,9 @@ class Input extends Component {
       <div className={css(styles.container)}>
         <div className={css(styles.inputWrapper)}>
           <div className={css(styles.imageContainer)}>
-            <button className={css(styles.signButtons)}>
-              <i className="fas fa-image"></i>
-            </button>
+            <IconButton className={css(styles.signButtons)}>
+              <ImageRounded />
+            </IconButton>
           </div>
           <TextareaAutosize
             ref={this.textRef}
@@ -123,7 +128,7 @@ class Input extends Component {
             value={this.state.messageValue}
           />
           <div className={css(styles.sendButtonWrapper)}>
-            <button
+            <IconButton
               onClick={() => {
                 this.props.onSend(this.state.messageValue);
                 this.setState({ messageValue: "" });
@@ -132,8 +137,8 @@ class Input extends Component {
               disabled={isDisabled}
               className={css(styles.signButtons)}
             >
-              <i className={`fas fa-paper-plane ${css(styles.rotate)}`}></i>
-            </button>
+              <SendRounded />
+            </IconButton>
           </div>
         </div>
       </div>

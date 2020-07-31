@@ -13,11 +13,72 @@ import * as mutations from "../graphql/mutations";
 import TimeAgo from "react-timeago";
 import swedishStrings from "react-timeago/lib/language-strings/sv";
 import buildFormatter from "react-timeago/lib/formatters/buildFormatter";
+import {
+  Slider,
+  TextField,
+  Button,
+  IconButton,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
+  Toolbar,
+  AppBar,
+  Typography,
+  Grid,
+  Card,
+  CardMedia,
+  CardActionArea,
+  CardContent,
+  Avatar,
+} from "@material-ui/core";
+import { withStyles } from "@material-ui/styles";
+import theme from "../theme";
+import { Skeleton } from "@material-ui/lab";
 const formatter = buildFormatter(swedishStrings);
+const useStyles = () => ({
+  root: {
+    padding: theme.spacing(3),
+    width: "100%"
+  },
+  title: {
+    fontSize: 15,
+    fontWeight: "bold",
+  },
+  username: {
+    fontSize: 13,
+  },
+  videoInfoWrapper: {
+    display: "flex",
+    flexDirection: "row",
+  },
+  videoInfoWrapperMobile: {
+    display: "flex",
+    flexDirection: "row",
+  },
+  videoInfo: {
+    flex: 9,
+    paddingLeft: theme.spacing(2),
+  },
+  cardImage: {
+    paddingTop: "56.25%",
+    width: "100%",
+  },
+  cardImageMobile: {
+    width: theme.spacing(40),
+    paddingTop: "56.25%",
+  },
+  mobileCard: {
+    display: "inline-flex",
+    justifyContent: "flex-start",
+  },
+});
+
 class HomeFeed extends Component {
   constructor() {
     super();
-    this.state = { details: [], rows: [], offset: 0 };
+    this.state = { details: [], rows: [], offset: 0, loading: true };
   }
   componentDidMount = async () => {
     let videos = "";
@@ -79,56 +140,205 @@ class HomeFeed extends Component {
           videos.filter((video) => video.id !== videos[i].id);
         }
       });
+      videos[i].profileImg = await this.getProfilePhoto(videos[i].username);
     }
-    this.setState({ details: videos, rows: rows });
+    this.setState({ details: videos, rows: rows, loading: false });
   };
-  redirectToVideo = (videoID) => {
-    console.log(this);
-    this.props.history.push({
-      pathname: `${this.props.match.path}/watch`,
-      search: `?key=${videoID}`,
-    });
+  getProfilePhoto = async (username) => {
+    let image = await Storage.vault
+      .get(`profilePhoto.jpg`, {
+        bucket: "user-images-hermes",
+        level: "public",
+        customPrefix: {
+          public: `${username}/`,
+        },
+        progressCallback(progress) {
+          console.log(`Uploaded: ${progress.loaded}/${progress.total}`);
+        },
+      })
+      .then((res) => {
+        return res;
+      });
+    return image;
+  };
+  isMobile = () => {
+    if (
+      window.matchMedia("(orientation: landscape)").matches &&
+      (window.matchMedia("(max-width: 813px)").matches ||
+        window.matchMedia("(max-width: 1025px) and (orientation: landscape)")
+          .matches)
+    ) {
+      return true;
+    } else {
+      return false;
+    }
   };
   render() {
+    const { classes } = this.props;
     console.log(this.state.details);
+    const dummyLoad = ["foo", "bar", "foo", "bar"];
     return (
-      <section className="feed-container">
-        {this.state.details.map((details, i) => (
-          <div
-            onClick={() => this.props.history.push(`/home/watch/${details.id}`)}
-            key={i}
-            className="video-preview"
-          >
-            <div
-              className="video-thumbnail"
-              style={{
-                backgroundImage: `url(${details.thumbnail})`,
-                backgroundSize: "cover",
-              }}
-            ></div>
-            <div className="video-details">
-              <div className="video-title-wrap">
-                <h3 className="video-title">{details.title}</h3>
-              </div>
-              <div className="date-username-wrap">
-                <a className="video-username">{details.username}</a>
-                <p className="likes-dates">
-                  {`${details.views} visningar `}
-                  <span className="bullelements">&#x25cf;</span>
-                  {` `}
-                  <TimeAgo
-                    className="time-ago"
-                    date={details.createdAt}
-                    formatter={formatter}
-                  />
-                </p>
-              </div>
-            </div>
-          </div>
-        ))}
-      </section>
+      <div className={classes.root}>
+        <Grid container spacing={1}>
+          {this.state.loading
+            ? dummyLoad.map((load, i) => (
+                <Grid key={i} item xs={12} sm={12} md={6} lg={4} xl={3}>
+                  <Card styles={{ position: "relative" }}>
+                    <div className={this.isMobile() ? classes.mobileCard : ""}>
+                      <Skeleton
+                        variant="rect"
+                        className={
+                          !this.isMobile()
+                            ? classes.cardImage
+                            : classes.cardImageMobile
+                        }
+                      />
+                      <CardContent>
+                        <div
+                          className={
+                            !this.isMobile
+                              ? classes.videoInfoWrapper
+                              : classes.videoInfoWrapperMobile
+                          }
+                        >
+                          {!this.isMobile() && (
+                            <Skeleton
+                              variant="circle"
+                              width={theme.spacing(5)}
+                              height={theme.spacing(5)}
+                            />
+                          )}
+
+                          <div className={classes.videoInfo}>
+                            <Skeleton variant="text" width="90%" />
+                            <Skeleton variant="text" width="30%" />
+                            <Skeleton variant="text" width="90%" />
+                          </div>
+                        </div>
+                        {this.isMobile() && (
+                          <Skeleton
+                            variant="circle"
+                            width={theme.spacing(5)}
+                            height={theme.spacing(5)}
+                          />
+                        )}
+                      </CardContent>
+                    </div>
+                  </Card>
+                </Grid>
+              ))
+            : this.state.details.map((details, i) => (
+                <Grid
+                  key={i}
+                  item
+                  xs={12}
+                  sm={!this.isMobile() ? 6 : 12}
+                  md={6}
+                  lg={4}
+                  xl={3}
+                >
+                  <Card styles={{ position: "relative" }} title={details.title}>
+                    <Link
+                      style={{
+                        textDecoration: "none",
+                        color: "inherit",
+                        backgroundColor: "inherit",
+                      }}
+                      to={`/home/watch/${details.id}`}
+                    >
+                      <CardActionArea
+                        className={this.isMobile() ? classes.mobileCard : ""}
+                      >
+                        <CardMedia
+                          // component="img"
+                          alt="Contemplative Reptile"
+                          className={
+                            !this.isMobile()
+                              ? classes.cardImage
+                              : classes.cardImageMobile
+                          }
+                          image={details.thumbnail}
+                        />
+
+                        <CardContent>
+                          <div
+                            className={
+                              !this.isMobile
+                                ? classes.videoInfoWrapper
+                                : classes.videoInfoWrapperMobile
+                            }
+                          >
+                            <Link
+                              style={{
+                                textDecoration: "none",
+                                color: "inherit",
+                              }}
+                              to={`/home/users/${details.username}`}
+                              title={details.username}
+                            >
+                              {!this.isMobile() && (
+                                <Avatar
+                                  alt="profile-image"
+                                  src={details.profileImg}
+                                  title={details.username}
+                                />
+                              )}
+                            </Link>
+                            <div className={classes.videoInfo}>
+                              <Typography
+                                className={classes.title}
+                                gutterBottom
+                                variant="h5"
+                                component="h5"
+                              >
+                                {details.title}
+                              </Typography>
+                              <Typography
+                                display="block"
+                                variant="caption"
+                                color="textSecondary"
+                              >
+                                <Link
+                                  style={{
+                                    textDecoration: "none",
+                                    color: "inherit",
+                                  }}
+                                  to={`/home/users/${details.username}`}
+                                  title={details.username}
+                                >
+                                  {details.username}
+                                </Link>
+                              </Typography>
+                              <Typography
+                                variant="caption"
+                                color="textSecondary"
+                              >
+                                {`${details.views} visningar • `}
+                                <TimeAgo
+                                  date={details.createdAt}
+                                  formatter={formatter}
+                                />
+                              </Typography>
+                            </div>
+                          </div>
+                          {this.isMobile() && (
+                            <Avatar
+                              style={{ marginLeft: theme.spacing(2) }}
+                              alt="profile-image"
+                              src={details.profileImg}
+                              title={details.username}
+                            />
+                          )}
+                        </CardContent>
+                      </CardActionArea>
+                    </Link>
+                  </Card>
+                </Grid>
+              ))}
+        </Grid>
+      </div>
     );
   }
 }
 
-export default withRouter(HomeFeed);
+export default withRouter(withStyles(useStyles)(HomeFeed));

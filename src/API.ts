@@ -35,8 +35,8 @@ export type TagInput = {
 };
 
 export type CommentInput = {
-  id?: string | null,
-  videoID?: string | null,
+  id?: number | null,
+  videoID?: number | null,
   username?: string | null,
   createdAt?: string | null,
   comment?: string | null,
@@ -57,9 +57,9 @@ export type CommentDislikeInput = {
 };
 
 export type ReplyInput = {
-  id?: string | null,
-  commentID?: string | null,
-  videoID?: string | null,
+  id?: number | null,
+  commentID?: number | null,
+  videoID?: number | null,
   username?: string | null,
   comment?: string | null,
   createdAt?: string | null,
@@ -233,8 +233,8 @@ export type AddCommentMutationVariables = {
 export type AddCommentMutation = {
   addComment:  {
     __typename: "Comment",
-    id: string | null,
-    videoID: string | null,
+    id: number | null,
+    videoID: number | null,
     username: string | null,
     comment: string | null,
     createdAt: string | null,
@@ -250,8 +250,8 @@ export type DeleteCommentMutationVariables = {
 export type DeleteCommentMutation = {
   deleteComment:  {
     __typename: "Comment",
-    id: string | null,
-    videoID: string | null,
+    id: number | null,
+    videoID: number | null,
     username: string | null,
     comment: string | null,
     createdAt: string | null,
@@ -267,8 +267,8 @@ export type EditCommentMutationVariables = {
 export type EditCommentMutation = {
   editComment:  {
     __typename: "Comment",
-    id: string | null,
-    videoID: string | null,
+    id: number | null,
+    videoID: number | null,
     username: string | null,
     comment: string | null,
     createdAt: string | null,
@@ -310,10 +310,10 @@ export type AddReplyMutationVariables = {
 export type AddReplyMutation = {
   addReply:  {
     __typename: "Reply",
-    id: string | null,
-    commentID: string | null,
+    id: number | null,
+    commentID: number | null,
     username: string | null,
-    videoID: string | null,
+    videoID: number | null,
     comment: string | null,
     createdAt: string | null,
     isEdited: boolean | null,
@@ -327,10 +327,10 @@ export type DeleteReplyMutationVariables = {
 export type DeleteReplyMutation = {
   deleteReply:  {
     __typename: "Reply",
-    id: string | null,
-    commentID: string | null,
+    id: number | null,
+    commentID: number | null,
     username: string | null,
-    videoID: string | null,
+    videoID: number | null,
     comment: string | null,
     createdAt: string | null,
     isEdited: boolean | null,
@@ -344,10 +344,10 @@ export type EditReplyMutationVariables = {
 export type EditReplyMutation = {
   editReply:  {
     __typename: "Reply",
-    id: string | null,
-    commentID: string | null,
+    id: number | null,
+    commentID: number | null,
     username: string | null,
-    videoID: string | null,
+    videoID: number | null,
     comment: string | null,
     createdAt: string | null,
     isEdited: boolean | null,
@@ -676,8 +676,8 @@ export type GetCommentsQueryVariables = {
 export type GetCommentsQuery = {
   getComments:  Array< {
     __typename: "Comment",
-    id: string | null,
-    videoID: string | null,
+    id: number | null,
+    videoID: number | null,
     username: string | null,
     comment: string | null,
     createdAt: string | null,
@@ -719,8 +719,8 @@ export type GetCommentQueryVariables = {
 export type GetCommentQuery = {
   getComment:  {
     __typename: "Comment",
-    id: string | null,
-    videoID: string | null,
+    id: number | null,
+    videoID: number | null,
     username: string | null,
     comment: string | null,
     createdAt: string | null,
@@ -737,10 +737,10 @@ export type GetRepliesQueryVariables = {
 export type GetRepliesQuery = {
   getReplies:  Array< {
     __typename: "Reply",
-    id: string | null,
-    commentID: string | null,
+    id: number | null,
+    commentID: number | null,
     username: string | null,
-    videoID: string | null,
+    videoID: number | null,
     comment: string | null,
     createdAt: string | null,
     isEdited: boolean | null,
@@ -754,10 +754,10 @@ export type GetReplyQueryVariables = {
 export type GetReplyQuery = {
   getReply:  {
     __typename: "Reply",
-    id: string | null,
-    commentID: string | null,
+    id: number | null,
+    commentID: number | null,
     username: string | null,
-    videoID: string | null,
+    videoID: number | null,
     comment: string | null,
     createdAt: string | null,
     isEdited: boolean | null,

@@ -16,7 +16,7 @@ import * as mutations from "../graphql/mutations";
 import { connect } from "react-redux";
 const styles = StyleSheet.create({
   container: {
-    height: "100%",
+    height: "calc(100% - 64px)",
     width: "100%",
   },
   viewContainer: {

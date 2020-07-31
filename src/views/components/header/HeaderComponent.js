@@ -10,6 +10,26 @@ import {
   withRouter,
 } from "react-router-dom";
 import blankProfile from "../../../img/blank-profile.png";
+import {
+  Slider,
+  TextField,
+  Button,
+  IconButton,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
+  Toolbar,
+  AppBar,
+  Typography,
+} from "@material-ui/core";
+import {
+  withStyles,
+  createMuiTheme,
+  ThemeProvider,
+} from "@material-ui/core/styles";
+import { VideoCall } from "@material-ui/icons";
 import { Auth, API, graphqlOperation, Storage } from "aws-amplify";
 
 const styles = StyleSheet.create({
@@ -25,7 +45,7 @@ const styles = StyleSheet.create({
     padding: 30,
     paddingTop: 30,
     color: "#263040",
-    zIndex: 5,
+    zIndex: 4,
   },
   cursorPointer: {
     cursor: "pointer",
@@ -81,7 +101,27 @@ const styles = StyleSheet.create({
     },
   },
 });
-
+const useStyles = (theme) => ({
+  input: {
+    width: "100%",
+  },
+  appbar: {
+    backgroundColor: "transparent",
+    position: "relative",
+    color: "black",
+  },
+  title: {
+    marginLeft: theme.spacing(2),
+    flex: 1,
+  },
+});
+const theme = createMuiTheme({
+  palette: {
+    primary: {
+      main: "#263040",
+    },
+  },
+});
 class HeaderComponent extends Component {
   constructor() {
     super();
@@ -117,51 +157,60 @@ class HeaderComponent extends Component {
     return this.props.onChange(item);
   };
   render() {
-    console.log(this.state.profileImg)
+    console.log(this.state.profileImg);
+    const { classes } = this.props;
     return (
-      <Row
-        className={css(styles.container)}
-        vertical="center"
-        horizontal="space-between"
-      >
-        <span className={css(styles.title)}>{this.props.title}</span>
-        <Row vertical="center">
-          <div className={css(styles.iconStyles)}>
-            <i className="fas fa-search"></i>
-          </div>
-          {/* <div className={css(styles.iconStyles)}>
-            <i className="fas fa-bell"></i>
-          </div> */}
-          <div
-            onClick={this.props.videoModal}
-            className={css(styles.iconStyles)}
-          >
-            <i className="fas fa-video"></i>
-          </div>
-          <div className={css(styles.separator)}></div>
-          <Row
-            active={this.props.selectedItem === "Profil"}
-            onClick={() => this.onItemClick("Profil")}
-            vertical="center"
-          >
-            <Link
-              className={css(styles.link)}
-              to={`/home/users/${this.props.username}`}
-            >
-              <span className={css(styles.name, styles.cursorPointer)}>
-                {this.props.usernickname}
-              </span>
-              <img
-                onError={() => this.getProfileImage()}
-                src={this.state.profileImg}
-                className={css(styles.avatar)}
-              />
-            </Link>
-          </Row>
-        </Row>
-      </Row>
+      // <Row
+      //   className={css(styles.container)}
+      //   vertical="center"
+      //   horizontal="space-between"
+      // >
+      //   <span className={css(styles.title)}>{this.props.title}</span>
+      //   <Row vertical="center">
+      //     <div className={css(styles.iconStyles)}>
+      //       <i className="fas fa-search"></i>
+      //     </div>
+      //     {/* <div className={css(styles.iconStyles)}>
+      //       <i className="fas fa-bell"></i>
+      //     </div> */}
+      //     <div
+      //       onClick={this.props.videoModal}
+      //       className={css(styles.iconStyles)}
+      //     >
+      //       <i className="fas fa-video"></i>
+      //     </div>
+      //     <div className={css(styles.separator)}></div>
+      //     <Row
+      //       active={this.props.selectedItem === "Profil"}
+      //       onClick={() => this.onItemClick("Profil")}
+      //       vertical="center"
+      //     >
+      //       <Link
+      //         className={css(styles.link)}
+      //         to={`/home/users/${this.props.username}`}
+      //       >
+      //         <span className={css(styles.name, styles.cursorPointer)}>
+      //           {this.props.usernickname}
+      //         </span>
+      //         <img
+      //           onError={() => this.getProfileImage()}
+      //           src={this.state.profileImg}
+      //           className={css(styles.avatar)}
+      //         />
+      //       </Link>
+      //     </Row>
+      //   </Row>
+      // </Row>
+      <AppBar className={classes.appbar}>
+        <Toolbar>
+          <Typography variant="h6">{this.props.title}</Typography>
+          <IconButton onClick={this.props.videoModal} color="inherit">
+            <VideoCall />
+          </IconButton>
+        </Toolbar>
+      </AppBar>
     );
   }
 }
 
-export default withRouter(HeaderComponent);
+export default withRouter(withStyles(useStyles)(HeaderComponent));

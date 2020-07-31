@@ -1,11 +1,12 @@
 import React, { Component } from "react";
 import { BrowserRouter, Switch, Route, withRouter } from "react-router-dom";
 import { StyleSheet, css } from "aphrodite";
-import { Auth, graphqlOperation, API, Analytics } from "aws-amplify";
+import { Auth, graphqlOperation, API, Storage } from "aws-amplify";
 import * as queries from "../../../../graphql/queries";
 import * as mutations from "../../../../graphql/mutations";
 import * as subscriptions from "../../../../graphql/subscriptions";
-import blankProfile from "../../../../img/blank-profile.png";
+import { Avatar } from "@material-ui/core";
+import { Skeleton } from "@material-ui/lab";
 
 const styles = StyleSheet.create({
   container: {},
@@ -15,7 +16,10 @@ const styles = StyleSheet.create({
     width: "100%",
     flexDirection: "column-reverse",
   },
-  profileContainer: {},
+  profileContainer: {
+    display: "flex",
+    alignItems: "center",
+  },
   yourContainer: {
     marginLeft: "auto",
     marginRight: 0,
@@ -64,15 +68,35 @@ class Bubble extends Component {
       message: {},
       username: "",
       prevMessage: {},
+      img: null,
     };
   }
   componentDidMount = async () => {
     const { username } = await Auth.currentAuthenticatedUser();
+    const image = await this.getProfilePhoto(this.props.message.user.id);
     this.setState({
       message: this.props.message,
       username: username,
       prevMessage: this.props.prevMessage,
+      img: image,
     });
+  };
+  getProfilePhoto = async (username) => {
+    let image = await Storage.vault
+      .get(`profilePhoto.jpg`, {
+        bucket: "user-images-hermes",
+        level: "public",
+        customPrefix: {
+          public: `${username}/`,
+        },
+        progressCallback(progress) {
+          console.log(`Uploaded: ${progress.loaded}/${progress.total}`);
+        },
+      })
+      .then((res) => {
+        return res;
+      });
+    return image;
   };
   componentDidUpdate = (prevProps) => {
     if (prevProps.message !== this.props.message) {
@@ -143,6 +167,7 @@ class Bubble extends Component {
     }
   };
   render() {
+    console.log(this.state.message.user)
     return (
       <div className={css(styles.container)}>
         <div className={css(styles.bubbleContainer)}>
@@ -167,19 +192,15 @@ class Bubble extends Component {
           >
             {this.state.message.user &&
             this.state.message.user.id !== this.state.username ? (
-              <img
+              <Avatar
                 onClick={() => {
                   this.props.history.push(
                     `/home/users/${this.state.message.user.id}`
                   );
                 }}
                 className={css(styles.profileImg)}
-                src={
-                  JSON.parse(this.state.message.user.avatar)
-                    ? this.state.message.user.avatar
-                    : blankProfile
-                }
-              ></img>
+                src={this.state.img}
+              ></Avatar>
             ) : (
               ""
             )}

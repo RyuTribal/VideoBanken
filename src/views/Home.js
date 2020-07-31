@@ -20,12 +20,18 @@ import Inbox from "./Inbox";
 import { isMobile } from "react-device-detect";
 import { Column, Row } from "simple-flexbox";
 import { StyleSheet, css } from "aphrodite";
-import SidebarComponent from "./components/sidebar/SidebarComponent";
+import StyledSidebar from "./components/sidebar/SidebarComponent";
 import HeaderComponent from "./components/header/HeaderComponent";
 import Modal from "./components/modal/Modal";
 import ChatModal from "./components/inbox/ChatModal";
 import MobileModal from "./components/modal/MobileModal";
 import { connect } from "react-redux";
+import theme from "../theme";
+import {
+  withStyles,
+  createMuiTheme,
+  ThemeProvider,
+} from "@material-ui/core/styles";
 
 const styles = StyleSheet.create({
   wrapper: {
@@ -37,17 +43,22 @@ const styles = StyleSheet.create({
     minHeight: "100vh",
   },
   content: {
-    marginTop: 0,
-    overflowY: "auto",
-    overflowX: "hidden",
-    height: "100vh",
-    zIndex: 5,
-  },
-  mainBlock: {
-    backgroundColor: "#F7F8FC",
+    flexGrow: 1,
   },
 });
-
+const useStyles = (theme) => ({
+  content: {
+    flexGrow: 1,
+    height: "100vh",
+    // minHeight: "100vh",
+  },
+  toolbar: theme.mixins.toolbar,
+  root: {
+    display: "flex",
+    height: "100vh",
+    // minHeight: "100vh",
+  },
+});
 class Home extends Component {
   constructor() {
     super();
@@ -71,6 +82,7 @@ class Home extends Component {
     this.roomSubscription = "";
   }
   componentDidMount = async () => {
+    console.log(this.props);
     window.addEventListener("resize", this.resize);
     await Auth.currentAuthenticatedUser({
       bypassCache: true, // Optional, By default is false. If set to true, this call will send a request to Cognito to get the latest user data
@@ -308,9 +320,10 @@ class Home extends Component {
     });
   };
   render() {
-    console.log(this.props.state);
+    console.log(theme.mixins.toolbar);
+    const { classes } = this.props;
     return (
-      <div className={css(styles.wrapper)}>
+      <div className={classes.root}>
         {this.state.chatModal && (
           <ChatModal
             closeModal={(newChat, id) => {
@@ -349,118 +362,131 @@ class Home extends Component {
             }}
           ></input>
         )}
-        <Row id="wrapper" className={css(styles.container)}>
-          <SidebarComponent
-            selectedItem={this.state.selectedItem}
-            username={this.state.user.username}
-            logout={this.logout}
-          />
-          <Column flexGrow={1} className={css(styles.mainBlock)}>
-            <HeaderComponent
-              usernickname={this.state.user.attributes.nickname}
-              username={this.state.user.username}
-              title={this.state.selectedItem}
-              onChange={(selectedItem) =>
-                this.setState({ selectedItem: selectedItem })
+        {/* <HeaderComponent
+          usernickname={this.state.user.attributes.nickname}
+          username={this.state.user.username}
+          title={this.state.selectedItem}
+          onChange={(selectedItem) =>
+            this.setState({ selectedItem: selectedItem })
+          }
+          profileImg={this.state.profileImg}
+          videoModal={() => {
+            if (this.state.playerRef !== null) {
+              if (this.state.playerRef.player.props.playing === true) {
+                this.setState({ playing: true });
+                this.state.playerRef.getInternalPlayer().pause();
               }
-              profileImg={this.state.profileImg}
-              videoModal={() => {
-                if (this.state.playerRef !== null) {
-                  if (this.state.playerRef.player.props.playing === true) {
-                    this.setState({ playing: true });
-                    this.state.playerRef.getInternalPlayer().pause();
-                  }
-                }
-                if (isMobile) {
-                  this.refs.fileUploader.click();
-                } else {
-                  this.setState({ videoModal: true });
-                }
-              }}
-            />
-            <div className={css(styles.content)}>
-              <Route
-                render={(props) => {
-                  return (
-                    <Switch>
-                      <Route
-                        exact
-                        path={this.props.match.path}
-                        render={() => (
-                          <HomeFeed
-                            user={this.state.user}
-                            onChange={(selectedItem) =>
-                              this.setState({ selectedItem: selectedItem })
-                            }
-                          />
-                        )}
+            }
+            if (isMobile) {
+              this.refs.fileUploader.click();
+            } else {
+              this.setState({ videoModal: true });
+            }
+          }}
+        /> */}
+        <StyledSidebar
+          title={this.state.selectedItem}
+          selectedItem={this.state.selectedItem}
+          logout={this.logout}
+          profileImg={this.state.profileImg}
+          onChange={(selectedItem) =>
+            this.setState({ selectedItem: selectedItem })
+          }
+          videoModal={() => {
+            console.log("pressed")
+            if (this.state.playerRef !== null) {
+              if (this.state.playerRef.player.props.playing === true) {
+                this.setState({ playing: true });
+                this.state.playerRef.getInternalPlayer().pause();
+              }
+            }
+            if (isMobile) {
+              this.refs.fileUploader.click();
+            } else {
+              this.setState({ videoModal: true });
+            }
+          }}
+        />
+        <main className={classes.content}>
+          <div className={classes.toolbar} />
+          <Route
+            render={(props) => {
+              return (
+                <Switch>
+                  <Route
+                    exact
+                    path={this.props.match.path}
+                    render={() => (
+                      <HomeFeed
+                        user={this.state.user}
+                        onChange={(selectedItem) =>
+                          this.setState({ selectedItem: selectedItem })
+                        }
                       />
-                      <Route
-                        path={`${this.props.match.path}/watch/:video`}
-                        render={() => (
-                          <Watch
-                            onChange={(selectedItem) =>
-                              this.setState({ selectedItem: selectedItem })
-                            }
-                            playerRef={(playerRef) =>
-                              this.setState({ playerRef: playerRef })
-                            }
-                            container={styles.content}
-                          />
-                        )}
+                    )}
+                  />
+                  <Route
+                    path={`${this.props.match.path}/watch/:video`}
+                    render={() => (
+                      <Watch
+                        onChange={(selectedItem) =>
+                          this.setState({ selectedItem: selectedItem })
+                        }
+                        playerRef={(playerRef) =>
+                          this.setState({ playerRef: playerRef })
+                        }
+                        container={styles.content}
                       />
-                      <Route
-                        path={`${this.props.match.path}/inbox/:id?/:settings?`}
-                        render={(props) => (
-                          <Inbox
-                            {...props}
-                            onChange={(selectedItem) =>
-                              this.setState({ selectedItem })
-                            }
-                            isMobile={isMobile}
-                            modal={() => this.setState({ chatModal: true })}
-                            getRooms={() => this.getRooms()}
-                          />
-                        )}
+                    )}
+                  />
+                  <Route
+                    path={`${this.props.match.path}/inbox/:id?/:settings?`}
+                    render={(props) => (
+                      <Inbox
+                        {...props}
+                        onChange={(selectedItem) =>
+                          this.setState({ selectedItem })
+                        }
+                        isMobile={isMobile}
+                        modal={() => this.setState({ chatModal: true })}
+                        getRooms={() => this.getRooms()}
                       />
-                      <Route
-                        path={`${this.props.match.path}/users/:user/:tab?`}
-                        render={() => (
-                          <Profile
-                            onChange={(selectedItem) =>
-                              this.setState({ selectedItem })
-                            }
-                            isMobile={isMobile}
-                            changeProfile={(profileImg, fullName) => {
-                              if(profileImg){
-                                this.setState({profileImg: profileImg});
-                              }
-                              else if(fullName){
-                                // this.setState({})
-                              }
-                              
-                            }}
-                          />
-                        )}
+                    )}
+                  />
+                  <Route
+                    path={`${this.props.match.path}/users/:user/:tab?`}
+                    render={() => (
+                      <Profile
+                        onChange={(selectedItem) =>
+                          this.setState({ selectedItem })
+                        }
+                        isMobile={isMobile}
+                        changeProfile={(profileImg, fullName) => {
+                          if (profileImg) {
+                            this.setState({ profileImg: profileImg });
+                          } else if (fullName) {
+                            // this.setState({})
+                          }
+                        }}
                       />
-                      <Route
-                        path={`${this.props.match.path}/team/`}
-                        render={() => (
-                          <Team
-                            onChange={(selectedItem) =>
-                              this.setState({ selectedItem })
-                            }
-                            isMobile={isMobile}
-                          />
-                        )}
+                    )}
+                  />
+                  <Route
+                    path={`${this.props.match.path}/team/`}
+                    render={() => (
+                      <Team
+                        onChange={(selectedItem) =>
+                          this.setState({ selectedItem })
+                        }
+                        isMobile={isMobile}
                       />
-                    </Switch>
-                  );
-                }}
-              />
-            </div>
-          </Column>
-        </Row>
+                    )}
+                  />
+                </Switch>
+              );
+            }}
+          />
+        </main>
       </div>
     );
   }
@@ -495,4 +521,6 @@ function mapDispatchToProps(dispatch) {
   };
 }
 
-export default withRouter(connect(mapStateToProps, mapDispatchToProps)(Home));
+export default withStyles(useStyles)(
+  withRouter(connect(mapStateToProps, mapDispatchToProps)(Home))
+);

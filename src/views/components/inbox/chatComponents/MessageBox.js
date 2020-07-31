@@ -13,6 +13,7 @@ const styles = StyleSheet.create({
   container: {
     overflowY: "auto",
     display: "flex",
+    alignItems: "flex-end",
   },
   bigtext: {
     fontSize: 100,
@@ -38,14 +39,15 @@ class MessageBox extends Component {
     console.log(this.props.state);
     return (
       <div ref={this.bubbleContainerRef} className={css(styles.container)}>
-        <div
-          className={css(styles.bubbleContainer) + " testing"}
-        >
+        <div className={css(styles.bubbleContainer) + " testing"}>
           {this.props.state.selectedRoom.messages &&
             this.props.state.selectedRoom.messages.map((message, i) => (
               <Bubble
                 message={message}
-                prevMessage={this.props.state.selectedRoom.messages[i + 1] && this.props.state.selectedRoom.messages[i + 1]}
+                prevMessage={
+                  this.props.state.selectedRoom.messages[i + 1] &&
+                  this.props.state.selectedRoom.messages[i + 1]
+                }
                 key={i}
               />
             ))}

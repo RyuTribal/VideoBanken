@@ -5,7 +5,7 @@ import blankProfile from "../../../img/blank-profile.png";
 import { Auth, API, graphqlOperation, Storage } from "aws-amplify";
 import * as queries from "../../../graphql/queries";
 import * as mutations from "../../../graphql/mutations";
-import Modal from "./Modal";
+import Modal from "./ProfileImgModal";
 
 const styles = StyleSheet.create({
   container: {
