@@ -297,6 +297,7 @@ class Modal extends Component {
     const errors = validate(this.state.name);
     const isDisabled = Object.keys(errors).some((x) => errors[x]);
     const { classes } = this.props;
+    console.log(this.state.nameError);
     return (
       <div className={css(styles.container)}>
         <Dialog
@@ -356,13 +357,18 @@ class Modal extends Component {
                   onChange={this.handleNameChange}
                   onBlur={this.handleBlur("name")}
                   onKeyDown={this.checkForEnter}
+                  error={this.state.nameError || this.shouldMarkError("name")}
+                  helperText={
+                    this.state.nameError || this.shouldMarkError("name")
+                      ? this.state.nameErrorMessage
+                      : ""
+                  }
                   InputProps={{
                     style: { fontSize: 15 },
                   }}
                   InputLabelProps={{
                     style: { fontSize: 15 },
                     required: true,
-                    error: this.state.nameError,
                   }}
                 ></CustomTextField>
               </div>
@@ -385,7 +391,6 @@ class Modal extends Component {
                   InputLabelProps={{
                     style: { fontSize: 15 },
                     required: true,
-                    error: this.state.nameError,
                   }}
                 ></CustomTextField>
               </div>

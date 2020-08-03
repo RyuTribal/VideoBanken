@@ -15,6 +15,7 @@ import { StyleSheet, css } from "aphrodite";
 import { Auth, API, graphqlOperation } from "aws-amplify";
 import * as queries from "../graphql/queries";
 import * as mutations from "../graphql/mutations";
+import { Button } from "@material-ui/core";
 
 const styles = StyleSheet.create({
   container: {
@@ -128,13 +129,13 @@ const styles = StyleSheet.create({
     background: "#ea3a3a",
     padding: "10px 20px",
     boxSizing: "border-box",
-    minWidth: 150,
-    fontSize: 20,
+    fontSize: 15,
     border: 0,
     transition: "0.4s",
     borderRadius: 5,
     color: "#fbf9f9",
     transition: "background-color 0.4s",
+    cursor: "pointer",
     ":hover": {
       backgroundColor: "#ff5050",
       transition: "0.4s",
@@ -396,14 +397,14 @@ class Profile extends Component {
             {this.isMobile() === true && (
               <div className={css(styles.followWrapper)}>
                 {this.state.userProfile === true ? (
-                  <button
+                  <Button
                     onClick={() => this.setState({ modal: true })}
                     className={css(styles.callToAction)}
                   >
                     Redigera kontot
-                  </button>
+                  </Button>
                 ) : (
-                  <button className={css(styles.callToAction)}>Följ</button>
+                  <Button className={css(styles.callToAction)}>Följ</Button>
                 )}
                 <div className={css(styles.followersWrapper)}>
                   <div className={css(styles.followers)}>
@@ -445,14 +446,14 @@ class Profile extends Component {
             {this.isMobile() === false && (
               <div className={css(styles.followWrapper)}>
                 {this.state.userProfile === true ? (
-                  <button
+                  <Button
                     onClick={() => this.setState({ modal: true })}
                     className={css(styles.callToAction)}
                   >
                     Redigera kontot
-                  </button>
+                  </Button>
                 ) : (
-                  <button className={css(styles.callToAction)}>Följ</button>
+                  <Button className={css(styles.callToAction)}>Följ</Button>
                 )}
                 <div className={css(styles.followersWrapper)}>
                   <div className={css(styles.followers)}>

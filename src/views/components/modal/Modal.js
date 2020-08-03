@@ -81,16 +81,16 @@ const CustomChipField = withStyles({
     backgroundColor: "rgb(38, 48, 64)",
     border: "1px solid rgb(38, 48, 64)",
     color: "#fbf9f9",
-    "& .MuiChip-deleteIcon path":{
-      fill: "#fbf9f9 !important"
+    "& .MuiChip-deleteIcon path": {
+      fill: "#fbf9f9 !important",
     },
-    "&:hover":{
+    "&:hover": {
       color: "rgb(38, 48, 64)",
       backgroundColor: "#fbf9f9",
-      "& .MuiChip-deleteIcon path":{
-        fill: "rgb(38, 48, 64) !important"
+      "& .MuiChip-deleteIcon path": {
+        fill: "rgb(38, 48, 64) !important",
       },
-    }
+    },
   },
 })(ChipInput);
 const useStyles = (theme) => ({
@@ -636,6 +636,14 @@ class Modal extends Component {
                       onChange={this.handleTitleChange}
                       onBlur={this.handleBlur("title")}
                       onKeyDown={this.checkForEnter}
+                      error={
+                        this.state.titleError || this.shouldMarkError("title")
+                      }
+                      helperText={
+                        this.state.titleError || this.shouldMarkError("title")
+                          ? this.state.titleErrorMessage
+                          : ""
+                      }
                       InputProps={{
                         style: { fontSize: 15 },
                       }}
@@ -667,7 +675,6 @@ class Modal extends Component {
                       }}
                       InputLabelProps={{
                         style: { fontSize: 15 },
-                        error: this.state.descError,
                       }}
                     ></CustomTextField>
                   </div>

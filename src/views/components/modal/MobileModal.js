@@ -663,6 +663,12 @@ class MobileModal extends Component {
                     onChange={this.handleTitleChange}
                     onBlur={this.handleBlur("title")}
                     onKeyDown={this.checkForEnter}
+                    error={this.state.titleError || this.shouldMarkError("title")}
+                    helperText={
+                      this.state.titleError || this.shouldMarkError("title")
+                        ? this.state.titleErrorMessage
+                        : ""
+                    }
                     InputProps={{
                       style: { fontSize: 15 },
                     }}

@@ -6,6 +6,7 @@ import { Auth, API, graphqlOperation, Storage } from "aws-amplify";
 import * as queries from "../../../graphql/queries";
 import * as mutations from "../../../graphql/mutations";
 import Modal from "./ProfileImgModal";
+import { Skeleton } from "@material-ui/lab";
 
 const styles = StyleSheet.create({
   container: {
@@ -54,12 +55,10 @@ class ProfileImage extends Component {
     const currentUser = await Auth.currentAuthenticatedUser();
     console.log(currentUser.username);
     console.log(this.props.user);
-    if (this.props.user === currentUser.username) {
-      this.setState({
-        currentUser: true,
-        user: this.props.user,
-      });
-    }
+    this.setState({
+      currentUser: this.props.user === currentUser.username,
+      user: this.props.user,
+    });
     this.getProfilePhoto();
   };
   componentDidUpdate = async (prevProps) => {
@@ -68,6 +67,7 @@ class ProfileImage extends Component {
     }
   };
   getProfilePhoto = async () => {
+    console.log(this.state.user);
     await Storage.vault
       .get(`profilePhoto.jpg`, {
         bucket: "user-images-hermes",
@@ -151,12 +151,16 @@ class ProfileImage extends Component {
             }}
           />
         )}
+        {this.state.profileImage ? (
+          <img
+            onError={() => this.setState({ profileImage: blankProfile })}
+            src={this.state.profileImage}
+            className={css(styles.profileImage)}
+          ></img>
+        ) : (
+          <Skeleton width={200} height={200} />
+        )}
 
-        <img
-          onError={() => this.setState({ profileImage: blankProfile })}
-          src={this.state.profileImage}
-          className={css(styles.profileImage)}
-        ></img>
         {this.state.currentUser === true && (
           <div
             onClick={() => {

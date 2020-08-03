@@ -1134,7 +1134,7 @@ class CommentBox extends Component {
                 date={this.props.comment.createdAt}
                 formatter={formatter}
               />
-              {" " + (this.state.isEdited === true ? "(edited)" : "")}
+              {" " + (this.state.isEdited === true ? "(redigerat)" : "")}
             </div>
             <div className="comment">
               <MDReactComponent text={unescape(this.props.comment.comment)} />
@@ -1656,7 +1656,7 @@ class ReplyBox extends Component {
                 date={this.props.reply.createdAt}
                 formatter={formatter}
               />
-              {" " + (this.state.isEdited === true ? "(edited)" : "")}
+              {" " + (this.state.isEdited === true ? "(redigerat)" : "")}
             </div>
             <div className="reply">
               <MDReactComponent text={unescape(this.props.reply.comment)} />

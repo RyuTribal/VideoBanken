@@ -1448,6 +1448,8 @@ class Player extends Component {
           {!this.props.mobileControls && (
             <div
               className={`player-controls ${
+                this.state.fullScreen && "fullscreen-controls"
+              } ${
                 this.state.isTimedOut === true ? "hide-player-controls" : ""
               }`}
               style={{

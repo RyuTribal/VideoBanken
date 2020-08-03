@@ -1001,9 +1001,11 @@ select:focus {
   margin-right: auto;
   color: $light-shade;
   font-size: 15px;
+  z-index: 1;
+}
+.fullscreen-controls {
   z-index: 2147483648;
 }
-
 .player-btns {
   padding-left: 10px;
   padding-right: 10px;
