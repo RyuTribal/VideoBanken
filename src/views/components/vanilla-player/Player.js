@@ -69,6 +69,15 @@ const useStyles = (theme) => ({
   label: {
     marginTop: 10,
   },
+  fullScreen: {
+    position: "fixed",
+    height: "100%",
+    width: "100%",
+    zIndex: 1101,
+    top: 0,
+    left: 0,
+    overflow: "hidden"
+  },
 });
 const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
 class Player extends Component {
@@ -1089,6 +1098,8 @@ class Player extends Component {
 
   toggleFullScreen = () => {
     const player = document.getElementsByClassName("player-wrapper")[0];
+    const { classes } = this.props;
+    console.log(this.props);
     if (this.state.fullScreen === false && this._isMounted) {
       if (player.requestFullscreen) {
         player.requestFullscreen();
@@ -1101,6 +1112,9 @@ class Player extends Component {
       } else if (player.msRequestFullscreen) {
         /* IE/Edge */
         player.msRequestFullscreen();
+      } else {
+        this.props.fullScreenEnter(true);
+        player.classList.add(classes.fullScreen);
       }
       this.setState({
         fullScreen: true,
@@ -1117,6 +1131,9 @@ class Player extends Component {
       } else if (player.msRequestFullscreen) {
         /* IE/Edge */
         document.msExitFullscreen();
+      } else {
+        player.classList.remove(classes.fullScreen);
+        this.props.fullScreenEnter(false);
       }
       this.setState({
         fullScreen: false,
@@ -1225,6 +1242,7 @@ class Player extends Component {
       >
         <canvas ref={this.canvasRef} style={{ display: "none" }}></canvas>
         <Dialog
+          className={classes.modal}
           open={this.state.mobileSettingsOpen}
           onClose={() => this.setState({ mobileSettingsOpen: false })}
         >

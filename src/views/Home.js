@@ -58,6 +58,9 @@ const useStyles = (theme) => ({
     height: "100vh",
     // minHeight: "100vh",
   },
+  fullScreen: {
+    overflow: "hidden",
+  },
 });
 class Home extends Component {
   constructor() {
@@ -78,6 +81,7 @@ class Home extends Component {
       newChat: false,
       rooms: [],
       profileImg: null,
+      fullScreen: false,
     };
     this.roomSubscription = "";
   }
@@ -393,7 +397,7 @@ class Home extends Component {
             this.setState({ selectedItem: selectedItem })
           }
           videoModal={() => {
-            console.log("pressed")
+            console.log("pressed");
             if (this.state.playerRef !== null) {
               if (this.state.playerRef.player.props.playing === true) {
                 this.setState({ playing: true });
@@ -407,7 +411,11 @@ class Home extends Component {
             }
           }}
         />
-        <main className={classes.content}>
+        <main
+          className={
+            this.state.fullScreen ? classes.fullScreen : classes.content
+          }
+        >
           <div className={classes.toolbar} />
           <Route
             render={(props) => {
@@ -436,6 +444,9 @@ class Home extends Component {
                           this.setState({ playerRef: playerRef })
                         }
                         container={styles.content}
+                        fullScreenEnter={(conditional) => {
+                          this.setState({ fullScreen: conditional });
+                        }}
                       />
                     )}
                   />

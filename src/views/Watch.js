@@ -185,7 +185,7 @@ class Watch extends Component {
         that.handleDisLikes(that.username, videoID, userInformation);
       });
     }
-    await this.getProfileImg(username);
+    await this.getProfileImg(this.state.videoDetails.username);
   };
 
   componentWillUnmount = () => {
@@ -475,6 +475,9 @@ class Watch extends Component {
           videoID={this.state.key}
           mobileControls={isMobile}
           sendViews={true}
+          fullScreenEnter={(conditional) =>
+            this.props.fullScreenEnter(conditional)
+          }
         />
         <div className="details-comments-wrapper">
           <div className="details-wrapper">
