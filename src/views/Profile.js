@@ -417,6 +417,31 @@ class Profile extends Component {
       this.setState({ following: !this.state.following });
     });
   };
+  saveInfo = async (userInfo) => {
+    console.log(userInfo);
+    API.graphql(
+      graphqlOperation(mutations.editUser, {
+        input: {
+          fullName: userInfo.name,
+          description: userInfo.desc,
+          height: userInfo.height,
+          weight: userInfo.weight,
+          username: this.state.userInfo.username,
+        },
+      })
+    ).then((res) => {
+      console.log(res);
+      this.setState({
+        userInfo: {
+          ...this.state.userInfo,
+          fullName: userInfo.name,
+          description: userInfo.desc,
+          height: userInfo.height,
+          weight: userInfo.weight,
+        },
+      });
+    });
+  };
   render() {
     console.log(this.state.userInfo);
     return (
@@ -452,9 +477,9 @@ class Profile extends Component {
             closeModal={() => {
               this.setState({ modal: false });
             }}
-            upload={(userInfo) => {
+            saveInfo={(userInfo) => {
               this.setState({ modal: false });
-              // this.handleImageUpload(this.dataURItoBlob(image));
+              this.saveInfo(userInfo);
             }}
             userProfile={this.state.userInfo}
           />
@@ -615,10 +640,14 @@ class Profile extends Component {
             <div
               className={css(
                 styles.userDesc,
-                this.state.userInfo.description === null && styles.emptyDesc
+                this.state.userInfo.description === null ||
+                  /^\s*$/.test(this.state.userInfo.description)
+                  ? styles.emptyDesc
+                  : ""
               )}
             >
-              {this.state.userInfo.description === null
+              {this.state.userInfo.description === null ||
+              /^\s*$/.test(this.state.userInfo.description)
                 ? "Profilen har ingen beskrivning"
                 : this.state.userInfo.description}
             </div>

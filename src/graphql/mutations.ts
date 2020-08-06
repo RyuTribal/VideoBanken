@@ -267,13 +267,6 @@ export const removeFollower = `mutation RemoveFollower($username: String, $follo
   }
 }
 `;
-export const detectRemovedFollower = `mutation DetectRemovedFollower($username: String, $follows: String) {
-  detectRemovedFollower(username: $username, follows: $follows) {
-    username
-    follows
-  }
-}
-`;
 export const createMessage = `mutation CreateMessage(
   $body: String!
   $username: String!

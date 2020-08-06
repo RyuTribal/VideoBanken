@@ -89,6 +89,9 @@ export type UserInput = {
   profileImg?: string | null,
   coverImg?: string | null,
   date_of_birth?: string | null,
+  description?: string | null,
+  height?: number | null,
+  weight?: number | null,
 };
 
 export type GetTableIncrementMutationVariables = {
@@ -472,19 +475,6 @@ export type RemoveFollowerMutation = {
     username: string | null,
     follows: string | null,
   } | null > | null,
-};
-
-export type DetectRemovedFollowerMutationVariables = {
-  username?: string | null,
-  follows?: string | null,
-};
-
-export type DetectRemovedFollowerMutation = {
-  detectRemovedFollower:  {
-    __typename: "Follower",
-    username: string | null,
-    follows: string | null,
-  } | null,
 };
 
 export type CreateMessageMutationVariables = {
@@ -1084,53 +1074,5 @@ export type DetectRoomChangeSubscription = {
     name: string | null,
     createdAt: string | null,
     chatImg: string | null,
-  } | null,
-};
-
-export type DetectFollowerSubscriptionVariables = {
-  username?: string | null,
-};
-
-export type DetectFollowerSubscription = {
-  detectFollower:  {
-    __typename: "Follower",
-    username: string | null,
-    follows: string | null,
-  } | null,
-};
-
-export type DetectFollowsSubscriptionVariables = {
-  follows?: string | null,
-};
-
-export type DetectFollowsSubscription = {
-  detectFollows:  {
-    __typename: "Follower",
-    username: string | null,
-    follows: string | null,
-  } | null,
-};
-
-export type DeleteFollowerSubscriptionVariables = {
-  username?: string | null,
-};
-
-export type DeleteFollowerSubscription = {
-  deleteFollower:  {
-    __typename: "Follower",
-    username: string | null,
-    follows: string | null,
-  } | null,
-};
-
-export type DeleteFollowsSubscriptionVariables = {
-  follows?: string | null,
-};
-
-export type DeleteFollowsSubscription = {
-  deleteFollows:  {
-    __typename: "Follower",
-    username: string | null,
-    follows: string | null,
   } | null,
 };

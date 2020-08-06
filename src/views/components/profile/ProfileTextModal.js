@@ -254,8 +254,12 @@ class Modal extends Component {
   componentDidMount = () => {
     this.setState({
       name: this.props.userProfile.fullName,
-      height: this.props.userProfile.height,
-      weigth: this.props.userProfile.weight,
+      height: this.props.userProfile.height
+        ? this.props.userProfile.height
+        : this.state.height,
+      weight: this.props.userProfile.weight
+        ? this.props.userProfile.weight
+        : this.state.weight,
       desc: this.props.userProfile.description
         ? this.props.userProfile.description
         : "",
@@ -323,11 +327,17 @@ class Modal extends Component {
                 </Typography>
                 <Button
                   color="inherit"
-                  // onClick={() => {
-                  //   if (this.state.image !== null) {
-                  //     this.props.upload(this.state.image);
-                  //   }
-                  // }}
+                  onClick={() => {
+                    if (!this.state.loading || !isDisabled) {
+                      const userInfo = {
+                        name: this.state.name,
+                        desc: this.state.desc,
+                        height: this.state.height,
+                        weight: this.state.weight,
+                      };
+                      this.props.saveInfo(userInfo);
+                    }
+                  }}
                   disabled={this.state.loading || isDisabled}
                 >
                   {this.state.loading === true ? (
@@ -406,6 +416,9 @@ class Modal extends Component {
                 min={115}
                 max={235}
                 valueLabelDisplay="auto"
+                onChange={(e, value) => {
+                  this.setState({ height: value });
+                }}
               />
             </div>
             <div className="input-wrappers">
@@ -418,6 +431,9 @@ class Modal extends Component {
                 marks={weightMarks}
                 max={160}
                 valueLabelDisplay="auto"
+                onChange={(e, value) => {
+                  this.setState({ weight: value });
+                }}
               />
             </div>
           </DialogContent>
@@ -437,11 +453,17 @@ class Modal extends Component {
               </Button>
               <Button
                 color="inherit"
-                // onClick={() => {
-                //   if (this.state.image !== null) {
-                //     this.props.upload(this.state.image);
-                //   }
-                // }}
+                onClick={() => {
+                  if (!this.state.loading || !isDisabled) {
+                    const userInfo = {
+                      name: this.state.name,
+                      desc: this.state.desc,
+                      height: this.state.height,
+                      weight: this.state.weight,
+                    };
+                    this.props.saveInfo(userInfo);
+                  }
+                }}
                 disabled={this.state.loading || isDisabled}
               >
                 {this.state.loading === true ? (
