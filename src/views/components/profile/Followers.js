@@ -22,6 +22,7 @@ import { Skeleton } from "@material-ui/lab";
 import theme from "../../../theme";
 import { Auth, API, graphqlOperation, Storage } from "aws-amplify";
 import * as queries from "../../../graphql/queries";
+import * as mutations from "../../../graphql/mutations";
 import { withRouter } from "react-router-dom";
 const useStyles = (theme) => ({
   input: {
@@ -74,6 +75,54 @@ const useStyles = (theme) => ({
     fontSize: 12,
     color: "#666666",
     fontWeight: "normal",
+  },
+  callToAction: {
+    marginLeft: "auto",
+    background: "#ea3a3a",
+    padding: "3px 10px",
+    boxSizing: "border-box",
+    fontSize: 12,
+    border: 0,
+    transition: "0.4s",
+    borderRadius: 5,
+    color: "#fbf9f9",
+    transition: "background-color 0.4s",
+    cursor: "pointer",
+    "&:hover": {
+      backgroundColor: "#ff5050",
+      transition: "0.4s",
+    },
+    "&:focus": {
+      outline: "none",
+    },
+    "&:disabled": {
+      backgroundColor: "rgb(245, 244, 242)",
+      color: "rgb(177, 172, 163)",
+    },
+  },
+  followsButton: {
+    marginLeft: "auto",
+    background: "unset",
+    padding: "3px 10px",
+    boxSizing: "border-box",
+    fontSize: 12,
+    border: "1px solid #ea3a3a",
+    transition: "0.4s",
+    borderRadius: 5,
+    color: "black",
+    transition: "background-color 0.4s",
+    cursor: "pointer",
+    "&:hover": {
+      backgroundColor: "rgba(0, 0, 0, 0.04)",
+      transition: "0.4s",
+    },
+    "&:focus": {
+      outline: "none",
+    },
+    "&:disabled": {
+      backgroundColor: "rgb(245, 244, 242)",
+      color: "rgb(177, 172, 163)",
+    },
   },
 });
 class Followers extends Component {
@@ -167,6 +216,7 @@ class Followers extends Component {
                   follower={follower}
                   classes={classes}
                   followVer={this.props.followerProps.followerVer}
+                  username={this.props.username}
                   redirect={() =>
                     this.redirectToUser(
                       this.props.followerProps.followerVer
@@ -200,7 +250,7 @@ class FollowerBox extends Component {
   constructor() {
     super();
     this.state = {
-      follows: false,
+      following: false,
       img: null,
       userInfo: {},
     };
@@ -217,6 +267,18 @@ class FollowerBox extends Component {
     });
     const img = await this.getProfilePhoto(this.state.userInfo.username);
     this.setState({ img: img });
+    await API.graphql(
+      graphqlOperation(queries.getFollower, {
+        username: this.props.username,
+        follows: this.props.followVer
+          ? this.props.follower.username
+          : this.props.follower.follows,
+      })
+    ).then((res) => {
+      if (res.data.getFollower) {
+        this.setState({ following: true });
+      }
+    });
   };
   getProfilePhoto = async (username) => {
     let image = await Storage.vault
@@ -235,12 +297,24 @@ class FollowerBox extends Component {
       });
     return image;
   };
+  handleFollow = async () => {
+    await API.graphql(
+      graphqlOperation(
+        this.state.following ? mutations.removeFollower : mutations.addFollower,
+        {
+          username: this.props.username,
+          follows: this.props.followVer
+            ? this.props.follower.username
+            : this.props.follower.follows,
+        }
+      )
+    ).then((res) => {
+      this.setState({ following: !this.state.following });
+    });
+  };
   render() {
     return (
-      <ButtonBase
-        onClick={this.props.redirect}
-        className={this.props.classes.button}
-      >
+      <div onClick={this.props.redirect} className={this.props.classes.button}>
         <div className={this.props.classes.messageBox}>
           {this.state.img ? (
             <Avatar
@@ -261,8 +335,22 @@ class FollowerBox extends Component {
               }`}</span>
             </div>
           </div>
+          <Button
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              this.handleFollow();
+            }}
+            className={
+              this.state.following
+                ? this.props.classes.followsButton
+                : this.props.classes.callToAction
+            }
+          >
+            {this.state.following ? "Följer" : "Följ"}
+          </Button>
         </div>
-      </ButtonBase>
+      </div>
     );
   }
 }

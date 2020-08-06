@@ -425,6 +425,7 @@ class Profile extends Component {
           <Followers
             followerProps={this.state.followerProps}
             closeModal={() => this.setState({ followersModal: false })}
+            username={this.props.state.user.username}
             set_follows={(ammountFollows) => {
               console.log(ammountFollows);
               this.setState({
