@@ -27,11 +27,9 @@ import ChatModal from "./components/inbox/ChatModal";
 import MobileModal from "./components/modal/MobileModal";
 import { connect } from "react-redux";
 import theme from "../theme";
-import {
-  withStyles,
-  createMuiTheme,
-  ThemeProvider,
-} from "@material-ui/core/styles";
+import { withStyles } from "@material-ui/core/styles";
+import { Button, Snackbar, IconButton } from "@material-ui/core";
+import { Close } from "@material-ui/icons";
 
 const styles = StyleSheet.create({
   wrapper: {
@@ -82,6 +80,8 @@ class Home extends Component {
       rooms: [],
       profileImg: null,
       fullScreen: false,
+      emailVerified: false,
+      snackbar: true,
     };
     this.roomSubscription = "";
   }
@@ -92,8 +92,13 @@ class Home extends Component {
       bypassCache: true, // Optional, By default is false. If set to true, this call will send a request to Cognito to get the latest user data
     })
       .then((user) => {
+        console.log(user);
         this.setState({
-          user: { username: user.username, attributes: user.attributes },
+          user: {
+            username: user.username,
+            attributes: user.attributes,
+            emailVerified: user.attributes.emailVerified,
+          },
         });
       })
       .catch((err) => {
@@ -325,6 +330,9 @@ class Home extends Component {
       }),
     });
   };
+  sendVerificaion = () => {
+    // Auth.verifyCurrentUserAttribute("email").then((res) => console.log(res));
+  };
   render() {
     console.log(theme.mixins.toolbar);
     const { classes } = this.props;
@@ -518,6 +526,35 @@ class Home extends Component {
             }}
           />
         </main>
+        <Snackbar
+          anchorOrigin={{
+            vertical: "bottom",
+            horizontal: "left",
+          }}
+          open={this.state.snackbar && !this.state.emailVerified}
+          autoHideDuration={6000}
+          onClose={() => this.setState({ snackbar: false })}
+          message={`Din email är inte verifierad.`}
+          action={
+            <React.Fragment>
+              <Button
+                onClick={this.sendVerificaion}
+                color="secondary"
+                size="small"
+              >
+                Verifiera email
+              </Button>
+              <IconButton
+                size="small"
+                aria-label="close"
+                color="inherit"
+                onClick={() => this.setState({ snackbar: false })}
+              >
+                <Close fontSize="small" />
+              </IconButton>
+            </React.Fragment>
+          }
+        />
       </div>
     );
   }

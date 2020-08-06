@@ -188,17 +188,16 @@ class Login extends Component {
       evt.preventDefault();
       return;
     }
-    const username = this.state.username;
-    const password = this.state.password;
     await Auth.signIn({
-      username: username, // Required, the username
-      password: password, // Optional, the password
+      username: this.state.username, // Required, the username
+      password: this.state.password, // Optional, the password
     })
       .then((user) => {
         console.log(user);
         this.props.history.push("/home");
       })
       .catch((err) => {
+        console.log(err);
         if (
           err ==
             "AuthError: The username should either be a string or one of the sign in types" ||

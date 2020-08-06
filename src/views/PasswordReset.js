@@ -121,6 +121,7 @@ class PasswordReset extends Component {
       usernameError: false,
       gotUsername: false,
       loading: false,
+      btnDisable: true,
     };
   }
 
@@ -146,6 +147,19 @@ class PasswordReset extends Component {
   };
   handleUsernameChange = (evt) => {
     this.setState({ username: evt.target.value });
+    if (!evt.target.value.match(/.+@.+/)) {
+      this.setState({
+        usernameError: true,
+        usernameErrorMessage: "Skriv in ett giltigt email",
+        btnDisable: true,
+      });
+    } else {
+      this.setState({
+        usernameError: false,
+        usernameErrorMessage: "Detta fält kan inte vara tomt",
+        btnDisable: false,
+      });
+    }
   };
 
   handleBlur = (field) => (evt) => {
@@ -178,7 +192,7 @@ class PasswordReset extends Component {
     });
     var username = this.state.username;
     console.log(username);
-    Auth.forgotPassword("ivan.sedelkin9@gmail.com")
+    Auth.forgotPassword(this.state.username)
       .then((data) => {
         console.log(data);
         this.setState({
@@ -227,8 +241,8 @@ class PasswordReset extends Component {
                 <div className="input-wrappers">
                   <CustomTextField
                     className={classes.input}
-                    label="Användarnamn"
-                    type="text"
+                    label="Email"
+                    type="email"
                     fullWidth
                     variant="outlined"
                     onKeyDown={this.checkForEnter}
@@ -257,7 +271,9 @@ class PasswordReset extends Component {
                 </div>
               </ThemeProvider>
               <Button
-                disabled={isDisabled || this.state.loading}
+                disabled={
+                  isDisabled || this.state.loading || this.state.btnDisable
+                }
                 type="submit"
                 className={classes.submit}
                 onClick={() => this.managePassword()}
@@ -473,8 +489,9 @@ class PasswordConfirmation extends Component {
         {this.state.finished === false ? (
           <div>
             <p style={{ fontSize: "15px" }}>
-              Koden bör komma till er email inom kort. Håll koll på er spam
-              folder ifall mejlet inte dyker upp eller
+              Koden bör komma till er email inom kort ifall användaren existerar
+              i databasen och email addressen är verifierad. Håll koll på er
+              spam folder ifall mejlet inte dyker upp eller
               <Link onClick={() => this.resend()} className="text-link">
                 tryck här för att skicka koden igen
               </Link>{" "}

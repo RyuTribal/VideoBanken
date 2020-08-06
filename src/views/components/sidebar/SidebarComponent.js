@@ -252,21 +252,23 @@ class SidebarComponent extends React.Component {
   };
   getProfileImg = async () => {
     console.log("here");
-    await Storage.vault
-      .get(`profilePhoto.jpg`, {
-        bucket: "user-images-hermes",
-        level: "public",
-        customPrefix: {
-          public: `${this.props.state.user.username}/`,
-        },
-        progressCallback(progress) {
-          console.log(`Uploaded: ${progress.loaded}/${progress.total}`);
-        },
-      })
-      .then((res) => {
-        console.log(res);
-        this.setState({ profileImg: res, loading: false });
-      });
+    if (this.props.state.user) {
+      await Storage.vault
+        .get(`profilePhoto.jpg`, {
+          bucket: "user-images-hermes",
+          level: "public",
+          customPrefix: {
+            public: `${this.props.state.user.username}/`,
+          },
+          progressCallback(progress) {
+            console.log(`Uploaded: ${progress.loaded}/${progress.total}`);
+          },
+        })
+        .then((res) => {
+          console.log(res);
+          this.setState({ profileImg: res, loading: false });
+        });
+    }
   };
   render() {
     const { classes } = this.props;

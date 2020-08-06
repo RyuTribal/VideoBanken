@@ -322,19 +322,20 @@ const styles = StyleSheet.create({
     padding: "10px 0px",
   },
 });
+const initialState = {
+  user: "",
+  userInfo: {},
+  userExists: true,
+  userProfile: false,
+  modal: false,
+  follows: false,
+  following: false,
+  followersModal: false,
+};
 class Profile extends Component {
   constructor() {
     super();
-    this.state = {
-      user: "",
-      userInfo: {},
-      userExists: true,
-      userProfile: false,
-      modal: false,
-      follows: false,
-      following: false,
-      followersModal: false,
-    };
+    this.state = initialState;
   }
   componentDidMount = async () => {
     this.setState({
@@ -368,6 +369,7 @@ class Profile extends Component {
   };
   componentDidUpdate = async (prevProps) => {
     if (prevProps.match.params.user !== this.props.match.params.user) {
+      this.setState(initialState);
       this.componentDidMount();
     }
     if (prevProps.state.user !== this.props.state.user) {
@@ -375,26 +377,30 @@ class Profile extends Component {
     }
   };
   getFollows = async () => {
-    await API.graphql(
-      graphqlOperation(queries.getFollower, {
-        username: this.props.state.user.username,
-        follows: this.state.userInfo.username,
-      })
-    ).then((res) => {
-      if (res.data.getFollower) {
-        this.setState({ following: true });
-      }
-    });
-    await API.graphql(
-      graphqlOperation(queries.getFollower, {
-        username: this.state.userInfo.username,
-        follows: this.props.state.user.username,
-      })
-    ).then((res) => {
-      if (res.data.getFollower) {
-        this.setState({ follows: true });
-      }
-    });
+    if (this.props.state.user) {
+      await API.graphql(
+        graphqlOperation(queries.getFollower, {
+          username: this.props.state.user.username,
+          follows: this.state.userInfo.username,
+        })
+      ).then((res) => {
+        console.log(res);
+        if (res.data.getFollower) {
+          this.setState({ following: true });
+        }
+      });
+      await API.graphql(
+        graphqlOperation(queries.getFollower, {
+          username: this.state.userInfo.username,
+          follows: this.props.state.user.username,
+        })
+      ).then((res) => {
+        console.log(res);
+        if (res.data.getFollower) {
+          this.setState({ follows: true });
+        }
+      });
+    }
   };
   isMobile = () => {
     if (
