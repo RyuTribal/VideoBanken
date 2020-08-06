@@ -653,7 +653,6 @@ class MobileModal extends Component {
                 <div className="input-wrappers">
                   <CustomTextField
                     className={classes.input}
-                    id="outlined-password-input"
                     label="Titel"
                     type="text"
                     fullWidth
@@ -682,7 +681,6 @@ class MobileModal extends Component {
                 <div className="input-wrappers">
                   <CustomTextField
                     className={classes.input}
-                    id="outlined-password-input"
                     label="Beskrivning"
                     type="text"
                     variant="outlined"
@@ -704,7 +702,6 @@ class MobileModal extends Component {
                 <div className="input-wrappers">
                   <CustomChipField
                     className={classes.input}
-                    id="outlined-password-input"
                     label="Tags"
                     fullWidth={true}
                     classes={{ focused: classes.focused }}
@@ -744,7 +741,6 @@ class MobileModal extends Component {
                 <div className="input-wrappers">
                   <CustomTextField
                     className={classes.input}
-                    id="outlined-password-input"
                     label="Connections"
                     type="text"
                     fullWidth={true}

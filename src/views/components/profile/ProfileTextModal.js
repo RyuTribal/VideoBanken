@@ -357,7 +357,6 @@ class Modal extends Component {
               <div className="input-wrappers">
                 <CustomTextField
                   className={classes.input}
-                  id="outlined-password-input"
                   label="Namn"
                   type="text"
                   fullWidth
@@ -385,7 +384,6 @@ class Modal extends Component {
               <div className="input-wrappers">
                 <CustomTextField
                   className={classes.input}
-                  id="outlined-password-input"
                   label="Beskrivning"
                   type="text"
                   variant="outlined"

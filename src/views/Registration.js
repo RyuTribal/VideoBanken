@@ -6,6 +6,28 @@ import $ from "jquery";
 import intlTelInput from "intl-tel-input/build/js/intlTelInput";
 import utils from "intl-tel-input/build/js/utils";
 import { withFederated } from "aws-amplify-react";
+import {
+  Slider,
+  TextField,
+  Button,
+  IconButton,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
+  Toolbar,
+  AppBar,
+  Typography,
+  InputAdornment,
+} from "@material-ui/core";
+import {
+  withStyles,
+  createMuiTheme,
+  ThemeProvider,
+} from "@material-ui/core/styles";
+import { Visibility, VisibilityOff } from "@material-ui/icons";
+import theme from "../theme";
 function validate(username, password, name, email) {
   return {
     username: username.length === 0,
@@ -14,20 +36,27 @@ function validate(username, password, name, email) {
     email: email.length === 0,
   };
 }
+
 const Buttons = (props) => (
   <div>
-    <button className="social-btn">
-      <div>
-        <img src="//d35aaqx5ub95lt.cloudfront.net/images/google-color.svg"></img>
+    <Button className={props.classes.socialBtn}>
+      <div className={props.classes.socialWrapper}>
+        <img
+          style={{ marginRight: "0.25em" }}
+          src="//d35aaqx5ub95lt.cloudfront.net/images/google-color.svg"
+        ></img>
         <span className="google-btn">Google</span>
       </div>
-    </button>
-    <button className="social-btn">
-      <div>
-        <img src="//d35aaqx5ub95lt.cloudfront.net/images/facebook-blue.svg"></img>
+    </Button>
+    <Button className={props.classes.socialBtn}>
+      <div className={props.classes.socialWrapper}>
+        <img
+          style={{ marginRight: "0.25em" }}
+          src="//d35aaqx5ub95lt.cloudfront.net/images/facebook-blue.svg"
+        ></img>
         <span className="fb-btn">Facebook</span>
       </div>
-    </button>
+    </Button>
   </div>
 );
 
@@ -38,6 +67,87 @@ const federated = {
     "216481722641-n8cdp068qrd3ebpi70l2recq8rkj3430.apps.googleusercontent.com", // Enter your google_client_id here
   facebook_app_id: "2711841088850140", // Enter your facebook_app_id here
 };
+const CustomTextField = withStyles({
+  root: {
+    "& input": {
+      fontSize: 15,
+      borderColor: "#a18e78",
+      backgroundColor: "rgb(245, 244, 242)",
+    },
+    "& .MuiInputBase-multiline": {
+      fontSize: 15,
+      borderColor: "#a18e78",
+      backgroundColor: "rgb(245, 244, 242)",
+    },
+    "& input:valid:focus": {
+      backgroundColor: "transparent !important",
+    },
+    "& .Mui-focused": {
+      backgroundColor: "transparent !important",
+    },
+    "& .MuiOutlinedInput-adornedEnd": {
+      background: "rgb(245, 244, 242)",
+    },
+  },
+})(TextField);
+const useStyles = (theme) => ({
+  input: {
+    width: "100%",
+  },
+  appbar: {
+    backgroundColor: "#263040",
+    position: "relative",
+  },
+  title: {
+    marginLeft: theme.spacing(2),
+    flex: 1,
+  },
+  submit: {
+    background: "#ea3a3a",
+    padding: "10px 20px",
+    boxSizing: "border-box",
+    fontSize: 15,
+    border: 0,
+    marginTop: 20,
+    transition: "0.4s",
+    width: "100%",
+    borderRadius: 5,
+    color: "#fbf9f9",
+    transition: "background-color 0.4s",
+    cursor: "pointer",
+    "&:hover": {
+      backgroundColor: "#ff5050",
+      transition: "0.4s",
+    },
+    "&:focus": {
+      outline: "none",
+    },
+    "&:disabled": {
+      backgroundColor: "rgb(245, 244, 242)",
+      color: "rgb(177, 172, 163)",
+    },
+  },
+  socialBtn: {
+    textAlign: "center",
+    textDecoration: "none",
+    width: "100%",
+    paddingTop: 10,
+    paddingBottom: 10,
+    fontSize: 15,
+    fontWeight: "bold",
+    border: "none",
+    borderRadius: 10,
+    textDecoration: "none",
+    background: "#fbf9f9",
+    cursor: "pointer",
+    marginTop: 30,
+    border: "2px solid #bf9c96",
+  },
+  socialWrapper: {
+    display: "flex",
+    alignItems: "center",
+  },
+});
 class Registration extends Component {
   constructor() {
     super();
@@ -70,6 +180,7 @@ class Registration extends Component {
       loading: false,
       btnDisable: false,
       userCreated: false,
+      passwordShow: false,
     };
   }
   componentWillMount() {
@@ -198,7 +309,7 @@ class Registration extends Component {
       },
     })
       .then((user) => {
-        this.props.history.push("login")
+        this.props.history.push("login");
       })
       .catch((err) => {
         this.setState({
@@ -236,6 +347,22 @@ class Registration extends Component {
         }
       });
   };
+  renderPasswordVisibility = (classes) => {
+    return (
+      <InputAdornment style={{ background: "transparent" }} position="end">
+        <IconButton
+          aria-label="toggle password visibility"
+          onClick={() =>
+            this.setState({
+              passwordShow: !this.state.passwordShow,
+            })
+          }
+        >
+          {this.state.passwordShow ? <Visibility /> : <VisibilityOff />}
+        </IconButton>
+      </InputAdornment>
+    );
+  };
   render() {
     const errors = validate(
       this.state.username,
@@ -244,6 +371,7 @@ class Registration extends Component {
       this.state.email
     );
     const isDisabled = Object.keys(errors).some((x) => errors[x]);
+    const { classes } = this.props;
     return (
       <div className="login-wrapper">
         <div className="login-container">
@@ -251,123 +379,124 @@ class Registration extends Component {
             <h2>Registrera</h2>
           </div>
           <div className="form-container">
-            <div className="input-wrappers">
-              <lable for="username">Användarnamn</lable>
-              <input
-                type="text"
-                className={
-                  this.shouldMarkError("username") ||
-                  this.state.usernameError === true
-                    ? "input-error custom-input"
-                    : "custom-input"
-                }
-                id="username"
-                value={this.state.username}
-                onChange={this.handleUsernameChange}
-                onBlur={this.handleBlur("username")}
-                onKeyDown={this.checkForEnter}
-                autoFocus
-              ></input>
-              {this.shouldMarkError("username") || this.state.usernameError ? (
-                <p className="input-error-message">
-                  {this.state.usernameErrorMessage}
-                </p>
-              ) : (
-                ""
-              )}
-            </div>
-            <div className="input-wrappers">
-              <lable for="name">Namn</lable>
-              <input
-                type="text"
-                className={
-                  this.shouldMarkError("name") || this.state.nameError === true
-                    ? "input-error custom-input"
-                    : "custom-input"
-                }
-                id="name"
-                value={this.state.name}
-                onChange={this.handleNameChange}
-                onBlur={this.handleBlur("name")}
-                onKeyDown={this.checkForEnter}
-              ></input>
-              {this.state.nameError ||
-                (this.shouldMarkError("name") && (
-                  <p className="input-error-message">
-                    {this.state.nameErrorMessage}
-                  </p>
-                ))}
-            </div>
-            <div className="input-wrappers">
-              <lable for="email">Email</lable>
-              <input
-                type="email"
-                className={
-                  this.shouldMarkError("email") ||
-                  this.state.emailError === true
-                    ? "input-error custom-input"
-                    : "custom-input"
-                }
-                id="email"
-                value={this.state.email}
-                onChange={this.handleEmailChange}
-                onBlur={this.handleBlur("email")}
-                onKeyDown={this.checkForEnter}
-              ></input>
-              {this.shouldMarkError("email") || this.state.emailError ? (
-                <p className="input-error-message">
-                  {this.state.emailErrorMessage}
-                </p>
-              ) : (
-                ""
-              )}
-            </div>
-            <div className="input-wrappers">
-              <lable for="password">Lösenord</lable>
-              <div
-                className={`input-icon ${
-                  this.shouldMarkError("password") ||
-                  this.state.passwordError === true
-                    ? "input-error"
-                    : ""
-                }`}
-              >
-                <input
-                  type={this.state.hidden === true ? "password" : "text"}
-                  className="custom-input"
-                  id="password"
+            <ThemeProvider theme={theme}>
+              <div className="input-wrappers">
+                <CustomTextField
+                  className={classes.input}
+                  label="Användarnamn"
+                  type="text"
+                  fullWidth
+                  variant="outlined"
+                  onKeyDown={this.checkForEnter}
+                  value={this.state.username}
+                  onChange={this.handleUsernameChange}
+                  onBlur={this.handleBlur("username")}
+                  onKeyDown={this.checkForEnter}
+                  error={
+                    this.state.usernameError || this.shouldMarkError("username")
+                  }
+                  helperText={
+                    this.state.usernameError || this.shouldMarkError("username")
+                      ? this.state.usernameErrorMessage
+                      : ""
+                  }
+                  InputProps={{
+                    style: { fontSize: 15 },
+                  }}
+                  InputLabelProps={{
+                    style: { fontSize: 15 },
+                    required: true,
+                  }}
+                ></CustomTextField>
+              </div>
+              <div className="input-wrappers">
+                <CustomTextField
+                  className={classes.input}
+                  label="Namn"
+                  type="text"
+                  variant="outlined"
+                  onKeyDown={this.checkForEnter}
+                  value={this.state.name}
+                  onChange={this.handleNameChange}
+                  onBlur={this.handleBlur("name")}
+                  onKeyDown={this.checkForEnter}
+                  error={this.state.nameError || this.shouldMarkError("name")}
+                  helperText={
+                    this.state.nameError || this.shouldMarkError("name")
+                      ? this.state.nameErrorMessage
+                      : ""
+                  }
+                  InputProps={{
+                    style: { fontSize: 15 },
+                  }}
+                  InputLabelProps={{
+                    style: { fontSize: 15 },
+                    required: true,
+                  }}
+                ></CustomTextField>
+              </div>
+              <div className="input-wrappers">
+                <CustomTextField
+                  className={classes.input}
+                  label="Email"
+                  type="text"
+                  variant="outlined"
+                  onKeyDown={this.checkForEnter}
+                  value={this.state.email}
+                  onChange={this.handleEmailChange}
+                  onBlur={this.handleBlur("email")}
+                  onKeyDown={this.checkForEnter}
+                  error={this.state.emailError || this.shouldMarkError("email")}
+                  helperText={
+                    this.state.emailError || this.shouldMarkError("email")
+                      ? this.state.emailErrorMessage
+                      : ""
+                  }
+                  InputProps={{
+                    style: { fontSize: 15 },
+                  }}
+                  InputLabelProps={{
+                    style: { fontSize: 15 },
+                    required: true,
+                  }}
+                ></CustomTextField>
+              </div>
+              <div className="input-wrappers">
+                <CustomTextField
+                  className={classes.input}
+                  label="Lösenord"
+                  type={this.state.passwordShow ? "text" : "password"}
+                  variant="outlined"
+                  onKeyDown={this.checkForEnter}
                   value={this.state.password}
                   onChange={this.handlePasswordChange}
                   onBlur={this.handleBlur("password")}
                   onKeyDown={this.checkForEnter}
-                ></input>
-                <button
-                  onClick={() => this.toggleHide()}
-                  className="confirmPassword"
-                >
-                  <i
-                    className={
-                      this.state.hidden === true
-                        ? "fas fa-eye"
-                        : "fas fa-eye-slash"
-                    }
-                  ></i>
-                </button>
+                  error={
+                    this.state.passwordError || this.shouldMarkError("password")
+                  }
+                  helperText={
+                    this.state.passwordError || this.shouldMarkError("password")
+                      ? this.state.passwordErrorMessage
+                      : ""
+                  }
+                  InputProps={{
+                    style: { fontSize: 15 },
+                    endAdornment: this.renderPasswordVisibility(classes),
+                  }}
+                  InputLabelProps={{
+                    style: { fontSize: 15 },
+                    required: true,
+                  }}
+                ></CustomTextField>
               </div>
-              {this.shouldMarkError("password") || this.state.passwordError ? (
-                <p className="input-error-message">
-                  {this.state.passwordErrorMessage}
-                </p>
-              ) : (
-                ""
-              )}
-            </div>
-            <button
+            </ThemeProvider>
+            <Button
               disabled={
                 isDisabled || this.state.loading || this.state.btnDisable
               }
               type="submit"
-              className="login-button"
+              className={classes.submit}
               onClick={() => this.manageReg()}
             >
               {this.state.loading === true ? (
@@ -375,9 +504,9 @@ class Registration extends Component {
               ) : (
                 "Registrera"
               )}
-            </button>
+            </Button>
             <div class="separator">eller</div>
-            <Federated federated={federated} />
+            <Federated federated={federated} classes={classes} />
           </div>
           <div className="login-link">
             Har redan ett konto? <Link to="login">Logga in här</Link>
@@ -388,4 +517,4 @@ class Registration extends Component {
   }
 }
 
-export default Registration;
+export default withStyles(useStyles)(Registration);

@@ -83,6 +83,12 @@ class CoverPhoto extends Component {
         user: this.props.user,
       });
     }
+    else{
+      this.setState({
+        currentUser: false,
+        user: this.props.user,
+      });
+    }
     this.getCoverPhoto();
   };
   componentDidUpdate = async (prevProps) => {

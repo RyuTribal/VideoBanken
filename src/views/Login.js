@@ -4,26 +4,28 @@ import Amplify from "aws-amplify";
 import { Auth, Hub } from "aws-amplify";
 import awsconfig from "../aws-exports";
 import $ from "jquery";
-import { withFederated } from "aws-amplify-react";
 import HermesLogo from "../img/hermes-logo.svg";
-const Buttons = (props) => (
-  <div>
-    <button className="social-btn">
-      <div>
-        <img src="//d35aaqx5ub95lt.cloudfront.net/images/google-color.svg"></img>
-        <span className="google-btn">Google</span>
-      </div>
-    </button>
-    <button className="social-btn">
-      <div>
-        <img src="//d35aaqx5ub95lt.cloudfront.net/images/facebook-blue.svg"></img>
-        <span className="fb-btn">Facebook</span>
-      </div>
-    </button>
-  </div>
-);
-
-const Federated = withFederated(Buttons);
+import {
+  Slider,
+  TextField,
+  Button,
+  IconButton,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
+  Toolbar,
+  AppBar,
+  Typography,
+} from "@material-ui/core";
+import {
+  withStyles,
+  createMuiTheme,
+  ThemeProvider,
+} from "@material-ui/core/styles";
+import { Close } from "@material-ui/icons";
+import theme from "../theme";
 
 const federated = {
   google_client_id:
@@ -37,6 +39,85 @@ function validate(username, password) {
     password: password.length === 0,
   };
 }
+
+const CustomTextField = withStyles({
+  root: {
+    "& input": {
+      fontSize: 15,
+      borderColor: "#a18e78",
+      backgroundColor: "rgb(245, 244, 242)",
+    },
+    "& .MuiInputBase-multiline": {
+      fontSize: 15,
+      borderColor: "#a18e78",
+      backgroundColor: "rgb(245, 244, 242)",
+    },
+    "& input:valid:focus": {
+      backgroundColor: "transparent !important",
+    },
+    "& .Mui-focused": {
+      backgroundColor: "transparent !important",
+    },
+  },
+})(TextField);
+const useStyles = (theme) => ({
+  input: {
+    width: "100%",
+  },
+  appbar: {
+    backgroundColor: "#263040",
+    position: "relative",
+  },
+  title: {
+    marginLeft: theme.spacing(2),
+    flex: 1,
+  },
+  submit: {
+    background: "#ea3a3a",
+    padding: "10px 20px",
+    boxSizing: "border-box",
+    fontSize: 15,
+    border: 0,
+    marginTop: 20,
+    transition: "0.4s",
+    width: "100%",
+    borderRadius: 5,
+    color: "#fbf9f9",
+    transition: "background-color 0.4s",
+    cursor: "pointer",
+    "&:hover": {
+      backgroundColor: "#ff5050",
+      transition: "0.4s",
+    },
+    "&:focus": {
+      outline: "none",
+    },
+    "&:disabled": {
+      backgroundColor: "rgb(245, 244, 242)",
+      color: "rgb(177, 172, 163)",
+    },
+  },
+  socialBtn: {
+    textAlign: "center",
+    textDecoration: "none",
+    width: "100%",
+    paddingTop: 10,
+    paddingBottom: 10,
+    fontSize: 15,
+    fontWeight: "bold",
+    border: "none",
+    borderRadius: 10,
+    textDecoration: "none",
+    background: "#fbf9f9",
+    cursor: "pointer",
+    marginTop: 30,
+    border: "2px solid #bf9c96",
+  },
+  socialWrapper: {
+    display: "flex",
+    alignItems: "center",
+  },
+});
 
 // You can get the current config object
 class Login extends Component {
@@ -99,7 +180,7 @@ class Login extends Component {
       this.manageLogin();
     }
   };
-  manageLogin = (evt) => {
+  manageLogin = async (evt) => {
     this.setState({
       loading: true,
     });
@@ -109,11 +190,12 @@ class Login extends Component {
     }
     const username = this.state.username;
     const password = this.state.password;
-    Auth.signIn({
-      username, // Required, the username
-      password, // Optional, the password
+    await Auth.signIn({
+      username: username, // Required, the username
+      password: password, // Optional, the password
     })
       .then((user) => {
+        console.log(user);
         this.props.history.push("/home");
       })
       .catch((err) => {
@@ -147,6 +229,7 @@ class Login extends Component {
   render() {
     const errors = validate(this.state.username, this.state.password);
     const isDisabled = Object.keys(errors).some((x) => errors[x]);
+    const { classes } = this.props;
     return (
       <div className="login-wrapper">
         <div className="login-container">
@@ -159,68 +242,99 @@ class Login extends Component {
                 Användarnamnet och lösenordet matchar inte
               </p>
             )}
-            <div className="input-wrappers">
-              <lable for="username">Användarnamn</lable>
-              <input
-                type="text"
-                className={
-                  this.shouldMarkError("username") ||
-                  this.state.usernameError === true
-                    ? "input-error custom-input"
-                    : "custom-input"
-                }
-                id="username"
-                value={this.state.username}
-                onChange={this.handleUsernameChange}
-                onBlur={this.handleBlur("username")}
-                onKeyDown={this.checkForEnter}
-                autoFocus
-              ></input>
-              {this.state.usernameError ||
-                (this.shouldMarkError("username") && (
-                  <p className="input-error-message">
-                    {this.state.usernameErrorMessage}
-                  </p>
-                ))}
-            </div>
-            <div className="input-wrappers">
-              <lable for="password">Lösenord</lable>
-              <input
-                type="password"
-                className={
-                  this.shouldMarkError("password") ||
-                  this.state.passwordError === true
-                    ? "input-error custom-input"
-                    : "custom-input"
-                }
-                id="password"
-                value={this.state.password}
-                onChange={this.handlePasswordChange}
-                onBlur={this.handleBlur("password")}
-                onKeyDown={this.checkForEnter}
-              ></input>
-              {this.state.passwordError ||
-                (this.shouldMarkError("password") && (
-                  <p className="input-error-message">
-                    {this.state.passwordErrorMessage}
-                  </p>
-                ))}
-              <Link to="password-reset">Glömt lösenordet?</Link>
-            </div>
-            <button
+            <ThemeProvider theme={theme}>
+              <div className="input-wrappers">
+                <CustomTextField
+                  className={classes.input}
+                  label="Användarnamn"
+                  type="text"
+                  fullWidth
+                  variant="outlined"
+                  onKeyDown={this.checkForEnter}
+                  value={this.state.username}
+                  onChange={this.handleUsernameChange}
+                  onBlur={this.handleBlur("username")}
+                  onKeyDown={this.checkForEnter}
+                  error={
+                    this.state.usernameError || this.shouldMarkError("username")
+                  }
+                  helperText={
+                    this.state.usernameError || this.shouldMarkError("username")
+                      ? this.state.usernameErrorMessage
+                      : ""
+                  }
+                  InputProps={{
+                    style: { fontSize: 15 },
+                  }}
+                  InputLabelProps={{
+                    style: { fontSize: 15 },
+                    required: true,
+                  }}
+                ></CustomTextField>
+              </div>
+              <div className="input-wrappers">
+                <CustomTextField
+                  className={classes.input}
+                  label="Lösenord"
+                  type="password"
+                  variant="outlined"
+                  onKeyDown={this.checkForEnter}
+                  value={this.state.password}
+                  onChange={this.handlePasswordChange}
+                  onBlur={this.handleBlur("password")}
+                  onKeyDown={this.checkForEnter}
+                  error={
+                    this.state.passwordError || this.shouldMarkError("password")
+                  }
+                  helperText={
+                    this.state.passwordError || this.shouldMarkError("password")
+                      ? this.state.passwordErrorMessage
+                      : ""
+                  }
+                  InputProps={{
+                    style: { fontSize: 15 },
+                  }}
+                  InputLabelProps={{
+                    style: { fontSize: 15 },
+                    required: true,
+                  }}
+                ></CustomTextField>
+                <Link to="password-reset">Glömt lösenordet?</Link>
+              </div>
+            </ThemeProvider>
+            <Button
               disabled={isDisabled || this.state.loading}
               type="submit"
-              className="login-button"
+              className={classes.submit}
               onClick={() => this.manageLogin()}
             >
               {this.state.loading === true ? (
-                <i class="fas fa-sync fa-spin"></i>
+                <i className="fas fa-sync fa-spin"></i>
               ) : (
                 "Logga in"
               )}
-            </button>
-            <div class="separator">eller</div>
-            <Federated federated={federated} />
+            </Button>
+            <div className="separator">eller</div>
+            <div>
+              <Button className={classes.socialBtn}>
+                <div className={classes.socialWrapper}>
+                  <img
+                    style={{ marginRight: "0.25em" }}
+                    src="//d35aaqx5ub95lt.cloudfront.net/images/google-color.svg"
+                  ></img>
+                  <span className="google-btn">Google</span>
+                </div>
+              </Button>
+              <Button className={classes.socialBtn}>
+                <div className={classes.socialWrapper}>
+                  <img
+                    style={{ marginRight: "0.25em" }}
+                    src="//d35aaqx5ub95lt.cloudfront.net/images/facebook-blue.svg"
+                  ></img>
+                  <span className="fb-btn">Facebook</span>
+                </div>
+              </Button>
+            </div>
           </div>
           <div className="login-link">
             Har inget konto? <Link to="registration">Skapa ett här</Link>
@@ -231,4 +345,4 @@ class Login extends Component {
   }
 }
 
-export default Login;
+export default withStyles(useStyles)(Login);

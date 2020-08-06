@@ -317,8 +317,11 @@ const styles = StyleSheet.create({
   menuResults: {
     height: "100%",
   },
+  isFollowing: {
+    color: "#666666",
+    padding: "10px 0px",
+  },
 });
-
 class Profile extends Component {
   constructor() {
     super();
@@ -520,6 +523,13 @@ class Profile extends Component {
                     {this.state.following ? "Följer" : "Följ"}
                   </Button>
                 )}
+                {this.state.follows ? (
+                  <div
+                    className={css(styles.isFollowing)}
+                  >{`@${this.state.userInfo.username} följer dig`}</div>
+                ) : (
+                  ""
+                )}
                 <div className={css(styles.followersWrapper)}>
                   <div
                     onClick={() =>
@@ -636,6 +646,13 @@ class Profile extends Component {
                   </div>
                 </div>
               </div>
+            )}
+            {this.state.follows ? (
+              <div
+                className={css(styles.isFollowing)}
+              >{`@${this.state.userInfo.username} följer dig`}</div>
+            ) : (
+              ""
             )}
             <div
               className={css(

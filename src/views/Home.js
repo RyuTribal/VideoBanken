@@ -245,7 +245,9 @@ class Home extends Component {
   };
   componentWillUnmount() {
     window.removeEventListener("resize", this.resize);
-    this.roomSubscription.unsubscribe();
+    if (this.roomSubscription) {
+      this.roomSubscription.unsubscribe();
+    }
   }
   logout = () => {
     Auth.signOut()

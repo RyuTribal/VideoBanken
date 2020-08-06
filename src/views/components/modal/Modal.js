@@ -625,7 +625,6 @@ class Modal extends Component {
                   <div className="input-wrappers">
                     <CustomTextField
                       className={classes.input}
-                      id="outlined-password-input"
                       label="Titel"
                       type="text"
                       fullWidth={true}
@@ -657,7 +656,6 @@ class Modal extends Component {
                   <div className="input-wrappers">
                     <CustomTextField
                       className={classes.input}
-                      id="outlined-password-input"
                       label="Beskrivning"
                       fullWidth={true}
                       type="text"
@@ -681,7 +679,6 @@ class Modal extends Component {
                   <div className="input-wrappers">
                     <CustomChipField
                       className={classes.input}
-                      id="outlined-password-input"
                       label="Tags"
                       fullWidth={true}
                       classes={{ focused: classes.focused }}
@@ -728,7 +725,6 @@ class Modal extends Component {
                   <div style={{ marginTop: 10 }} className="input-wrappers">
                     <CustomTextField
                       className={classes.input}
-                      id="outlined-password-input"
                       label="Connections"
                       type="text"
                       fullWidth={true}

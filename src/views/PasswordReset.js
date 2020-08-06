@@ -1,8 +1,110 @@
 import React, { Component } from "react";
 import $ from "jquery";
 import { Link } from "react-router-dom";
-import { Auth, Hub } from "aws-amplify";
-import ReactCSSTransitionReplace from "react-css-transition-replace";
+import { Auth } from "aws-amplify";
+import {
+  Slider,
+  TextField,
+  Button,
+  IconButton,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
+  Toolbar,
+  AppBar,
+  Typography,
+  InputAdornment,
+} from "@material-ui/core";
+import {
+  withStyles,
+  createMuiTheme,
+  ThemeProvider,
+} from "@material-ui/core/styles";
+import { VisibilityOff, Visibility } from "@material-ui/icons";
+import theme from "../theme";
+const CustomTextField = withStyles({
+  root: {
+    "& input": {
+      fontSize: 15,
+      borderColor: "#a18e78",
+      backgroundColor: "rgb(245, 244, 242)",
+    },
+    "& .MuiInputBase-multiline": {
+      fontSize: 15,
+      borderColor: "#a18e78",
+      backgroundColor: "rgb(245, 244, 242)",
+    },
+    "& input:valid:focus": {
+      backgroundColor: "transparent !important",
+    },
+    "& .Mui-focused": {
+      backgroundColor: "transparent !important",
+    },
+    "& .MuiOutlinedInput-adornedEnd": {
+      background: "rgb(245, 244, 242)",
+    },
+  },
+})(TextField);
+const useStyles = (theme) => ({
+  input: {
+    width: "100%",
+  },
+  appbar: {
+    backgroundColor: "#263040",
+    position: "relative",
+  },
+  title: {
+    marginLeft: theme.spacing(2),
+    flex: 1,
+  },
+  submit: {
+    background: "#ea3a3a",
+    padding: "10px 20px",
+    boxSizing: "border-box",
+    fontSize: 15,
+    border: 0,
+    marginTop: 20,
+    transition: "0.4s",
+    width: "100%",
+    borderRadius: 5,
+    color: "#fbf9f9",
+    transition: "background-color 0.4s",
+    cursor: "pointer",
+    "&:hover": {
+      backgroundColor: "#ff5050",
+      transition: "0.4s",
+    },
+    "&:focus": {
+      outline: "none",
+    },
+    "&:disabled": {
+      backgroundColor: "rgb(245, 244, 242)",
+      color: "rgb(177, 172, 163)",
+    },
+  },
+  socialBtn: {
+    textAlign: "center",
+    textDecoration: "none",
+    width: "100%",
+    paddingTop: 10,
+    paddingBottom: 10,
+    fontSize: 15,
+    fontWeight: "bold",
+    border: "none",
+    borderRadius: 10,
+    textDecoration: "none",
+    background: "#fbf9f9",
+    cursor: "pointer",
+    marginTop: 30,
+    border: "2px solid #bf9c96",
+  },
+  socialWrapper: {
+    display: "flex",
+    alignItems: "center",
+  },
+});
 
 class PasswordReset extends Component {
   constructor() {
@@ -75,8 +177,10 @@ class PasswordReset extends Component {
       loading: true,
     });
     var username = this.state.username;
-    Auth.forgotPassword(username)
+    console.log(username);
+    Auth.forgotPassword("ivan.sedelkin9@gmail.com")
       .then((data) => {
+        console.log(data);
         this.setState({
           gotUsername: true,
           loading: false,
@@ -110,6 +214,7 @@ class PasswordReset extends Component {
   render() {
     const errors = this.validate(this.state.username);
     const isDisabled = Object.keys(errors).some((x) => errors[x]);
+    const { classes } = this.props;
     return (
       <div className="login-wrapper">
         <div className="login-container">
@@ -118,37 +223,43 @@ class PasswordReset extends Component {
           </div>
           {this.state.gotUsername === false && (
             <div className="form-container">
-              <div className="input-wrappers">
-                <lable for="username">Användarnamn</lable>
-                <input
-                  type="text"
-                  className={
-                    this.shouldMarkError("username") ||
-                    this.state.usernameError === true
-                      ? "input-error custom-input"
-                      : "custom-input"
-                  }
-                  id="username"
-                  autocomplete="off"
-                  value={this.state.username}
-                  onChange={this.handleUsernameChange}
-                  onBlur={this.handleBlur("username")}
-                  onKeyDown={this.checkForEnter}
-                  autoFocus
-                ></input>
-                {this.shouldMarkError("username") ||
-                this.state.usernameError ? (
-                  <p className="input-error-message">
-                    {this.state.usernameErrorMessage}
-                  </p>
-                ) : (
-                  ""
-                )}
-              </div>
-              <button
+              <ThemeProvider theme={theme}>
+                <div className="input-wrappers">
+                  <CustomTextField
+                    className={classes.input}
+                    label="Användarnamn"
+                    type="text"
+                    fullWidth
+                    variant="outlined"
+                    onKeyDown={this.checkForEnter}
+                    value={this.state.username}
+                    onChange={this.handleUsernameChange}
+                    onBlur={this.handleBlur("username")}
+                    onKeyDown={this.checkForEnter}
+                    error={
+                      this.state.usernameError ||
+                      this.shouldMarkError("username")
+                    }
+                    helperText={
+                      this.state.usernameError ||
+                      this.shouldMarkError("username")
+                        ? this.state.usernameErrorMessage
+                        : ""
+                    }
+                    InputProps={{
+                      style: { fontSize: 15 },
+                    }}
+                    InputLabelProps={{
+                      style: { fontSize: 15 },
+                      required: true,
+                    }}
+                  ></CustomTextField>
+                </div>
+              </ThemeProvider>
+              <Button
                 disabled={isDisabled || this.state.loading}
                 type="submit"
-                className="login-button"
+                className={classes.submit}
                 onClick={() => this.managePassword()}
               >
                 {this.state.loading === true ? (
@@ -156,13 +267,14 @@ class PasswordReset extends Component {
                 ) : (
                   "Skicka kod"
                 )}
-              </button>
+              </Button>
             </div>
           )}
           {this.state.gotUsername === true && (
             <PasswordConfirmation
               username={this.state.username}
               history={this.props.history}
+              classes={classes}
             ></PasswordConfirmation>
           )}
           <div className="login-link">
@@ -201,6 +313,7 @@ class PasswordConfirmation extends Component {
       loadingResend: false,
       loadingResendDone: false,
       loading: false,
+      passwordShow: false,
     };
   }
   validate = (code, password) => {
@@ -211,7 +324,6 @@ class PasswordConfirmation extends Component {
   };
   shouldMarkError = (field) => {
     const hasError = this.validate(this.state.code, this.state.password)[field];
-    console.log(hasError);
     const shouldShow = this.state.touched[field];
     return hasError ? shouldShow : false;
   };
@@ -308,17 +420,19 @@ class PasswordConfirmation extends Component {
       loadingResend: true,
       loadingResendDone: false,
     });
-    Auth.forgotPassword(username).then((res) => {
-      setTimeout(() => {
-        this.setState({
-          loading: false,
-          loadingResend: false,
-          loadingResendDone: true,
-        });
-      }, 500);
-    }).catch(err =>{
-      console.log(err)
-    });
+    Auth.forgotPassword(username)
+      .then((res) => {
+        setTimeout(() => {
+          this.setState({
+            loading: false,
+            loadingResend: false,
+            loadingResendDone: true,
+          });
+        }, 500);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
   };
   login = () => {
     this.setState({
@@ -335,10 +449,25 @@ class PasswordConfirmation extends Component {
       })
       .catch((err) => console.log(err));
   };
+  renderPasswordVisibility = (classes) => {
+    return (
+      <InputAdornment style={{ background: "transparent" }} position="end">
+        <IconButton
+          aria-label="toggle password visibility"
+          onClick={() =>
+            this.setState({
+              passwordShow: !this.state.passwordShow,
+            })
+          }
+        >
+          {this.state.passwordShow ? <Visibility /> : <VisibilityOff />}
+        </IconButton>
+      </InputAdornment>
+    );
+  };
   render() {
     const errors = this.validate(this.state.code, this.state.password);
     const isDisabled = Object.keys(errors).some((x) => errors[x]);
-    console.log(this.state.finished);
     return (
       <div className="form-container">
         {this.state.finished === false ? (
@@ -359,75 +488,71 @@ class PasswordConfirmation extends Component {
                 <i style={{ color: "#7b8c49" }} className="fas fa-check"></i>
               )}
             </p>
-            <div className="input-wrappers">
-              <lable for="code">Kod</lable>
-              <input
-                type="number"
-                className={
-                  this.shouldMarkError("code") || this.state.codeError === true
-                    ? "input-error custom-input"
-                    : "custom-input"
-                }
-                id="code"
-                autocomplete="off"
-                value={this.state.code}
-                onChange={this.handleCodeChange}
-                onBlur={this.handleBlur("code")}
-                onKeyDown={this.checkForEnter}
-                autoFocus
-              ></input>
-              {this.shouldMarkError("code") || this.state.codeError ? (
-                <p className="input-error-message">
-                  {this.state.codeErrorMessage}
-                </p>
-              ) : (
-                ""
-              )}
-            </div>
-            <div className="input-wrappers">
-              <lable for="password">Nytt Lösenord</lable>
-              <div
-                className={`input-icon ${
-                  this.shouldMarkError("password") ||
-                  this.state.passwordError === true
-                    ? "input-error"
-                    : ""
-                }`}
-              >
-                <input
-                  type={this.state.hidden === true ? "password" : "text"}
-                  className="custom-input"
-                  id="password"
+            <ThemeProvider theme={theme}>
+              <div className="input-wrappers">
+                <CustomTextField
+                  className={this.props.classes.input}
+                  label="Kod"
+                  type="number"
+                  fullWidth
+                  variant="outlined"
+                  onKeyDown={this.checkForEnter}
+                  value={this.state.code}
+                  onChange={this.handleCodeChange}
+                  onBlur={this.handleBlur("code")}
+                  onKeyDown={this.checkForEnter}
+                  error={this.state.codeError || this.shouldMarkError("code")}
+                  helperText={
+                    this.state.codeError || this.shouldMarkError("code")
+                      ? this.state.codeErrorMessage
+                      : ""
+                  }
+                  InputProps={{
+                    style: { fontSize: 15 },
+                  }}
+                  InputLabelProps={{
+                    style: { fontSize: 15 },
+                    required: true,
+                  }}
+                ></CustomTextField>
+              </div>
+              <div className="input-wrappers">
+                <CustomTextField
+                  className={this.props.classes.input}
+                  label="Nytt Lösenord"
+                  type={this.state.passwordShow ? "text" : "password"}
+                  variant="outlined"
+                  onKeyDown={this.checkForEnter}
                   value={this.state.password}
                   onChange={this.handlePasswordChange}
                   onBlur={this.handleBlur("password")}
                   onKeyDown={this.checkForEnter}
-                ></input>
-                <button
-                  onClick={() => this.toggleHide()}
-                  className="confirmPassword"
-                >
-                  <i
-                    className={
-                      this.state.hidden === true
-                        ? "fas fa-eye"
-                        : "fas fa-eye-slash"
-                    }
-                  ></i>
-                </button>
+                  error={
+                    this.state.passwordError || this.shouldMarkError("password")
+                  }
+                  helperText={
+                    this.state.passwordError || this.shouldMarkError("password")
+                      ? this.state.passwordErrorMessage
+                      : ""
+                  }
+                  InputProps={{
+                    style: { fontSize: 15 },
+                    endAdornment: this.renderPasswordVisibility(
+                      this.props.classes
+                    ),
+                  }}
+                  InputLabelProps={{
+                    style: { fontSize: 15 },
+                    required: true,
+                  }}
+                ></CustomTextField>
+                <Link to="password-reset">Glömt lösenordet?</Link>
               </div>
-              {this.shouldMarkError("password") || this.state.passwordError ? (
-                <p className="input-error-message">
-                  {this.state.passwordErrorMessage}
-                </p>
-              ) : (
-                ""
-              )}
-            </div>
-            <button
+            </ThemeProvider>
+            <Button
               disabled={isDisabled || this.state.loading}
               type="submit"
-              className="login-button"
+              className={this.props.classes.submit}
               onClick={() => this.confirmCode()}
             >
               {this.state.loading === true ? (
@@ -435,7 +560,7 @@ class PasswordConfirmation extends Component {
               ) : (
                 "Ändra lösenordet"
               )}
-            </button>
+            </Button>
           </div>
         ) : (
           <div>
@@ -444,10 +569,10 @@ class PasswordConfirmation extends Component {
               nya lösenord automatiskt genom att trycka på knappen nedan eller
               använda inloggnings sidan
             </p>
-            <button
+            <Button
               disabled={this.state.loading}
               type="submit"
-              className="login-button"
+              className={this.props.classes.submit}
               onClick={() => this.login()}
             >
               {this.state.loading === true ? (
@@ -455,7 +580,7 @@ class PasswordConfirmation extends Component {
               ) : (
                 "Logga in"
               )}
-            </button>
+            </Button>
           </div>
         )}
       </div>
@@ -463,4 +588,4 @@ class PasswordConfirmation extends Component {
   }
 }
 
-export default PasswordReset;
+export default withStyles(useStyles)(PasswordReset);
