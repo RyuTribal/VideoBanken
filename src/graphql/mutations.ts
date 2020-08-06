@@ -253,6 +253,27 @@ export const deleteUser = `mutation DeleteUser($input: UserInput!) {
   }
 }
 `;
+export const addFollower = `mutation AddFollower($username: String, $follows: String) {
+  addFollower(username: $username, follows: $follows) {
+    username
+    follows
+  }
+}
+`;
+export const removeFollower = `mutation RemoveFollower($username: String, $follows: String) {
+  removeFollower(username: $username, follows: $follows) {
+    username
+    follows
+  }
+}
+`;
+export const detectRemovedFollower = `mutation DetectRemovedFollower($username: String, $follows: String) {
+  detectRemovedFollower(username: $username, follows: $follows) {
+    username
+    follows
+  }
+}
+`;
 export const createMessage = `mutation CreateMessage(
   $body: String!
   $username: String!

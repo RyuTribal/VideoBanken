@@ -69,6 +69,14 @@ const useStyles = () => ({
     width: theme.spacing(40),
     paddingTop: "56.25%",
   },
+  cardImageSkeleton: {
+    paddingTop: "56.25%",
+    width: "100%",
+  },
+  cardImageMobileSkeleton: {
+    width: theme.spacing(40),
+    paddingTop: "56.25%",
+  },
   mobileCard: {
     display: "inline-flex",
     justifyContent: "flex-start",
@@ -189,8 +197,8 @@ class HomeFeed extends Component {
                         variant="rect"
                         className={
                           !this.isMobile()
-                            ? classes.cardImage
-                            : classes.cardImageMobile
+                            ? classes.cardImageSkeleton
+                            : classes.cardImageMobileSkeleton
                         }
                       />
                       <CardContent>

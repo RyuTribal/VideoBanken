@@ -448,6 +448,45 @@ export type DeleteUserMutation = {
   } | null,
 };
 
+export type AddFollowerMutationVariables = {
+  username?: string | null,
+  follows?: string | null,
+};
+
+export type AddFollowerMutation = {
+  addFollower:  {
+    __typename: "Follower",
+    username: string | null,
+    follows: string | null,
+  } | null,
+};
+
+export type RemoveFollowerMutationVariables = {
+  username?: string | null,
+  follows?: string | null,
+};
+
+export type RemoveFollowerMutation = {
+  removeFollower:  Array< {
+    __typename: "Follower",
+    username: string | null,
+    follows: string | null,
+  } | null > | null,
+};
+
+export type DetectRemovedFollowerMutationVariables = {
+  username?: string | null,
+  follows?: string | null,
+};
+
+export type DetectRemovedFollowerMutation = {
+  detectRemovedFollower:  {
+    __typename: "Follower",
+    username: string | null,
+    follows: string | null,
+  } | null,
+};
+
 export type CreateMessageMutationVariables = {
   body: string,
   username: string,
@@ -814,6 +853,43 @@ export type GetUserQuery = {
   } | null,
 };
 
+export type GetFollowerQueryVariables = {
+  username?: string | null,
+  follows?: string | null,
+};
+
+export type GetFollowerQuery = {
+  getFollower:  {
+    __typename: "Follower",
+    username: string | null,
+    follows: string | null,
+  } | null,
+};
+
+export type GetFollowersQueryVariables = {
+  username?: string | null,
+};
+
+export type GetFollowersQuery = {
+  getFollowers:  Array< {
+    __typename: "Follower",
+    username: string | null,
+    follows: string | null,
+  } | null > | null,
+};
+
+export type GetFollowsQueryVariables = {
+  follows?: string | null,
+};
+
+export type GetFollowsQuery = {
+  getFollows:  Array< {
+    __typename: "Follower",
+    username: string | null,
+    follows: string | null,
+  } | null > | null,
+};
+
 export type SearchUsersQueryVariables = {
   query?: string | null,
 };
@@ -1008,5 +1084,53 @@ export type DetectRoomChangeSubscription = {
     name: string | null,
     createdAt: string | null,
     chatImg: string | null,
+  } | null,
+};
+
+export type DetectFollowerSubscriptionVariables = {
+  username?: string | null,
+};
+
+export type DetectFollowerSubscription = {
+  detectFollower:  {
+    __typename: "Follower",
+    username: string | null,
+    follows: string | null,
+  } | null,
+};
+
+export type DetectFollowsSubscriptionVariables = {
+  follows?: string | null,
+};
+
+export type DetectFollowsSubscription = {
+  detectFollows:  {
+    __typename: "Follower",
+    username: string | null,
+    follows: string | null,
+  } | null,
+};
+
+export type DeleteFollowerSubscriptionVariables = {
+  username?: string | null,
+};
+
+export type DeleteFollowerSubscription = {
+  deleteFollower:  {
+    __typename: "Follower",
+    username: string | null,
+    follows: string | null,
+  } | null,
+};
+
+export type DeleteFollowsSubscriptionVariables = {
+  follows?: string | null,
+};
+
+export type DeleteFollowsSubscription = {
+  deleteFollows:  {
+    __typename: "Follower",
+    username: string | null,
+    follows: string | null,
   } | null,
 };

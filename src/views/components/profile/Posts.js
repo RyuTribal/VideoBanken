@@ -8,6 +8,30 @@ import TimeAgo from "react-timeago";
 import swedishStrings from "react-timeago/lib/language-strings/sv";
 import buildFormatter from "react-timeago/lib/formatters/buildFormatter";
 import graySolid from "../../../img/graySolid.jpg";
+import {
+  Slider,
+  TextField,
+  Button,
+  IconButton,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
+  Toolbar,
+  AppBar,
+  Typography,
+  Grid,
+  Card,
+  CardMedia,
+  CardActionArea,
+  CardContent,
+  Avatar,
+  ThemeProvider,
+  CircularProgress,
+} from "@material-ui/core";
+import { withStyles } from "@material-ui/styles";
+import theme from "../../../theme";
 const formatter = buildFormatter(swedishStrings);
 const blinkKeyFrom = {
   from: { opacity: 0 },
@@ -32,6 +56,7 @@ const styles = StyleSheet.create({
   },
   videoPreview: {
     maxHeight: 200,
+    textDecoration: "none",
     width: "100%",
     color: "#263040",
     display: "flex",
@@ -43,6 +68,9 @@ const styles = StyleSheet.create({
     },
     zIndex: 1,
     overflow: "hidden",
+  },
+  videoTitle: {
+    textAlign: "start",
   },
   videoDetails: {
     marginLeft: 20,
@@ -58,6 +86,7 @@ const styles = StyleSheet.create({
   thumbnail: {
     width: "100%",
     background: "#efefef",
+    cursor: "pointer",
   },
   dateUsernameWrap: {
     color: "#606060",
@@ -79,6 +108,66 @@ const styles = StyleSheet.create({
     animationDuration: "1s",
     animationIterationCount: "infinite",
   },
+  errorWorkFlow: {
+    color: "#f44336",
+    fontWeight: "bold",
+    fontSize: "20",
+  },
+  loading: {
+    width: "100%",
+    display: "flex",
+    justifyContent: "center",
+  },
+});
+const useStyles = () => ({
+  root: {
+    padding: theme.spacing(3),
+    width: "100%",
+  },
+  title: {
+    fontSize: 15,
+    fontWeight: "bold",
+  },
+  username: {
+    fontSize: 13,
+  },
+  videoInfoWrapper: {
+    display: "flex",
+    flexDirection: "row",
+  },
+  videoInfoWrapperMobile: {
+    display: "flex",
+    flexDirection: "row",
+  },
+  videoInfo: {
+    flex: 9,
+    paddingLeft: theme.spacing(2),
+  },
+  cardImage: {
+    paddingTop: "56.25%",
+    width: "100%",
+  },
+  cardImageMobile: {
+    width: theme.spacing(40),
+    paddingTop: "56.25%",
+  },
+  cardImageSkeleton: {
+    paddingTop: "56.25%",
+    width: "100%",
+  },
+  cardImageMobileSkeleton: {
+    width: theme.spacing(40),
+    paddingTop: "56.25%",
+  },
+  mobileCard: {
+    display: "inline-flex",
+    justifyContent: "flex-start",
+  },
+  grid: {
+    marginBottom: 10,
+    marginRight: 10,
+    marginLeft: 10,
+  },
 });
 class Posts extends Component {
   constructor() {
@@ -86,6 +175,7 @@ class Posts extends Component {
     this.state = {
       offset: 0,
       uploads: [],
+      loading: true,
     };
   }
   componentDidMount = async () => {
@@ -135,108 +225,210 @@ class Posts extends Component {
         })
       ).then((res) => {
         console.log(res);
-        userUploads[i].status = res.data.getVideoSize.workflowStatus;
+        if (res.data.getVideoSize) {
+          userUploads[i].status = res.data.getVideoSize.workflowStatus;
+        }
       });
     }
     console.log(userUploads);
-    this.setState({ uploads: userUploads });
+    this.setState({ uploads: userUploads, loading: false });
   };
   componentDidUpdate = async (prevProps) => {};
+  isMobile = () => {
+    if (
+      window.matchMedia("(orientation: landscape)").matches &&
+      (window.matchMedia("(max-width: 813px)").matches ||
+        window.matchMedia("(max-width: 1025px) and (orientation: landscape)")
+          .matches)
+    ) {
+      return true;
+    } else {
+      return false;
+    }
+  };
   render() {
+    const { classes } = this.props;
     return (
       <div className={css(styles.container)}>
-        {this.state.uploads.length < 1 ? (
-          <div className={css(styles.uploadError)}>
-            Denna profil har inga uppladningar
+        {this.state.loading ? (
+          <div className={css(styles.loading)}>
+            <ThemeProvider theme={theme}>
+              <CircularProgress />
+            </ThemeProvider>
           </div>
         ) : (
-          <div className={css(styles.uploadWrapper)}>
-            {this.state.uploads.map((upload, i) => (
-              <div>
-                {upload.status === "Complete" ? (
-                  <Link
-                    to={`/home/watch/${upload.id}`}
-                    key={i}
-                    className={css(styles.videoPreview)}
-                  >
-                    <div
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
+          <Grid container style={{ marginTop: 10 }}>
+            {this.state.uploads.map((details, i) => (
+              <Grid
+                key={i}
+                item
+                xs={12}
+                sm={!this.isMobile() ? 6 : 12}
+                md={6}
+                lg={4}
+                xl={3}
+                className={classes.grid}
+              >
+                {details.status === "Complete" ? (
+                  <Card styles={{ position: "relative" }} title={details.title}>
+                    <Link
+                      style={{
+                        textDecoration: "none",
+                        color: "inherit",
+                        backgroundColor: "inherit",
                       }}
-                      className={css(styles.videoThumbnail)}
+                      to={`/home/watch/${details.id}`}
                     >
-                      <img
-                        className={css(styles.thumbnail)}
-                        src={upload.thumbnail}
-                      />
-                    </div>
-                    <div className={css(styles.videoDetails)}>
-                      <div className={css(styles.videoTitleWrap)}>
-                        <h3 className={css(styles.videoTitle)}>
-                          {upload.title}
-                        </h3>
-                      </div>
-                      <div className={css(styles.dateUsernameWrap)}>
-                        <p className={css(styles.likesDates)}>
-                          {`${upload.views} visningar `}
-                          <span className={css(styles.bulletElements)}>
-                            &#x25cf;
-                          </span>
-                          {` `}
-                          <TimeAgo
-                            className={css(styles.timeAgo)}
-                            date={upload.createdAt}
-                            formatter={formatter}
-                          />
-                        </p>
-                      </div>
-                    </div>
-                  </Link>
+                      <CardActionArea
+                        className={this.isMobile() ? classes.mobileCard : ""}
+                      >
+                        <CardMedia
+                          // component="img"
+                          alt="Contemplative Reptile"
+                          className={
+                            !this.isMobile()
+                              ? classes.cardImage
+                              : classes.cardImageMobile
+                          }
+                          image={details.thumbnail}
+                        />
+
+                        <CardContent>
+                          <div
+                            className={
+                              !this.isMobile
+                                ? classes.videoInfoWrapper
+                                : classes.videoInfoWrapperMobile
+                            }
+                          >
+                            <Link
+                              style={{
+                                textDecoration: "none",
+                                color: "inherit",
+                              }}
+                              to={`/home/users/${details.username}`}
+                              title={details.username}
+                            ></Link>
+                            <div className={classes.videoInfo}>
+                              <Typography
+                                className={classes.title}
+                                gutterBottom
+                                variant="h5"
+                                component="h5"
+                              >
+                                {details.title}
+                              </Typography>
+                              <Typography
+                                display="block"
+                                variant="caption"
+                                color="textSecondary"
+                              >
+                                <Link
+                                  style={{
+                                    textDecoration: "none",
+                                    color: "inherit",
+                                  }}
+                                  to={`/home/users/${details.username}`}
+                                  title={details.username}
+                                >
+                                  {details.username}
+                                </Link>
+                              </Typography>
+                              <Typography
+                                variant="caption"
+                                color="textSecondary"
+                              >
+                                {`${details.views} visningar • `}
+                                <TimeAgo
+                                  date={details.createdAt}
+                                  formatter={formatter}
+                                />
+                              </Typography>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </CardActionArea>
+                    </Link>
+                  </Card>
                 ) : (
-                  <div key={i} className={css(styles.videoPreview)}>
+                  <Card styles={{ position: "relative" }} title={details.title}>
                     <div
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
+                      style={{
+                        textDecoration: "none",
+                        color: "inherit",
+                        backgroundColor: "inherit",
                       }}
-                      className={css(styles.videoThumbnail)}
                     >
-                      <img src={graySolid} className={css(styles.thumbnail)} />
+                      <CardActionArea
+                        className={this.isMobile() ? classes.mobileCard : ""}
+                      >
+                        <CardMedia
+                          // component="img"
+                          alt="Contemplative Reptile"
+                          className={
+                            !this.isMobile()
+                              ? classes.cardImage
+                              : classes.cardImageMobile
+                          }
+                          image={graySolid}
+                        />
+
+                        <CardContent>
+                          <div
+                            className={
+                              !this.isMobile
+                                ? classes.videoInfoWrapper
+                                : classes.videoInfoWrapperMobile
+                            }
+                          >
+                            <div className={classes.videoInfo}>
+                              <Typography
+                                className={classes.title}
+                                gutterBottom
+                                variant="h5"
+                                component="h5"
+                              >
+                                {details.title}
+                              </Typography>
+                              <Typography
+                                display="block"
+                                variant="caption"
+                                color="textSecondary"
+                              >
+                                {details.status === "Error" ? (
+                                  <div className={css(styles.errorWorkFlow)}>
+                                    Något fel upstod i videotranskodningen!
+                                  </div>
+                                ) : (
+                                  <div className={css(styles.workFlowStatus)}>
+                                    Videon bearbetas...
+                                  </div>
+                                )}
+                              </Typography>
+                              <Typography
+                                variant="caption"
+                                color="textSecondary"
+                              >
+                                {`${details.views} visningar • `}
+                                <TimeAgo
+                                  date={details.createdAt}
+                                  formatter={formatter}
+                                />
+                              </Typography>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </CardActionArea>
                     </div>
-                    <div className={css(styles.videoDetails)}>
-                      <div className={css(styles.videoTitleWrap)}>
-                        <h3 className={css(styles.videoTitle)}>
-                          {upload.title}
-                        </h3>
-                      </div>
-                      <div className={css(styles.dateUsernameWrap)}>
-                        <div className={css(styles.workFlowStatus)}>
-                          Videon bearbetas...
-                        </div>
-                        <p className={css(styles.likesDates)}>
-                          {`${upload.views} visningar `}
-                          <span className={css(styles.bulletElements)}>
-                            &#x25cf;
-                          </span>
-                          {` `}
-                          <TimeAgo
-                            className={css(styles.timeAgo)}
-                            date={upload.createdAt}
-                            formatter={formatter}
-                          />
-                        </p>
-                      </div>
-                    </div>
-                  </div>
+                  </Card>
                 )}
-              </div>
+              </Grid>
             ))}
-          </div>
+          </Grid>
         )}
       </div>
     );
   }
 }
 
-export default Posts;
+export default withStyles(useStyles)(Posts);

@@ -389,6 +389,15 @@ class Home extends Component {
           }}
         /> */}
         <StyledSidebar
+          openFollower={(followerVer, userInfo) =>
+            this.setState({
+              followerProps: {
+                followerVer: followerVer,
+                userInfo: userInfo,
+              },
+              followersModal: true,
+            })
+          }
           title={this.state.selectedItem}
           selectedItem={this.state.selectedItem}
           logout={this.logout}
@@ -479,6 +488,15 @@ class Home extends Component {
                             // this.setState({})
                           }
                         }}
+                        openFollower={(followerVer, userInfo) =>
+                          this.setState({
+                            followerProps: {
+                              followerVer: followerVer,
+                              userInfo: userInfo,
+                            },
+                            followersModal: true,
+                          })
+                        }
                       />
                     )}
                   />
@@ -529,6 +547,10 @@ function mapDispatchToProps(dispatch) {
     remove_notifications: (id) =>
       dispatch({ type: "REMOVE_NOTIFICATIONS", id: id }),
     clear_selected_room: () => dispatch({ type: "CLEAR_SELECTED_ROOM" }),
+    set_followers: (followerAmmount) =>
+      dispatch({ type: "SET_FOLLOWERS", followerAmmount: followerAmmount }),
+    set_follows: (followsAmmount) =>
+      dispatch({ type: "SET_FOLLOWS", followsAmmount: followsAmmount }),
   };
 }
 

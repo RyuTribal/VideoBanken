@@ -65,3 +65,31 @@ export const detectRoomChange = `subscription DetectRoomChange($id: Int) {
   }
 }
 `;
+export const detectFollower = `subscription DetectFollower($username: String) {
+  detectFollower(username: $username) {
+    username
+    follows
+  }
+}
+`;
+export const detectFollows = `subscription DetectFollows($follows: String) {
+  detectFollows(follows: $follows) {
+    username
+    follows
+  }
+}
+`;
+export const deleteFollower = `subscription DeleteFollower($username: String) {
+  deleteFollower(username: $username) {
+    username
+    follows
+  }
+}
+`;
+export const deleteFollows = `subscription DeleteFollows($follows: String) {
+  deleteFollows(follows: $follows) {
+    username
+    follows
+  }
+}
+`;

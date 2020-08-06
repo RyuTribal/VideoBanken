@@ -11,4 +11,4 @@ projects:
         generatedFileName: src\API.ts
         docsFilePath: src\graphql
         region: eu-west-1
-        maxDepth: 50
+        maxDepth: 60

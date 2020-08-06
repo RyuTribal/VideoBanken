@@ -19,7 +19,7 @@ import {
   AppBar,
   Typography,
   Drawer,
-  Hidden,
+  ButtonBase,
   List,
   ListItem,
   ListItemIcon,
@@ -345,6 +345,7 @@ class SidebarComponent extends React.Component {
         <List>
           {["Logga ut"].map((text, index) => (
             <ListItem
+              onClick={this.props.logout}
               className={
                 this.props.selectedItem === text
                   ? classes.activeTitle

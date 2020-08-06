@@ -116,6 +116,16 @@ const states = (state = initialState, action) => {
         });
       }
       return initialState;
+    case "SET_FOLLOWS":
+      return {
+        ...state,
+        user: { ...state.user, following: action.followsAmmount },
+      };
+    case "SET_FOLLOWERS":
+      return {
+        ...state,
+        user: { ...state.user, followers: action.followersAmmount },
+      };
     case "SET_NOTIFICATIONS":
       let notificationState = state;
       notificationState.notifications = action.notifications;

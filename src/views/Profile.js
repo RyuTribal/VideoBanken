@@ -16,7 +16,8 @@ import { Auth, API, graphqlOperation } from "aws-amplify";
 import * as queries from "../graphql/queries";
 import * as mutations from "../graphql/mutations";
 import { Button } from "@material-ui/core";
-
+import { connect } from "react-redux";
+import Followers from "./components/profile/Followers";
 const styles = StyleSheet.create({
   container: {
     width: "100%",
@@ -154,6 +155,14 @@ const styles = StyleSheet.create({
     "@media (max-width: 1025px) and (orientation: landscape)": {
       width: "100%",
       marginTop: 20,
+    },
+  },
+  followsButton: {
+    background: "unset",
+    color: "black",
+    border: "1px solid #ea3a3a",
+    ":hover": {
+      backgroundColor: "rgba(0, 0, 0, 0.04)",
     },
   },
   followersWrapper: {
@@ -319,6 +328,9 @@ class Profile extends Component {
       userExists: true,
       userProfile: false,
       modal: false,
+      follows: false,
+      following: false,
+      followersModal: false,
     };
   }
   componentDidMount = async () => {
@@ -326,13 +338,15 @@ class Profile extends Component {
       user: this.props.match.params.user,
     });
     const currentUser = await Auth.currentAuthenticatedUser();
-    if (currentUser.username === this.state.user) {
+    if (currentUser.username === this.props.match.params.user) {
       this.setState({ userProfile: true });
+    } else {
+      this.setState({ userProfile: false });
     }
-    this.props.onChange(`@${this.state.user}`);
+    this.props.onChange(`@${this.props.match.params.user}`);
     await API.graphql(
       graphqlOperation(queries.getUser, {
-        username: this.state.user,
+        username: this.props.match.params.user,
       })
     )
       .then((res) => {
@@ -345,11 +359,39 @@ class Profile extends Component {
         console.log(res.data.getUser);
       })
       .catch((err) => this.setState({ userExists: false }));
+    if (!this.state.userProfile && this.props.state.user) {
+      this.getFollows();
+    }
   };
-  componentDidUpdate = async (prevProps, prevState) => {
+  componentDidUpdate = async (prevProps) => {
     if (prevProps.match.params.user !== this.props.match.params.user) {
       this.componentDidMount();
     }
+    if (prevProps.state.user !== this.props.state.user) {
+      this.getFollows();
+    }
+  };
+  getFollows = async () => {
+    await API.graphql(
+      graphqlOperation(queries.getFollower, {
+        username: this.props.state.user.username,
+        follows: this.state.userInfo.username,
+      })
+    ).then((res) => {
+      if (res.data.getFollower) {
+        this.setState({ following: true });
+      }
+    });
+    await API.graphql(
+      graphqlOperation(queries.getFollower, {
+        username: this.state.userInfo.username,
+        follows: this.props.state.user.username,
+      })
+    ).then((res) => {
+      if (res.data.getFollower) {
+        this.setState({ follows: true });
+      }
+    });
   };
   isMobile = () => {
     if (
@@ -362,9 +404,47 @@ class Profile extends Component {
       return false;
     }
   };
+  handleFollow = async () => {
+    await API.graphql(
+      graphqlOperation(
+        this.state.following ? mutations.removeFollower : mutations.addFollower,
+        {
+          username: this.props.state.user.username,
+          follows: this.state.userInfo.username,
+        }
+      )
+    ).then((res) => {
+      this.setState({ following: !this.state.following });
+    });
+  };
   render() {
+    console.log(this.state.userInfo);
     return (
       <div className={css(styles.container)}>
+        {this.state.followersModal && (
+          <Followers
+            followerProps={this.state.followerProps}
+            closeModal={() => this.setState({ followersModal: false })}
+            set_follows={(ammountFollows) => {
+              console.log(ammountFollows);
+              this.setState({
+                userInfo: {
+                  ...this.state.userInfo,
+                  followers: ammountFollows,
+                },
+              });
+            }}
+            set_followers={(ammountFollowers) => {
+              console.log(ammountFollowers);
+              this.setState({
+                userInfo: {
+                  ...this.state.userInfo,
+                  following: ammountFollowers,
+                },
+              });
+            }}
+          />
+        )}
         {this.state.modal && (
           <Modal
             image={this.state.image}
@@ -404,16 +484,46 @@ class Profile extends Component {
                     Redigera kontot
                   </Button>
                 ) : (
-                  <Button className={css(styles.callToAction)}>Följ</Button>
+                  <Button
+                    onClick={this.handleFollow}
+                    className={css(
+                      styles.callToAction,
+                      this.state.following && styles.followsButton
+                    )}
+                  >
+                    {this.state.following ? "Följer" : "Följ"}
+                  </Button>
                 )}
                 <div className={css(styles.followersWrapper)}>
-                  <div className={css(styles.followers)}>
+                  <div
+                    onClick={() =>
+                      this.setState({
+                        followersModal: true,
+                        followerProps: {
+                          followerVer: true,
+                          userInfo: this.state.userInfo,
+                        },
+                      })
+                    }
+                    className={css(styles.followers)}
+                  >
                     <div className={css(styles.ammountFollowers)}>
                       {this.state.userInfo.followers}
                     </div>
                     {` följare`}
                   </div>
-                  <div className={css(styles.followers)}>
+                  <div
+                    onClick={() =>
+                      this.setState({
+                        followersModal: true,
+                        followerProps: {
+                          followerVer: false,
+                          userInfo: this.state.userInfo,
+                        },
+                      })
+                    }
+                    className={css(styles.followers)}
+                  >
                     <div className={css(styles.ammountFollowers)}>
                       {this.state.userInfo.following}
                     </div>
@@ -453,16 +563,46 @@ class Profile extends Component {
                     Redigera kontot
                   </Button>
                 ) : (
-                  <Button className={css(styles.callToAction)}>Följ</Button>
+                  <Button
+                    onClick={this.handleFollow}
+                    className={css(
+                      styles.callToAction,
+                      this.state.following && styles.followsButton
+                    )}
+                  >
+                    {this.state.following ? "Följer" : "Följ"}
+                  </Button>
                 )}
                 <div className={css(styles.followersWrapper)}>
-                  <div className={css(styles.followers)}>
+                  <div
+                    onClick={() =>
+                      this.setState({
+                        followersModal: true,
+                        followerProps: {
+                          followerVer: true,
+                          userInfo: this.state.userInfo,
+                        },
+                      })
+                    }
+                    className={css(styles.followers)}
+                  >
                     <div className={css(styles.ammountFollowers)}>
                       {this.state.userInfo.followers}
                     </div>
                     {` följare`}
                   </div>
-                  <div className={css(styles.followers)}>
+                  <div
+                    onClick={() =>
+                      this.setState({
+                        followersModal: true,
+                        followerProps: {
+                          followerVer: false,
+                          userInfo: this.state.userInfo,
+                        },
+                      })
+                    }
+                    className={css(styles.followers)}
+                  >
                     <div className={css(styles.ammountFollowers)}>
                       {this.state.userInfo.following}
                     </div>
@@ -562,5 +702,38 @@ class Profile extends Component {
     );
   }
 }
-
-export default withRouter(Profile);
+function mapStateToProps(state) {
+  return {
+    state: state,
+  };
+}
+function mapDispatchToProps(dispatch) {
+  return {
+    set_rooms: (rooms) => dispatch({ type: "SET_ROOMS", rooms: rooms }),
+    add_room: (room) => dispatch({ type: "ADD_ROOM", room: room }),
+    remove_room: (id) => dispatch({ type: "REMOVE_ROOM", id, id }),
+    add_subscription: (subscription) =>
+      dispatch({ type: "ADD_SUBSCRIPTION", subscription: subscription }),
+    remove_subscription: (id) =>
+      dispatch({ type: "REMOVE_SUBSCRIPTION", id: id }),
+    add_message: (message, settingLast) =>
+      dispatch({ type: "ADD_MESSAGE", message: message, settingLast: true }),
+    change_room: (id) => dispatch({ type: "CHANGE_ROOM", id: id }),
+    add_user: (user) => dispatch({ type: "ADD_USER", user: user }),
+    clear_state: () => dispatch({ type: "CLEAR_STATE" }),
+    set_notifications: (notifications) =>
+      dispatch({ type: "SET_NOTIFICATIONS", notifications: notifications }),
+    add_notification: (notification) =>
+      dispatch({ type: "ADD_NOTIFICATION", notification: notification }),
+    remove_notifications: (id) =>
+      dispatch({ type: "REMOVE_NOTIFICATIONS", id: id }),
+    clear_selected_room: () => dispatch({ type: "CLEAR_SELECTED_ROOM" }),
+    set_follower: (followerAmmount) =>
+      dispatch({ type: "SET_FOLLOWER", followerAmmount: followerAmmount }),
+    set_follows: (followsAmmount) =>
+      dispatch({ type: "SET_FOLLOWS", followsAmmount: followsAmmount }),
+  };
+}
+export default withRouter(
+  connect(mapStateToProps, mapDispatchToProps)(Profile)
+);

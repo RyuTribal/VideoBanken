@@ -197,6 +197,27 @@ export const getUser = `query GetUser($username: String) {
   }
 }
 `;
+export const getFollower = `query GetFollower($username: String, $follows: String) {
+  getFollower(username: $username, follows: $follows) {
+    username
+    follows
+  }
+}
+`;
+export const getFollowers = `query GetFollowers($username: String) {
+  getFollowers(username: $username) {
+    username
+    follows
+  }
+}
+`;
+export const getFollows = `query GetFollows($follows: String) {
+  getFollows(follows: $follows) {
+    username
+    follows
+  }
+}
+`;
 export const searchUsers = `query SearchUsers($query: String) {
   searchUsers(query: $query) {
     username
