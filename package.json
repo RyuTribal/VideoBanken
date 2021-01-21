@@ -16,7 +16,7 @@
     "@testing-library/user-event": "^7.1.2",
     "apollo-boost": "^0.4.9",
     "aws-amplify": "^3.0.24",
-    "immer": "^6.0.1",
+    "immer": "^8.0.1",
     "react": "^16.13.1",
     "react-avatar-edit": "^0.8.3",
     "react-dom": "^16.13.1",
